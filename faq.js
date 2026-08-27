@@ -1,0 +1,20 @@
+(function(){
+  const faqs=[
+    ['How do I choose a product?','Each catalog item can have multiple strengths and formats. The storefront displays the Vial option first by default; use the format selector to switch to Pen, then select the required strength. Price, stock status and the product image update with the selected variation.'],
+    ['What is included in the Prefilled Pen Set?','The Pen format includes the selected prefilled disposable pen together with compatible pen needles. Device preparation and needle handling require more explanation than a short FAQ, so follow the product-specific pen guide supplied for the exact device.'],
+    ['What is included in the Vial Set?','The Vial Set includes the selected vial, BAC water and a reconstitution syringe set. Reconstitution, aseptic handling and post-reconstitution stability are product-specific and should follow the documentation applicable to the exact product.'],
+    ['What does cold chain mean for delivery?','Cold-chain packaging is temperature-conscious protective packaging designed to slow heat transfer and reduce unnecessary thermal exposure while a parcel is in transit. It should not be interpreted as a guarantee that an ordinary courier parcel remains at one exact refrigerator temperature every minute.'],
+    ['What should I do when my parcel arrives?','Inspect the outer parcel and internal packaging for damage or leakage, then follow the storage information supplied for the actual product promptly. Avoid leaving temperature-sensitive materials in a hot vehicle, direct sunlight or another unnecessarily warm environment.'],
+    ['How do I track my order?','After an SPX tracking number is assigned, the number and available tracking status can be shown in the Member Area. Tracking information may take time to appear after a parcel is first handed to the carrier.'],
+    ['Where can I learn about the compounds?','The Research Catalog / Peptide Insights section separates molecular identity, pathways, research areas and evidence context from the shopping interface. It is intended as an educational research reference rather than individualized medical advice.']
+  ];
+  function row(q,a,i){return `<article class="faqrow"><button class="faqquestion" aria-expanded="false" onclick="toggleFaq(this)"><span>${q}</span><b>+</b></button><div class="faqanswer"><p>${a}</p>${i===2?`<div class="faqvideo"><iframe src="https://www.youtube-nocookie.com/embed/b08QwxZW0Ig" title="Vial reconstitution video tutorial" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>`:''}</div></article>`}
+  window.openFAQ=function(){
+    let p=document.getElementById('faqPage');
+    if(!p){p=document.createElement('section');p.id='faqPage';p.className='faqpage';document.body.appendChild(p)}
+    p.innerHTML=`<div class="faqinner"><button class="faqclose" onclick="closeFAQ()">×</button><div class="faqhero"><span>AI BIOTECH KNOWLEDGE CENTRE</span><h1>Frequently Asked Questions</h1><p>Practical information about product formats, handling, storage, cold-chain delivery, orders and research resources.</p></div><div class="faqintro"><b>Quick answers. Detailed guidance when you need it.</b><p>Open a question for the short answer. Product-specific instructions should always take priority over general website guidance.</p></div><div class="faqlist">${faqs.map((x,i)=>row(x[0],x[1],i)).join('')}</div></div>`;
+    p.classList.add('show');document.body.style.overflow='hidden';
+  };
+  window.closeFAQ=function(){const p=document.getElementById('faqPage');if(p)p.classList.remove('show');document.body.style.overflow=''};
+  window.toggleFaq=function(btn){const open=btn.getAttribute('aria-expanded')==='true';btn.setAttribute('aria-expanded',String(!open));btn.querySelector('b').textContent=open?'+':'−';btn.parentElement.classList.toggle('open',!open)};
+})();
