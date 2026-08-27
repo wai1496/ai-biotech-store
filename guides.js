@@ -18,4 +18,6 @@
     p.classList.add('show');document.body.style.overflow='hidden';p.scrollTop=0;
   };
   window.closeGuides=function(){const p=document.getElementById('guidesPage');if(p)p.classList.remove('show');document.body.style.overflow=''};
+  const css=document.createElement('link');css.rel='stylesheet';css.href='/research.css';document.head.appendChild(css);
+  const js=document.createElement('script');js.src='/research.js';js.onload=()=>{const blend=[...document.querySelectorAll('.nav button')].find(b=>/BLENDS/i.test(b.textContent||''));if(blend){blend.textContent='⌘ RESEARCH';blend.onclick=()=>window.openResearch&&window.openResearch()}const panel=[...document.querySelectorAll('.panels>div')].find(x=>/RESEARCH CATALOG/i.test(x.textContent||''));if(panel){panel.style.cursor='pointer';panel.onclick=()=>window.openResearch&&window.openResearch()}};document.body.appendChild(js);
 })();
