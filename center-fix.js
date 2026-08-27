@@ -1,6 +1,28 @@
-/* Fine alignment override for dynamic master templates. Keeps product name and strength optically centered. */
+/* Fine alignment override for dynamic master templates.
+   Uses the actual glyph bounding box, not only text advance width, so names such as
+   TIRZEPATIDE sit visually in the exact centre of the printed frame. */
 (function(){
-  const baseVisual = window.visual;
+  function fitOptical(ctx,text,cx,cy,maxW,start,weight,fill,minSize=18){
+    text=String(text||'');
+    ctx.textBaseline='middle';
+    ctx.fillStyle=fill;
+    let size=start, m;
+    for(;size>minSize;size-=2){
+      ctx.font=`${weight} ${size}px Arial`;
+      m=ctx.measureText(text);
+      const ink=(m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0);
+      if(ink<=maxW) break;
+    }
+    m=ctx.measureText(text);
+    const left=m.actualBoundingBoxLeft||0;
+    const right=m.actualBoundingBoxRight||m.width;
+    const ink=right-left;
+    ctx.textAlign='left';
+    /* Put the centre of the actual visible letters exactly on cx. */
+    const drawX=cx-(ink/2)-left;
+    ctx.fillText(text,drawX,cy);
+  }
+
   window.visual = function(p,v,el){
     const rr=real(p,v);
     if(rr){el.innerHTML=`<img src="${rr}" alt="${p.name}">`;return}
@@ -15,15 +37,16 @@
       x.drawImage(im,ox,oy,w,h);
       recolorOrange(x,color(p));
       const nm=String(p.name||'').replace(/\s+\d+(?:\.\d+)?\s*(MG|ML)$/i,'').trim();
+
       if(form==='Vial'){
         tintNeutral(x,459,49,616,150,color(p),.94);
-        /* Exact visual centre of the master name and strength frames. */
-        fit(x,nm,768,818,430,66,900,color(p));
-        fit(x,main(v.strength),768,977,230,58,900,'#111');
+        /* Master vial frame centres. */
+        fitOptical(x,nm,768,820,430,66,900,color(p),20);
+        fitOptical(x,main(v.strength),768,977,230,58,900,'#111',20);
       }else{
-        /* Pen master: centre text inside the long name slot and strength window. */
-        fit(x,nm,901,735,330,48,900,color(p));
-        fit(x,main(v.strength),1191,741,84,32,900,'#111');
+        /* Master pen name panel + strength window. */
+        fitOptical(x,nm,901,735,330,48,900,color(p),18);
+        fitOptical(x,main(v.strength),1191,741,84,32,900,'#111',16);
       }
       el.innerHTML='';el.appendChild(c);
     };
