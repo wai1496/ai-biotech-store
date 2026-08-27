@@ -1,0 +1,32 @@
+/* Fine alignment override for dynamic master templates. Keeps product name and strength optically centered. */
+(function(){
+  const baseVisual = window.visual;
+  window.visual = function(p,v,el){
+    const rr=real(p,v);
+    if(rr){el.innerHTML=`<img src="${rr}" alt="${p.name}">`;return}
+    const form=v?.form||'Vial',src=masters[form];
+    if(!src){el.innerHTML=`<div class="missing"><b>${form} MASTER NOT UPLOADED</b><br><small>Admin → Master Placeholders</small></div>`;return}
+    const im=new Image();
+    im.onload=()=>{
+      const c=document.createElement('canvas'),x=c.getContext('2d');
+      c.width=1536;c.height=1536;
+      x.fillStyle='#000';x.fillRect(0,0,1536,1536);
+      const sc=Math.min(1536/im.width,1536/im.height),w=im.width*sc,h=im.height*sc,ox=(1536-w)/2,oy=(1536-h)/2;
+      x.drawImage(im,ox,oy,w,h);
+      recolorOrange(x,color(p));
+      const nm=String(p.name||'').replace(/\s+\d+(?:\.\d+)?\s*(MG|ML)$/i,'').trim();
+      if(form==='Vial'){
+        tintNeutral(x,459,49,616,150,color(p),.94);
+        /* Exact visual centre of the master name and strength frames. */
+        fit(x,nm,768,818,430,66,900,color(p));
+        fit(x,main(v.strength),768,977,230,58,900,'#111');
+      }else{
+        /* Pen master: centre text inside the long name slot and strength window. */
+        fit(x,nm,901,735,330,48,900,color(p));
+        fit(x,main(v.strength),1191,741,84,32,900,'#111');
+      }
+      el.innerHTML='';el.appendChild(c);
+    };
+    im.src=src;
+  };
+})();
