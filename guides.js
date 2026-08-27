@@ -23,5 +23,6 @@
     const blend=[...document.querySelectorAll('.nav button')].find(b=>/BLENDS|RESEARCH/i.test(b.textContent||''));if(blend){blend.textContent='⌘ RESEARCH';blend.onclick=()=>window.openResearch&&window.openResearch()}
     const panel=[...document.querySelectorAll('.panels>div')].find(x=>/RESEARCH CATALOG/i.test(x.textContent||''));if(panel){panel.style.cursor='pointer';panel.onclick=()=>window.openResearch&&window.openResearch()}
     const enhance=document.createElement('script');enhance.src='/research-enhance.js';document.body.appendChild(enhance);
+    const full=document.createElement('script');full.src='/research-detail-full.js';document.body.appendChild(full);
   };document.body.appendChild(js);
 })();
