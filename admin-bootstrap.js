@@ -3,14 +3,18 @@
   function load(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.async=false;s.onload=()=>resolve(src);s.onerror=()=>reject(new Error('Failed to load '+src));document.head.appendChild(s)})}
   async function bootDashboard(){
     try{
-      // Do not write dashboard loading failures into the login/authentication message area.
-      await load('https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin.js');
+      // Load the legacy dashboard through the current deployment so mobile browsers do not depend on an old Vercel hostname.
+      await load('/api/legacy-admin');
       Promise.allSettled([
         load('https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/invoice-render.js'),
         load('https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/protocol-document.js'),
         load('/admin-enhancements.js')
       ]).then(results=>results.forEach(r=>{if(r.status==='rejected')console.warn(r.reason)}));
-    }catch(e){console.warn('Optional legacy dashboard script unavailable:',e)}
+      if(typeof window.boot==='function'){
+        const {data}=await window.supabase.createClient('https://yjauxyvtrmdriwtmckkl.supabase.co','sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF').auth.getSession();
+        if(data?.session)window.boot();
+      }
+    }catch(e){console.warn('Dashboard script unavailable:',e)}
   }
   if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',bootDashboard,{once:true});else bootDashboard();
 })();
