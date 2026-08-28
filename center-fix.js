@@ -103,3 +103,9 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
+
+/* Global reusable biotech background. This only creates a fixed pointer-events:none canvas layer and never modifies storefront interactions. */
+(function(){
+  if(window.__AIBioTechBackgroundLoader)return;window.__AIBioTechBackgroundLoader=true;
+  const s=document.createElement('script');s.src='/biotech-animated-background.js';s.defer=true;document.head.appendChild(s);
+})();
