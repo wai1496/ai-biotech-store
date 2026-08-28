@@ -7,14 +7,10 @@
 <link rel="stylesheet" href="/admin-local.css">
 </head>
 <body>
-<section id="login" class="login card"><h1>Ai BioTech Admin</h1><p class="muted">Protected administration</p><input id="email" type="email" placeholder="Admin email"><input id="password" type="password" placeholder="Password"><button class="btn primary" onclick="signIn()">Sign in</button><button class="btn" onclick="signUp()">Create admin account</button><button class="btn" onclick="resetPassword()">Forgot password</button><p id="loginError"></p></section>
-<section id="recovery" class="login card" hidden><h1>Choose a new password</h1><p class="muted">Enter your new admin password below.</p><input id="newPassword" type="password" minlength="8" placeholder="New password"><button class="btn primary" onclick="saveNewPassword()">Save new password</button><p id="recoveryError"></p></section>
-<div id="app" class="shell" hidden><aside class="side"><div class="brand"><span>AI</span> BioTech</div><nav id="nav"></nav></aside><main class="main"><header class="top"><h1 id="title">Dashboard</h1><a class="btn" href="/">Store</a><button class="btn" onclick="signOut()">Sign out</button></header><div id="content"></div></main></div>
+<section id="login" class="login card"><h1>Ai BioTech Admin</h1><p class="muted">Protected administration</p><input id="email" type="email" placeholder="Admin email"><input id="password" type="password" placeholder="Password"><button class="btn primary" onclick="typeof signIn==='function'?signIn():document.getElementById('loginError').textContent='Admin is still loading. Please tap again in a moment.'">Sign in</button><button class="btn" onclick="typeof signUp==='function'?signUp():document.getElementById('loginError').textContent='Admin is still loading. Please tap again in a moment.'">Create admin account</button><button class="btn" onclick="typeof resetPassword==='function'?resetPassword():document.getElementById('loginError').textContent='Admin is still loading. Please tap again in a moment.'">Forgot password</button><p id="loginError"></p></section>
+<section id="recovery" class="login card" hidden><h1>Choose a new password</h1><p class="muted">Enter your new admin password below.</p><input id="newPassword" type="password" minlength="8" placeholder="New password"><button class="btn primary" onclick="typeof saveNewPassword==='function'?saveNewPassword():document.getElementById('recoveryError').textContent='Admin is still loading.'">Save new password</button><p id="recoveryError"></p></section>
+<div id="app" class="shell" hidden><aside class="side"><div class="brand"><span>AI</span> BioTech</div><nav id="nav"></nav></aside><main class="main"><header class="top"><h1 id="title">Dashboard</h1><a class="btn" href="/">Store</a><button class="btn" onclick="typeof signOut==='function'&&signOut()">Sign out</button></header><div id="content"></div></main></div>
 <dialog id="editor"><form method="dialog" id="editForm"><h2 id="editTitle"></h2><div id="fields" class="fields"></div><div><button class="btn" value="cancel">Cancel</button><button id="saveEdit" class="btn primary">Save</button></div></form></dialog><div id="toast" class="toast"></div>
 <div id="aibtModalHost"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/invoice-render.js"></script>
-<script src="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/protocol-document.js"></script>
-<script src="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin.js"></script>
-<script src="/admin-enhancements.js"></script>
+<script src="/admin-bootstrap.js"></script>
 </body></html>
