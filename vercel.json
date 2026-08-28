@@ -1,6 +1,0 @@
-{
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/$1" }
-  ]
-}
