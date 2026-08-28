@@ -1,16 +1,19 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ai BioTech Admin</title>
-<link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin.css">
-<link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin-fixes.css">
-<link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin-protocol.css">
-<link rel="stylesheet" href="/admin-enhancements.css">
-<link rel="stylesheet" href="/admin-local.css">
-</head>
+<link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin.css"><link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin-fixes.css"><link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin-protocol.css"><link rel="stylesheet" href="/admin-enhancements.css"><link rel="stylesheet" href="/admin-local.css"></head>
 <body>
-<section id="login" class="login card"><h1>Ai BioTech Admin</h1><p class="muted">Protected administration</p><input id="email" type="email" placeholder="Admin email"><input id="password" type="password" placeholder="Password"><button class="btn primary" onclick="typeof signIn==='function'?signIn():document.getElementById('loginError').textContent='Admin is still loading. Please tap again in a moment.'">Sign in</button><button class="btn" onclick="typeof signUp==='function'?signUp():document.getElementById('loginError').textContent='Admin is still loading. Please tap again in a moment.'">Create admin account</button><button class="btn" onclick="typeof resetPassword==='function'?resetPassword():document.getElementById('loginError').textContent='Admin is still loading. Please tap again in a moment.'">Forgot password</button><p id="loginError"></p></section>
-<section id="recovery" class="login card" hidden><h1>Choose a new password</h1><p class="muted">Enter your new admin password below.</p><input id="newPassword" type="password" minlength="8" placeholder="New password"><button class="btn primary" onclick="typeof saveNewPassword==='function'?saveNewPassword():document.getElementById('recoveryError').textContent='Admin is still loading.'">Save new password</button><p id="recoveryError"></p></section>
+<section id="login" class="login card"><h1>Ai BioTech Admin</h1><p class="muted">Protected administration</p><input id="email" type="email" placeholder="Admin email"><input id="password" type="password" placeholder="Password"><button id="loginBtn" class="btn primary" type="button">Sign in</button><button id="signupBtn" class="btn" type="button">Create admin account</button><button id="resetBtn" class="btn" type="button">Forgot password</button><p id="loginError"></p></section>
+<section id="recovery" class="login card" hidden><h1>Choose a new password</h1><p class="muted">Enter your new admin password below.</p><input id="newPassword" type="password" minlength="8" placeholder="New password"><button id="savePasswordBtn" class="btn primary" type="button">Save new password</button><p id="recoveryError"></p></section>
 <div id="app" class="shell" hidden><aside class="side"><div class="brand"><span>AI</span> BioTech</div><nav id="nav"></nav></aside><main class="main"><header class="top"><h1 id="title">Dashboard</h1><a class="btn" href="/">Store</a><button class="btn" onclick="typeof signOut==='function'&&signOut()">Sign out</button></header><div id="content"></div></main></div>
-<dialog id="editor"><form method="dialog" id="editForm"><h2 id="editTitle"></h2><div id="fields" class="fields"></div><div><button class="btn" value="cancel">Cancel</button><button id="saveEdit" class="btn primary">Save</button></div></form></dialog><div id="toast" class="toast"></div>
-<div id="aibtModalHost"></div>
+<dialog id="editor"><form method="dialog" id="editForm"><h2 id="editTitle"></h2><div id="fields" class="fields"></div><div><button class="btn" value="cancel">Cancel</button><button id="saveEdit" class="btn primary">Save</button></div></form></dialog><div id="toast" class="toast"></div><div id="aibtModalHost"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(function(){const URL='https://yjauxyvtrmdriwtmckkl.supabase.co',KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';let client=null;const msg=(s)=>loginError.textContent=s;function getClient(){if(client)return client;if(!window.supabase?.createClient){msg('Login service is still loading. Refresh once.');return null}return client=window.supabase.createClient(URL,KEY)}
+loginBtn.onclick=async()=>{const c=getClient();if(!c)return;msg('Signing in…');loginBtn.disabled=true;const {data,error}=await c.auth.signInWithPassword({email:email.value.trim(),password:password.value});loginBtn.disabled=false;if(error)return msg(error.message);msg('Signed in. Loading dashboard…');if(typeof window.boot==='function')return window.boot();location.reload()};
+resetBtn.onclick=async()=>{const c=getClient(),address=email.value.trim();if(!c)return;if(!address)return msg('Enter your admin email first.');const {error}=await c.auth.resetPasswordForEmail(address,{redirectTo:location.origin+'/admin.html?type=recovery'});msg(error?error.message:'Password reset email sent. Check your inbox.')};
+signupBtn.onclick=()=>msg('Admin accounts are managed by the Super Admin. Please sign in or use Forgot password.');
+savePasswordBtn.onclick=async()=>{const c=getClient();if(!c)return;const p=newPassword.value;if(p.length<8)return recoveryError.textContent='Use at least 8 characters.';const {error}=await c.auth.updateUser({password:p});recoveryError.textContent=error?error.message:'Password updated. You can sign in now.'};
+})();
+</script>
 <script src="/admin-bootstrap.js"></script>
 </body></html>
