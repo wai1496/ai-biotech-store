@@ -63,3 +63,12 @@
     });
   };document.body.appendChild(s);
 })();
+
+/* Premium animated DNA background layer. Kept separate from storefront logic so it cannot affect catalog, cart, member or admin functions. */
+(function(){
+  if(document.querySelector('link[href="/dna-motion.css"]'))return;
+  const css=document.createElement('link');
+  css.rel='stylesheet';
+  css.href='/dna-motion.css';
+  document.head.appendChild(css);
+})();
