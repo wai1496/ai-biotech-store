@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ai BioTech Admin</title>
+<link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin.css">
+<link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin-fixes.css">
+<link rel="stylesheet" href="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin-protocol.css">
+<link rel="stylesheet" href="/admin-enhancements.css">
+</head>
+<body>
+<section id="login" class="login card"><h1>Ai BioTech Admin</h1><p class="muted">Protected administration</p><input id="email" type="email" placeholder="Admin email"><input id="password" type="password" placeholder="Password"><button class="btn primary" onclick="signIn()">Sign in</button><button class="btn" onclick="signUp()">Create admin account</button><button class="btn" onclick="resetPassword()">Forgot password</button><p id="loginError"></p></section>
+<section id="recovery" class="login card" hidden><h1>Choose a new password</h1><p class="muted">Enter your new admin password below.</p><input id="newPassword" type="password" minlength="8" placeholder="New password"><button class="btn primary" onclick="saveNewPassword()">Save new password</button><p id="recoveryError"></p></section>
+<div id="app" class="shell" hidden><aside class="side"><div class="brand"><span>AI</span> BioTech</div><nav id="nav"></nav></aside><main class="main"><header class="top"><h1 id="title">Dashboard</h1><a class="btn" href="/">Store</a><button class="btn" onclick="signOut()">Sign out</button></header><div id="content"></div></main></div>
+<dialog id="editor"><form method="dialog" id="editForm"><h2 id="editTitle"></h2><div id="fields" class="fields"></div><div><button class="btn" value="cancel">Cancel</button><button id="saveEdit" class="btn primary">Save</button></div></form></dialog><div id="toast" class="toast"></div>
+<div id="aibtModalHost"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/invoice-render.js"></script>
+<script src="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/protocol-document.js"></script>
+<script src="https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/admin.js"></script>
+<script src="/admin-enhancements.js"></script>
+</body></html>
