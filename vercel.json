@@ -1,0 +1,1 @@
+{"rewrites":[{"source":"/admin","destination":"/admin.html"},{"source":"/member","destination":"/member.html"},{"source":"/checkout","destination":"/checkout.html"},{"source":"/calculator","destination":"/peptide-calculator.html"},{"source":"/product/:slug","destination":"/product.html?slug=:slug"}],"redirects":[{"source":"/shop","destination":"/#catalog","permanent":false}]}
