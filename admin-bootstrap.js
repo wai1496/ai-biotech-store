@@ -8,7 +8,8 @@
       Promise.allSettled([
         load('https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/invoice-render.js'),
         load('https://ai-biotech-store-5bzil4acc-rk-cd1c.vercel.app/protocol-document.js'),
-        load('/admin-enhancements.js')
+        load('/admin-enhancements.js'),
+        load('/admin-site-audit.js')
       ]).then(results=>results.forEach(r=>{if(r.status==='rejected')console.warn(r.reason)}));
       if(typeof window.boot==='function'){
         const {data}=await window.supabase.createClient('https://yjauxyvtrmdriwtmckkl.supabase.co','sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF').auth.getSession();
