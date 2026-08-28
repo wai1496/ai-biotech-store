@@ -4,16 +4,41 @@
 <body>
 <section id="login" class="login card"><h1>Ai BioTech Admin</h1><p class="muted">Protected administration</p><input id="email" type="email" placeholder="Admin email"><input id="password" type="password" placeholder="Password"><button id="loginBtn" class="btn primary" type="button">Sign in</button><button id="signupBtn" class="btn" type="button">Create admin account</button><button id="resetBtn" class="btn" type="button">Forgot password</button><p id="loginError"></p></section>
 <section id="recovery" class="login card" hidden><h1>Choose a new password</h1><p class="muted">Enter your new admin password below.</p><input id="newPassword" type="password" minlength="8" placeholder="New password"><button id="savePasswordBtn" class="btn primary" type="button">Save new password</button><p id="recoveryError"></p></section>
-<div id="app" class="shell" hidden><aside class="side"><div class="brand"><span>AI</span> BioTech</div><nav id="nav"></nav></aside><main class="main"><header class="top"><h1 id="title">Dashboard</h1><a class="btn" href="/">Store</a><button class="btn" onclick="typeof signOut==='function'&&signOut()">Sign out</button></header><div id="content"></div></main></div>
+<div id="app" class="shell" hidden><aside class="side"><div class="brand"><span>AI</span> BioTech</div><nav id="nav"></nav></aside><main class="main"><header class="top"><h1 id="title">Dashboard</h1><a class="btn" href="/">Store</a><button id="directSignOut" class="btn" type="button">Sign out</button></header><div id="content"><div class="notice">Loading dashboard…</div></div></main></div>
 <dialog id="editor"><form method="dialog" id="editForm"><h2 id="editTitle"></h2><div id="fields" class="fields"></div><div><button class="btn" value="cancel">Cancel</button><button id="saveEdit" class="btn primary">Save</button></div></form></dialog><div id="toast" class="toast"></div><div id="aibtModalHost"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-(function(){const URL='https://yjauxyvtrmdriwtmckkl.supabase.co',KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';let client=null;const msg=(s)=>loginError.textContent=s;function getClient(){if(client)return client;if(!window.supabase?.createClient){msg('Login service is still loading. Refresh once.');return null}return client=window.supabase.createClient(URL,KEY)}
-loginBtn.onclick=async()=>{const c=getClient();if(!c)return;msg('Signing in…');loginBtn.disabled=true;const {data,error}=await c.auth.signInWithPassword({email:email.value.trim(),password:password.value});loginBtn.disabled=false;if(error)return msg(error.message);msg('Signed in. Loading dashboard…');if(typeof window.boot==='function')return window.boot();location.reload()};
-resetBtn.onclick=async()=>{const c=getClient(),address=email.value.trim();if(!c)return;if(!address)return msg('Enter your admin email first.');const {error}=await c.auth.resetPasswordForEmail(address,{redirectTo:location.origin+'/admin.html?type=recovery'});msg(error?error.message:'Password reset email sent. Check your inbox.')};
-signupBtn.onclick=()=>msg('Admin accounts are managed by the Super Admin. Please sign in or use Forgot password.');
-savePasswordBtn.onclick=async()=>{const c=getClient();if(!c)return;const p=newPassword.value;if(p.length<8)return recoveryError.textContent='Use at least 8 characters.';const {error}=await c.auth.updateUser({password:p});recoveryError.textContent=error?error.message:'Password updated. You can sign in now.'};
+(function(){
+  const SB='https://yjauxyvtrmdriwtmckkl.supabase.co';
+  const KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
+  const STORAGE='sb-yjauxyvtrmdriwtmckkl-auth-token';
+  const $=id=>document.getElementById(id);
+  const login=$('login'),app=$('app'),email=$('email'),password=$('password'),loginBtn=$('loginBtn'),resetBtn=$('resetBtn'),signupBtn=$('signupBtn'),loginError=$('loginError'),signOutBtn=$('directSignOut');
+  function msg(t){loginError.textContent=t||''}
+  function saveSession(s){if(!s?.access_token)return;const expires_at=Math.floor(Date.now()/1000)+Number(s.expires_in||3600);localStorage.setItem(STORAGE,JSON.stringify({...s,expires_at}));}
+  function getStored(){try{return JSON.parse(localStorage.getItem(STORAGE)||'null')}catch{return null}}
+  async function loadDashboard(){login.hidden=true;app.hidden=false;msg('');if(window.boot){try{return await window.boot()}catch(e){console.warn(e)}}setTimeout(()=>{if(window.boot)window.boot();},700)}
+  loginBtn.addEventListener('click',async()=>{
+    const e=email.value.trim(),p=password.value;
+    if(!e||!p){msg('Enter your admin email and password.');return}
+    loginBtn.disabled=true;loginBtn.textContent='Signing in…';msg('Connecting securely…');
+    try{
+      const r=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.msg||data.message||data.error_description||data.error||('Login failed ('+r.status+')'));
+      saveSession(data);msg('Signed in successfully.');await loadDashboard();
+    }catch(err){msg(err.message||String(err));}
+    finally{loginBtn.disabled=false;loginBtn.textContent='Sign in'}
+  });
+  resetBtn.addEventListener('click',async()=>{
+    const e=email.value.trim();if(!e){msg('Enter your admin email first.');return}
+    resetBtn.disabled=true;msg('Sending reset email…');
+    try{const r=await fetch(SB+'/auth/v1/recover',{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({email:e,redirect_to:location.origin+'/admin.html?type=recovery'})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.msg||d.message||'Unable to send reset email');msg('Password reset email sent. Check your inbox.')}catch(err){msg(err.message||String(err))}finally{resetBtn.disabled=false}
+  });
+  signupBtn.addEventListener('click',()=>msg('Admin accounts are managed inside the dashboard. Use Sign in or Forgot password.'));
+  signOutBtn.addEventListener('click',()=>{localStorage.removeItem(STORAGE);location.reload()});
+  const s=getStored();if(s?.access_token&&(!s.expires_at||s.expires_at>Date.now()/1000))loadDashboard();
 })();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="/admin-bootstrap.js"></script>
 </body></html>
