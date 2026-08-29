@@ -26,6 +26,8 @@ jobs:
         run: node scripts/staging-control-check.mjs
       - name: Validate staging integration safety
         run: node scripts/staging-integration-check.mjs
+      - name: Validate automation dry-run safety
+        run: node scripts/staging-automation-check.mjs
       - name: Validate visible interaction contracts
         run: node scripts/interaction-check.mjs
       - name: Validate JavaScript syntax
