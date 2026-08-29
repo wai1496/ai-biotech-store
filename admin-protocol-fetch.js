@@ -26,10 +26,34 @@ function parseFetchedSchedule(table, defaultFrequency=''){
 function sectionText(data,key){
   return (data.sections||[]).filter(s=>s?.key===key).map(s=>`${s.heading}\n${s.content}`).join('\n\n').trim();
 }
-function reviewFallback(label,data){
-  const headings=(data.headings||[]).slice(0,10).join(' · ');
-  return `REVIEW REQUIRED — ${label} was not clearly identified in the fetched exact reference page.${headings?` Page sections detected: ${headings}`:''}`;
+function compact(text,max=260){
+  const s=String(text||'').replace(/\s+/g,' ').trim();
+  if(!s)return '';
+  return s.length>max?s.slice(0,max-1).trimEnd()+'…':s;
 }
+function formatLabel(v){
+  const f=String(v?.format||'Vial');
+  if(/^pen$/i.test(f))return 'Pen';
+  if(/^cartridge$/i.test(f))return 'Cartridge';
+  return 'Vial';
+}
+function formatPreparation(v,sourcePrep){
+  const format=formatLabel(v),base=compact(sourcePrep,360);
+  if(format==='Vial')return base||'Follow the source-supported vial preparation / reconstitution instructions for this exact strength.';
+  const device=format==='Cartridge'?'cartridge':'pen';
+  const prefix=`${format} preparation: Prepare the solution using the source-supported final volume and concentration for this exact strength. Load/use the prepared ${device} according to the device instructions. Prime separately if required; priming is not part of the scheduled dose.`;
+  return [prefix,base].filter(Boolean).join('\n');
+}
+function formatTiming(v,sourceTiming,sourceCfg){
+  const format=formatLabel(v),parts=[];
+  if(sourceTiming)parts.push(compact(sourceTiming,220));
+  if(sourceCfg?.frequency)parts.push(`Frequency: ${sourceCfg.frequency}`);
+  if(format==='Pen')parts.push('Administration: use the pen setting calculated from the verified mg dose and current concentration.');
+  if(format==='Cartridge')parts.push('Administration: use the cartridge/pen-device setting calculated from the verified mg dose and current concentration.');
+  if(format==='Vial'&&sourceCfg?.route)parts.push(`Route: ${sourceCfg.route}`);
+  return parts.join('\n');
+}
+function reviewFallback(label){return `REVIEW REQUIRED — ${label} was not clearly identified in the exact reference page.`;}
 function addFetchButton(){
   const f=window.editForm?.elements;
   if(!f?.protocol_variant || document.getElementById('aibtProtocolFetchFill'))return;
@@ -49,8 +73,7 @@ async function fetchProtocolIntoForm(){
   const f=editForm.elements;
   const v=(protocolVariants||[]).find(x=>x.id===f.protocol_variant.value);
   if(!v)return flash('Choose the exact product / strength / format first');
-  const btn=document.getElementById('aibtProtocolFetchFill');
-  const old=btn?.textContent;
+  const format=formatLabel(v),btn=document.getElementById('aibtProtocolFetchFill'),old=btn?.textContent;
   if(btn){btn.disabled=true;btn.textContent='Fetching & filling…'}
   try{
     const {data,error}=await sb.functions.invoke('protocol-reference-fetch',{body:{product:v.products?.name||v.product_id,strength:v.strength_label,format:v.format}});
@@ -67,11 +90,11 @@ async function fetchProtocolIntoForm(){
     if(f.source_url)f.source_url.value=data.source_url||'';
     if(f.source_product)f.source_product.value=v.products?.name||v.product_id||'';
     if(f.source_strength)f.source_strength.value=v.strength_label||'';
-    if(f.protocol_title)f.protocol_title.value=`AI BioTech Product Guide — ${v.products?.name||v.product_id} ${v.strength_label} ${v.format}`;
-    if(f.schedule)f.schedule.value=schedule.length?schedule.join('\n'):reviewFallback('dosage schedule',data);
-    if(f.preparation)f.preparation.value=prep||reviewFallback('preparation / reconstitution',data);
-    if(f.timing)f.timing.value=timing || [sourceCfg.route?`Route: ${sourceCfg.route}`:'',sourceCfg.frequency?`Frequency: ${sourceCfg.frequency}`:''].filter(Boolean).join('\n') || reviewFallback('timing',data);
-    if(f.duration)f.duration.value=duration||reviewFallback('duration / cycle',data);
+    if(f.protocol_title)f.protocol_title.value=`${v.products?.name||v.product_id} ${v.strength_label} ${format} Protocol`;
+    if(f.schedule)f.schedule.value=schedule.length?schedule.join('\n'):reviewFallback('dosage schedule');
+    if(f.preparation)f.preparation.value=formatPreparation(v,prep);
+    if(f.timing)f.timing.value=formatTiming(v,timing,sourceCfg)||reviewFallback('timing / frequency');
+    if(f.duration)f.duration.value=compact(duration,180)||reviewFallback('duration / cycle');
 
     if(f.fill_volume){
       if(cfg?.fill_volume_ml!=null)f.fill_volume.value=cfg.fill_volume_ml;
@@ -84,17 +107,17 @@ async function fetchProtocolIntoForm(){
       else f.concentration.value='';
     }
     if(f.priming_units){
-      if(cfg?.priming_units!=null)f.priming_units.value=cfg.priming_units;
+      if(format==='Vial')f.priming_units.value='';
+      else if(cfg?.priming_units!=null)f.priming_units.value=cfg.priming_units;
       else if(sourceCfg.priming_units!=null)f.priming_units.value=sourceCfg.priming_units;
       else f.priming_units.value='';
     }
     if(f.config_status)f.config_status.value=cfg?.configuration_status==='verified'?'verified':'review_required';
     if(f.protocol_status)f.protocol_status.value='review_required';
+    if(f.protocol_notes)f.protocol_notes.value=compact(sourceNotes,220)||'Review exact dosage, concentration and calculated units before publishing.';
 
-    const auditNote=`FETCHED DRAFT — ${new Date(data.retrieved_at||Date.now()).toLocaleString()}\nSource: ${data.source_title||data.source_url}\nExact variant: ${v.products?.name||v.product_id} / ${v.strength_label} / ${v.format}\n${schedule.length?`${schedule.length} dosage rows parsed from the source table.`:'Dosage table requires manual review; no reliable mg rows were parsed.'}\n${cfg?.configuration_status==='verified'?'Existing verified calculation configuration was retained.':'Source-supported reconstitution values were filled where available; configuration still requires review.'}\nReview every populated field before changing status to verified/published.`;
-    if(f.protocol_notes)f.protocol_notes.value=[sourceNotes||reviewFallback('source notes / cautions',data),auditNote].filter(Boolean).join('\n\n');
-
-    flash('Fetched and filled all source-supported protocol fields. Please review before saving or publishing.');
+    f.fill_volume?.dispatchEvent(new Event('input',{bubbles:true}));
+    flash(`${format} template filled from the exact reference. Dosage remains source-locked; review before saving.`);
   }catch(e){
     flash(`Fetch failed: ${e?.message||String(e)}`);
   }finally{
