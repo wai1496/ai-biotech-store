@@ -2,7 +2,7 @@ name: AI BioTech site smoke check
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging/master-build]
   pull_request:
   workflow_dispatch:
 
