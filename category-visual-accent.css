@@ -1,31 +1,12 @@
-/* Category-aware visual accents for master placeholders. Keeps glass/logo/powder untouched. */
-.product-media,.info-visual{--visual-accent:var(--cat,#1477ff)}
-.product-card[data-format="Vial"] .product-media:before,
-.info-visual[data-format="Vial"]:before{content:"";position:absolute;z-index:2;pointer-events:none;left:35.5%;top:7.5%;width:29%;height:9%;border-radius:50% 50% 28% 28%/45% 45% 30% 30%;background:linear-gradient(180deg,color-mix(in srgb,var(--visual-accent) 72%,white),var(--visual-accent));opacity:.92;mix-blend-mode:multiply;box-shadow:inset 0 2px 4px rgba(255,255,255,.5)}
-.product-card[data-format="Vial"] .product-media:after,
-.info-visual[data-format="Vial"]:after{content:"";position:absolute;z-index:2;pointer-events:none;left:36%;top:69.5%;width:28%;height:8%;background:linear-gradient(165deg,transparent 0 18%,var(--visual-accent) 19% 74%,transparent 75%);opacity:.88;mix-blend-mode:multiply;clip-path:polygon(0 45%,100% 0,100% 62%,0 100%)}
-.product-card[data-format="Vial"] .dynamic-label .name,
-.product-card[data-format="Vial"] .dynamic-label .strength,
-.info-visual[data-format="Vial"] .info-dynamic-label .name,
-.info-visual[data-format="Vial"] .info-dynamic-label .strength{color:var(--visual-accent)!important}
-
+/* Category-aware visual accents. Vial is now rendered as a true layered SVG by vial-layered-renderer.js. */
+.product-media,.info-visual{--visual-accent:var(--cat,#1477ff);position:relative}
+/* Disable old raster-image cap/stripe patches: they caused misalignment and double-colour artifacts. */
+.product-card[data-format="Vial"] .product-media:before,.product-card[data-format="Vial"] .product-media:after,.info-visual[data-format="Vial"]:before,.info-visual[data-format="Vial"]:after{content:none!important;display:none!important}
+/* The new vial SVG already contains its own dynamic name/strength, so hide legacy overlay text for Vial only. */
+.product-card[data-format="Vial"] .dynamic-label,.info-visual[data-format="Vial"] .info-dynamic-label{display:none!important}
 /* Pen: category colour only on the pusher/end accent, cap/body stay neutral. */
-.product-card[data-format="Pen"] .product-media:after,
-.info-visual[data-format="Pen"]:after{content:"";position:absolute;z-index:2;pointer-events:none;right:2.6%;top:44%;width:3.4%;height:12%;border-radius:0 10px 10px 0;background:var(--visual-accent);opacity:.9;mix-blend-mode:multiply}
-.product-card[data-format="Pen"] .dynamic-label .name,
-.info-visual[data-format="Pen"] .info-dynamic-label .name{color:var(--visual-accent)!important}
-
+.product-card[data-format="Pen"] .product-media:after,.info-visual[data-format="Pen"]:after{content:"";position:absolute;z-index:2;pointer-events:none;right:2.6%;top:44%;width:3.4%;height:12%;border-radius:0 10px 10px 0;background:var(--visual-accent);opacity:.9;mix-blend-mode:multiply}
+.product-card[data-format="Pen"] .dynamic-label .name,.info-visual[data-format="Pen"] .info-dynamic-label .name{color:var(--visual-accent)!important}
 /* Cartridge: subtle category accent while preserving transparent body/liquid. */
-.product-card[data-format="Cartridge"] .product-media:after,
-.info-visual[data-format="Cartridge"]:after{content:"";position:absolute;z-index:2;pointer-events:none;right:29%;top:38%;width:8%;height:27%;border-radius:8px;background:var(--visual-accent);opacity:.78;mix-blend-mode:multiply}
-
-.product-media,.info-visual{position:relative}
-.product-media img,.info-visual img{position:relative;z-index:1}
-.dynamic-label,.info-dynamic-label,.category-badge,.format-badge{z-index:4!important}
-
-@media(max-width:620px){
- .product-card[data-format="Vial"] .product-media:before{left:35.5%;top:8%;width:29%;height:9%}
- .product-card[data-format="Vial"] .product-media:after{left:36%;top:69%;width:28%;height:8%}
- .info-visual[data-format="Vial"]:before{left:35.5%;top:8%;width:29%;height:9%}
- .info-visual[data-format="Vial"]:after{left:36%;top:69%;width:28%;height:8%}
-}
+.product-card[data-format="Cartridge"] .product-media:after,.info-visual[data-format="Cartridge"]:after{content:"";position:absolute;z-index:2;pointer-events:none;right:29%;top:38%;width:8%;height:27%;border-radius:8px;background:var(--visual-accent);opacity:.78;mix-blend-mode:multiply}
+.product-media img,.info-visual img{position:relative;z-index:1}.dynamic-label,.info-dynamic-label,.category-badge,.format-badge{z-index:4!important}
