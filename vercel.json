@@ -1,4 +1,10 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "staging/master-build": false
+    }
+  },
   "redirects": [
     { "source": "/plain.html", "destination": "/", "permanent": true },
     { "source": "/plain", "destination": "/", "permanent": true }
