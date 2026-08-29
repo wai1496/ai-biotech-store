@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>AI BioTech — Operations Control Center (Staging)</title>
 <link rel="stylesheet" href="/ops.css?v=20260829a">
+<link rel="stylesheet" href="/ops-control.css?v=20260829b">
 </head>
 <body>
 <div class="stage">STAGING OPERATIONS CONTROL CENTER — NO PRODUCTION WRITES</div>
@@ -29,11 +30,23 @@
       <h4>OVERVIEW</h4>
       <button data-view="dashboard" class="active" onclick="openOpsView('dashboard')">▦ Dashboard</button>
       <button data-view="health" onclick="openOpsView('health')">♡ Website Health</button>
+
       <h4>COMMERCE</h4>
       <button data-view="products" onclick="openOpsView('products')">□ Products & Variants</button>
       <button data-view="inventory" onclick="openOpsView('inventory')">▤ Inventory</button>
+
       <h4>CONTENT</h4>
       <button data-view="research" onclick="openOpsView('research')">⌘ Research Insights</button>
+      <button data-view="pages" onclick="openOpsView('pages')">▧ Pages & Menus</button>
+      <button data-view="media" onclick="openOpsView('media')">▣ Media & Placeholders</button>
+
+      <h4>DESIGN</h4>
+      <button data-view="themes" onclick="openOpsView('themes')">◈ Themes & Site Modes</button>
+
+      <h4>EXTENSIONS</h4>
+      <button data-view="features" onclick="openOpsView('features')">⊞ Plugins & Features</button>
+      <button data-view="integrations" onclick="openOpsView('integrations')">⇄ Integrations</button>
+
       <h4>SYSTEM</h4>
       <button data-view="history" onclick="openOpsView('history')">↶ Change History</button>
     </nav>
@@ -59,5 +72,6 @@
 <script src="/staging-config.js?v=20260829a"></script>
 <script src="/ops.js?v=20260829a"></script>
 <script src="/ops-undo.js?v=20260829a"></script>
+<script src="/ops-control.js?v=20260829b"></script>
 </body>
 </html>
