@@ -19,6 +19,9 @@ window.toast = window.toast || function(message){
 (function loadStorefrontLayers(){
   const path=String(location.pathname||'').toLowerCase();
   if(path.includes('/ops')||path.includes('/admin')) return;
+  if(!document.querySelector('link[data-aibt-mobile-final]')){
+    const link=document.createElement('link');link.rel='stylesheet';link.href='/storefront-mobile-final-20260830.css?v=20260830k';link.dataset.aibtMobileFinal='1';document.head.appendChild(link);
+  }
   const loadBadgeCopy=()=>{
     if(!document.querySelector('script[data-aibt-research-badges]')){
       const script=document.createElement('script');script.src='/research-badges-copy.js?v=20260830h';script.dataset.aibtResearchBadges='1';document.head.appendChild(script);
@@ -57,7 +60,7 @@ window.toast = window.toast || function(message){
   }else if(polish.dataset.loaded==='1')setTimeout(loadSourceOnly,80);else polish.addEventListener('load',()=>setTimeout(loadSourceOnly,80),{once:true});
   polish.addEventListener('load',()=>{polish.dataset.loaded='1'},{once:true});
   if(!document.querySelector('script[data-aibt-final-hero]')){
-    const script=document.createElement('script');script.src='/hero-final-20260830.js?v=20260830c';script.async=true;script.dataset.aibtFinalHero='1';document.head.appendChild(script);
+    const script=document.createElement('script');script.src='/hero-final-20260830.js?v=20260830k';script.async=true;script.dataset.aibtFinalHero='1';document.head.appendChild(script);
   }
   setTimeout(loadSourceOnly,1800);
   setTimeout(loadCoverage2,2200);
