@@ -28,6 +28,8 @@ jobs:
         run: node scripts/staging-integration-check.mjs
       - name: Validate automation dry-run safety
         run: node scripts/staging-automation-check.mjs
+      - name: Validate recovery safety
+        run: node scripts/recovery-safety-check.mjs
       - name: Validate visible interaction contracts
         run: node scripts/interaction-check.mjs
       - name: Validate JavaScript syntax
