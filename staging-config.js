@@ -6,3 +6,12 @@ window.AIBT_CONFIG = Object.freeze({
   checkoutEnabled: false,
   memberEnabled: false
 });
+
+window.toast = window.toast || function(message){
+  const el = document.getElementById('toast');
+  if(!el){ window.alert(message); return; }
+  el.textContent = String(message || '');
+  el.classList.add('show');
+  clearTimeout(window.__aibtToastTimer);
+  window.__aibtToastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+};
