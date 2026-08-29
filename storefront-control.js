@@ -71,5 +71,15 @@ async function load(){
  if(s.error||m.error||p.error){console.warn('Storefront control layer skipped',s.error||m.error||p.error);return}
  site=s.data;menu=m.data||[];pages=p.data||[];applyBrand();applyMenus();applyFooterPages();
 }
+
+// Active isolated staging routes. These intentionally override the obsolete
+// temporary safety-gate functions defined earlier in clean-store.js.
+window.openStageAccount=()=>{window.location.href='/member.html'};
+window.stageCheckout=()=>{
+  const cart=JSON.parse(localStorage.getItem('aibt_staging_cart')||'[]');
+  if(!cart.length)return storeToast('Your staging cart is empty.');
+  window.location.href='/checkout.html';
+};
+
 document.addEventListener('DOMContentLoaded',load);
 })();
