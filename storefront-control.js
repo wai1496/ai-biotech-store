@@ -12,6 +12,7 @@ function runMenu(item){
    if(item.target==='catalog'&&typeof window.showAllProducts==='function')return window.showAllProducts();
    if(item.target==='research'&&typeof window.openResearchCenter==='function')return window.openResearchCenter();
    if(item.target==='guides'&&typeof window.openGuides==='function')return window.openGuides('home');
+   if(item.target==='faq'&&typeof window.openFAQ==='function')return window.openFAQ();
    return window.scrollToId?.(item.target);
  }
  if(item.target_type==='page')return window.openPublishedPage(item.target);
@@ -20,7 +21,7 @@ function runMenu(item){
    return;
  }
  if(item.target_type==='action'){
-   const actions={shop:()=>window.showAllProducts?.(),account:()=>window.openStageAccount?.(),cart:()=>window.openCart?.(),research:()=>window.openResearchCenter?.(),guides:()=>window.openGuides?.('home')};
+   const actions={shop:()=>window.showAllProducts?.(),account:()=>window.openStageAccount?.(),cart:()=>window.openCart?.(),research:()=>window.openResearchCenter?.(),guides:()=>window.openGuides?.('home'),faq:()=>window.openFAQ?.(),calculator:()=>{window.location.href='/peptide-calculator.html'}};
    return actions[item.target]?.()||storeToast('This menu action is not available yet.');
  }
 }
@@ -37,14 +38,16 @@ function applyBrand(){
  }
 }
 function navButton(item,index){return `<button onclick="runStoreMenu(${index})">${esc(item.label)}</button>`}
+function calculatorButton(){return '<button onclick="location.href=\'/peptide-calculator.html\'">Calculator</button>'}
 function applyMenus(){
  const main=menu.filter(x=>x.menu_group==='main'&&x.active).sort((a,b)=>a.sort_order-b.sort_order);
  if(!main.length)return;
- const desktop=document.querySelector('.desktop-nav');if(desktop)desktop.innerHTML=main.map((m,i)=>navButton(m,menu.indexOf(m))).join('');
+ const desktop=document.querySelector('.desktop-nav');if(desktop)desktop.innerHTML=main.map((m,i)=>navButton(m,menu.indexOf(m))).join('')+calculatorButton();
  const panel=document.querySelector('#mobileMenu .mobile-panel');if(panel){
    const brand=panel.querySelector('.brand'),close=panel.querySelector('.close-btn');
    [...panel.children].filter(x=>x!==brand&&x!==close).forEach(x=>x.remove());
    main.forEach(m=>{const b=document.createElement('button');b.textContent=m.label;b.onclick=()=>{runMenu(m);window.closeMobileMenu?.()};panel.appendChild(b)});
+   const calc=document.createElement('button');calc.textContent='Calculator';calc.onclick=()=>{window.location.href='/peptide-calculator.html'};panel.appendChild(calc);
    const account=document.createElement('button');account.textContent='Account';account.onclick=()=>{window.openStageAccount?.();window.closeMobileMenu?.()};panel.appendChild(account);
    const cart=document.createElement('button');cart.innerHTML='Cart (<span data-cart-count>0</span>)';cart.onclick=()=>{window.openCart?.();window.closeMobileMenu?.()};panel.appendChild(cart);
    const count=document.querySelector('.mobile-sticky-cart [data-cart-count]')?.textContent||'0';panel.querySelector('[data-cart-count]')?.replaceChildren(document.createTextNode(count));
