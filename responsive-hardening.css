@@ -1,0 +1,56 @@
+/* Final responsive safeguards for the public storefront. */
+html,body{max-width:100%;overflow-x:hidden}
+.top,.nav,.utility,.section,.cats,.panels,.footer{min-width:0}
+.actions button{min-height:38px}
+
+@media(max-width:1200px) and (min-width:801px){
+  .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .cats{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+@media(max-width:800px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .product h3{overflow-wrap:anywhere}
+}
+
+@media(max-width:720px){
+  .top{grid-template-columns:minmax(0,1fr) auto}
+  .actions{gap:5px;min-width:0}
+  .actions button{padding:6px 8px;min-width:38px;min-height:38px;border-radius:8px}
+  #memberNavBtn,.actions button[onclick*="/admin.html"]{font-size:0}
+  #memberNavBtn:before{content:'👤';font-size:18px}
+  .actions button[onclick*="/admin.html"]:before{content:'⚙';font-size:18px}
+  .actions button:last-child{font-size:0;padding-left:7px;padding-right:7px}
+  .actions button:last-child:before{content:'🛒';font-size:18px}
+  .actions button:last-child .bubble{font-size:10px;margin-left:2px}
+  .actions button:last-child b{display:none}
+  .nav{scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  .hero{min-height:350px}
+  .product .visual{max-height:none}
+}
+
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr}
+  .cats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .utility{padding-left:10px;padding-right:10px}
+  .top{padding-left:10px;padding-right:10px}
+  .mark{font-size:25px}
+  .brand strong{font-size:19px}
+  .brand small{display:none}
+  .actions button{min-width:35px;width:35px;padding:5px}
+  .hero h1{font-size:clamp(40px,14vw,49px)}
+  .head{align-items:flex-start;flex-wrap:wrap}
+  .head button{width:100%;text-align:left;padding:4px 0}
+}
+
+@media(max-width:350px){
+  .cats{grid-template-columns:1fr}
+  .mark{display:none}
+  .brand strong{font-size:18px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .drawer{transition:none}
+}
