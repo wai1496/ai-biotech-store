@@ -19,13 +19,18 @@ window.toast = window.toast || function(message){
 (function loadStorefrontLayers(){
   const path=String(location.pathname||'').toLowerCase();
   if(path.includes('/ops')||path.includes('/admin')) return;
+  const loadBadgeCopy=()=>{
+    if(!document.querySelector('script[data-aibt-research-badges]')){
+      const script=document.createElement('script');script.src='/research-badges-copy.js?v=20260830h';script.dataset.aibtResearchBadges='1';document.head.appendChild(script);
+    }
+  };
   const loadSourceOnly=()=>{
     if(!document.querySelector('link[data-pd-source-only]')){
       const link=document.createElement('link');link.rel='stylesheet';link.href='/research-source-only.css?v=20260830g';link.dataset.pdSourceOnly='1';document.head.appendChild(link);
     }
     if(!document.querySelector('script[data-pd-source-only]')){
-      const script=document.createElement('script');script.src='/research-source-only.js?v=20260830g';script.dataset.pdSourceOnly='1';document.head.appendChild(script);
-    }
+      const script=document.createElement('script');script.src='/research-source-only.js?v=20260830g';script.dataset.pdSourceOnly='1';script.onload=()=>setTimeout(loadBadgeCopy,60);document.head.appendChild(script);
+    }else setTimeout(loadBadgeCopy,60);
   };
   if(!document.querySelector('link[data-aibt-assistant]')){
     const link=document.createElement('link');link.rel='stylesheet';link.href='/ai-assistant.css?v=20260829a';link.dataset.aibtAssistant='1';document.head.appendChild(link);
@@ -45,4 +50,5 @@ window.toast = window.toast || function(message){
     const script=document.createElement('script');script.src='/hero-final-20260830.js?v=20260830c';script.async=true;script.dataset.aibtFinalHero='1';document.head.appendChild(script);
   }
   setTimeout(loadSourceOnly,1800);
+  setTimeout(loadBadgeCopy,2200);
 })();
