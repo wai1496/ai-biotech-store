@@ -1,0 +1,62 @@
+{
+  "id": "ai_storefront_assistant",
+  "name": "Storefront AI Peptide Assistant",
+  "version": "0.1.0",
+  "status": "staging",
+  "entry": "/ai-assistant.js",
+  "style": "/ai-assistant.css",
+  "endpoints": [
+    "/api/ai-assistant-config",
+    "/api/ai-chat"
+  ],
+  "activation": {
+    "feature_key": "ai_storefront_assistant",
+    "default_enabled": false,
+    "production_locked": true
+  },
+  "ui": {
+    "launcher": "star",
+    "welcome": "Hi, I am your AI BioTech Assistant. You can ask me anything about peptides.",
+    "idle_close_seconds": 180,
+    "dock_after_idle": true,
+    "modes": [
+      "normal",
+      "deep_search",
+      "evidence_first"
+    ]
+  },
+  "onboarding": [
+    "condition",
+    "language",
+    "age",
+    "weight",
+    "height",
+    "medical_history",
+    "target"
+  ],
+  "privacy": {
+    "health_profile_persistence": false,
+    "customer_database_write": false,
+    "chat_database_write": false,
+    "session_disclaimer_only": true
+  },
+  "permissions": {
+    "public_chat": true,
+    "read_catalog": true,
+    "read_research": true,
+    "database_write": false,
+    "order_write": false,
+    "wallet_write": false,
+    "store_health_profile": false
+  },
+  "private_sources": {
+    "visibility": "admin_only",
+    "priority": [
+      "peptidedosages.com",
+      "mypeptidematch.com",
+      "peptidedosingprotocols.com/protocols",
+      "peptidedosingprotocols.com/stacks",
+      "mypeptidedosages.com/library"
+    ]
+  }
+}

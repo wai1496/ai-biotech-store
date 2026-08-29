@@ -1,0 +1,22 @@
+(()=>{
+'use strict';
+const cfg=window.AIBT_CONFIG||{},db=window.supabase?.createClient(cfg.supabaseUrl,cfg.supabaseKey);if(!db)return;
+const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c])),money=v=>'RM '+Number(v||0).toFixed(2),pct=v=>Number(v||0).toFixed(2)+'%';
+let agentData=null;
+function badge(v){const s=String(v||'—');return `<span class="status ${/active|paid|approved/.test(s)?'good':/pending|not_configured/.test(s)?'warn':''}">${esc(s.replaceAll('_',' '))}</span>`}
+async function refreshAgentAccess(){const {data:{user}}=await db.auth.getUser();if(!user)return;const {data,error}=await db.rpc('member_get_agent_dashboard');if(error)return;agentData=data||null;const btn=$('#agentTabBtn');if(btn)btn.hidden=!agentData?.is_agent;}
+function pricingRows(rules){return (rules||[]).length?(rules||[]).map(r=>`<div class="order"><div class="order-head"><div><b>${esc(r.name)}</b><div class="muted">${esc(r.scope_type)}${r.scope_id?` · ${esc(r.scope_id)}`:''} · minimum ${Number(r.min_quantity||1)}</div></div><div>${esc(r.price_mode)} ${r.price_mode==='percent_off'?pct(r.value):money(r.value)}</div></div></div>`).join(''):'<div class="empty">No active role-pricing rules are assigned to this role yet.</div>'}
+window.openAgentDashboard=async()=>{
+  document.querySelectorAll('.tabs .btn').forEach(b=>b.classList.toggle('active',b.dataset.tab==='agent'));
+  const panel=$('#memberPanel');panel.innerHTML='<div class="notice">Loading Agent dashboard…</div>';
+  const {data,error}=await db.rpc('member_get_agent_dashboard');if(error){panel.innerHTML=`<div class="notice error">${esc(error.message)}</div>`;return}agentData=data||{};
+  if(!agentData.is_agent){panel.innerHTML='<div class="notice">This account does not currently have an Agent role.</div>';return}
+  const ap=agentData.agent_profile||{},cs=agentData.commission_summary||{},recent=agentData.recent_commissions||[];
+  panel.innerHTML=`<div class="agent-head"><div><h2>Agent Dashboard</h2><p class="muted">Role pricing, referral visibility and secure dropship ordering are live in staging. Commission creation remains disabled until the commission base/timing rule is approved.</p></div>${badge(ap.status||agentData.agent_status)}</div>
+  <div class="stats agent-stats"><div class="card stat"><small>Agent Code</small><b>${esc(ap.agent_code||'Not assigned')}</b></div><div class="card stat"><small>Role</small><b>${esc(agentData.customer_role||'agent')}</b></div><div class="card stat"><small>Referrals</small><b>${Number(agentData.referral_count||0)}</b></div><div class="card stat"><small>Dropship</small><b>${ap.dropship_enabled?'Enabled':'Disabled'}</b></div></div>
+  ${ap.dropship_enabled?`<section class="notice"><b>Dropship Ordering</b><p>Uses your Agent role/quantity pricing, your staging wallet/payment flow, and the recipient shipping address. Orders are marked as Agent Dropship.</p><div class="row-actions"><a class="btn primary" href="/?agent_shop=1">Select Products</a><a class="btn" href="/checkout.html?mode=dropship">Open Dropship Checkout</a></div></section>`:`<div class="notice">Dropship ordering is disabled for this Agent profile. An administrator can enable it under Operations → Agents.</div>`}
+  <div class="layout2"><section><h3>Your Role / Quantity Pricing</h3>${pricingRows(agentData.pricing_rules)}</section><aside><h3>Commission Ledger</h3><div class="detail-pairs"><div class="detail-pair"><small>Pending</small><b>${money(cs.pending)}</b></div><div class="detail-pair"><small>Approved</small><b>${money(cs.approved)}</b></div><div class="detail-pair"><small>Paid</small><b>${money(cs.paid)}</b></div><div class="detail-pair"><small>Configured Rate</small><b>${pct(ap.commission_percent)}</b></div></div><div class="notice">The configured rate is stored, but no commission is generated until the business rule for attribution, commission base and payment timing is approved.</div></aside></div>
+  <h3 style="margin-top:22px">Recent Commission Records</h3>${recent.length?recent.map(c=>`<div class="ledger-row"><div><b>${esc(c.status)}</b><div class="muted">Order ${esc(c.order_id)}${c.note?` · ${esc(c.note)}`:''}</div></div><div>${money(c.commission_amount)}</div></div>`).join(''):'<div class="empty">No commission records in staging.</div>'}`;
+};
+window.addEventListener('DOMContentLoaded',()=>{setTimeout(refreshAgentAccess,200)});window.addEventListener('focus',refreshAgentAccess);
+})();

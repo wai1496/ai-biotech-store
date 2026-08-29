@@ -1,0 +1,48 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const root=process.cwd(),fail=[];
+const req=['staging-member-agent.js','staging-member-wallet.js','staging-checkout-dropship.js','api/staging-wallet/_shared.js','api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js','api/staging-shipping/_shared.js','api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js','api/staging-integrations/status.js','ops-easyparcel.js','ops-adapter-settings.js','ops-agent-referrals.js','ops-dropship-orders.js','member.html','checkout.html','ops.html'];
+const read=f=>fs.readFileSync(path.join(root,f),'utf8');
+for(const f of req)if(!fs.existsSync(path.join(root,f)))fail.push(`missing ${f}`);
+if(fail.length){console.error('Staging integration check FAILED:\n- '+fail.join('\n- '));process.exit(1)}
+const agent=read('staging-member-agent.js'),walletUI=read('staging-member-wallet.js'),dropship=read('staging-checkout-dropship.js'),memberHtml=read('member.html'),checkoutHtml=read('checkout.html'),opsHtml=read('ops.html'),adapterUI=read('ops-adapter-settings.js'),statusApi=read('api/staging-integrations/status.js'),referralUI=read('ops-agent-referrals.js'),dropshipOps=read('ops-dropship-orders.js');
+const walletEndpoints=['api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js'];
+const shipEndpoints=['api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js'];
+const walletFiles=['api/staging-wallet/_shared.js',...walletEndpoints];
+const shipFiles=['api/staging-shipping/_shared.js',...shipEndpoints];
+const walletText=walletFiles.map(read).join('\n'),shipText=shipFiles.map(read).join('\n'),pay=read('api/staging-shipping/pay.js'),callback=read('api/staging-wallet/callback.js'),walletShared=read('api/staging-wallet/_shared.js'),shipShared=read('api/staging-shipping/_shared.js'),opsEp=read('ops-easyparcel.js');
+if(!agent.includes('member_get_agent_dashboard'))fail.push('Agent member dashboard is not wired to member_get_agent_dashboard');
+if(!memberHtml.includes('/staging-member-agent.js'))fail.push('Member Area is not loading Agent dashboard module');
+if(!referralUI.includes('ops_assign_agent_referral')||!referralUI.includes('Confirm Referral Attribution'))fail.push('Agent referral workspace is not wired to audited preview/confirm assignment');
+if(!opsHtml.includes('data-view="referrals"')||!opsHtml.includes('/ops-agent-referrals.js'))fail.push('Operations is not loading Agent referral workspace');
+if(!agent.includes('/checkout.html?mode=dropship')||!agent.includes('dropship_enabled'))fail.push('Agent Dashboard does not gate and expose secure Dropship Checkout');
+if(!checkoutHtml.includes('/staging-checkout-dropship.js'))fail.push('Checkout is not loading Dropship mode overlay');
+if(!dropship.includes("get('mode')!=='dropship'")||!dropship.includes('member_get_agent_dashboard')||!dropship.includes('dropship_enabled')||!dropship.includes('agent_create_dropship_order'))fail.push('Dropship Checkout must activate only by mode, verify Agent permission and call secure dropship RPC');
+for(const bad of [".insert(",".update(",".delete(",".upsert("])if(dropship.includes(bad))fail.push(`Dropship browser code contains direct write pattern ${bad}`);
+if(!dropshipOps.includes("eq('order_channel','agent_dropship')")||!opsHtml.includes('data-view="dropship-orders"')||!opsHtml.includes('/ops-dropship-orders.js'))fail.push('Dedicated Dropship Orders Operations view is missing or not filtered to agent_dropship');
+if(!walletUI.includes('member_wallet_topup_status')||!walletUI.includes('member_create_wallet_topup_intent'))fail.push('Member wallet top-up status/intent contracts are not wired');
+if(!memberHtml.includes('/staging-member-wallet.js'))fail.push('Member Area is not loading staged wallet top-up module');
+if(!walletUI.includes('adapter_ready')||!walletUI.includes('topup_enabled'))fail.push('Wallet UI must gate payment button on explicit top-up and adapter readiness');
+if(!walletShared.includes("VERCEL_ENV==='production'")||!walletShared.includes('function denyProduction'))fail.push('ToyyibPay shared adapter is missing production guard');
+if(!shipShared.includes("VERCEL_ENV==='production'")||!shipShared.includes('function denyProduction'))fail.push('EasyParcel shared adapter is missing production guard');
+for(const f of [...walletEndpoints,...shipEndpoints]){const text=read(f);if(!text.includes('denyProduction()'))fail.push(`${f}: endpoint does not invoke shared production guard`);}
+for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)]),['api/staging-integrations/status.js',statusApi]])if(text.includes('yjauxyvtrmdriwtmckkl'))fail.push(`${name}: staging adapter references production Supabase`);
+if(!walletShared.includes("https://dev.toyyibpay.com"))fail.push('ToyyibPay wallet adapter must use sandbox dev.toyyibpay.com');
+if(walletText.includes('https://toyyibpay.com')&&!walletText.includes('https://dev.toyyibpay.com'))fail.push('ToyyibPay wallet adapter appears to use live endpoint');
+for(const token of ['TOYYIBPAY_SANDBOX_SECRET_KEY','STAGING_SUPABASE_SERVICE_ROLE_KEY'])if(!walletShared.includes(token))fail.push(`ToyyibPay adapter missing server env token ${token}`);
+if(!callback.includes('expectedHash')||!callback.includes('getBillTransactions')||!callback.includes('service_capture_wallet_topup'))fail.push('ToyyibPay callback must verify hash, verify transaction and use service-role wallet capture');
+if(walletUI.includes('service_capture_wallet_topup')||walletUI.includes('service_fail_wallet_topup'))fail.push('Member browser code must never call wallet capture/failure service functions');
+if(!shipShared.includes("https://demo.connect.easyparcel.my/?ac="))fail.push('EasyParcel staging adapter must use demo endpoint');
+if(shipText.includes("const EP='https://connect.easyparcel.my")||shipText.includes('https://connect.easyparcel.my/?ac='))fail.push('EasyParcel staging adapter references live endpoint');
+for(const token of ['EASYPARCEL_DEMO_API_KEY','STAGING_SUPABASE_SERVICE_ROLE_KEY'])if(!shipShared.includes(token))fail.push(`EasyParcel adapter missing server env token ${token}`);
+if(!pay.includes('confirm_payment')||!pay.includes("String(b.confirm_payment)!=='true'"))fail.push('EasyParcel payment endpoint must require explicit confirm_payment=true');
+if(!opsEp.includes('I Understand — Pay EasyParcel Credit'))fail.push('Operations EasyParcel financial confirmation UI is missing');
+for(const rpc of ['service_store_shipping_quotes','service_record_easyparcel_booking','service_record_easyparcel_payment','service_record_easyparcel_status'])if(!shipText.includes(rpc))fail.push(`EasyParcel adapter missing service RPC ${rpc}`);
+if(!opsHtml.includes('/ops-easyparcel.js')||!opsHtml.includes('/ops-adapter-settings.js'))fail.push('Operations is not loading EasyParcel/configuration workspaces');
+if(!statusApi.includes("VERCEL_ENV==='production'")||!statusApi.includes('TOYYIBPAY_SANDBOX_SECRET_KEY')||!statusApi.includes('EASYPARCEL_DEMO_API_KEY'))fail.push('Integration readiness endpoint is not production-blocked or does not check required server credentials');
+for(const token of ['wallet_topup_enabled','wallet_topup_min','wallet_topup_max','shipping_mode:\'flat\'','secrets_stored_client_side:false'])if(!adapterUI.includes(token))fail.push(`Safe adapter settings UI missing contract token: ${token}`);
+if(adapterUI.includes("status:'ready'")||shipText.includes("status!=='ready'")||opsEp.includes("status==='ready'"))fail.push('Integration code must use canonical healthy state, not unsupported ready state');
+const obviousSecrets=[/sb_secret_[A-Za-z0-9_-]{10,}/,/sk-proj-[A-Za-z0-9_-]{10,}/,/userSecretKey\s*[:=]\s*['"][^'"]{8,}['"]/];
+for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)]),['ops-adapter-settings.js',adapterUI],['api/staging-integrations/status.js',statusApi]])for(const re of obviousSecrets)if(re.test(text))fail.push(`${name}: possible embedded secret detected`);
+if(fail.length){console.error('Staging integration check FAILED:\n- '+[...new Set(fail)].join('\n- '));process.exit(1)}
+console.log('Staging integration check passed: Agent dashboard/referrals/dropship, readiness-gated configuration, ToyyibPay sandbox wallet verification and explicitly confirmed EasyParcel demo payment are enforced.');

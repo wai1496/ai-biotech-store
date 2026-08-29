@@ -89,6 +89,52 @@ if(fs.existsSync(vercelPath)){
   }catch(error){failures.push(`vercel.json is invalid JSON: ${error.message}`)}
 }
 
+function localScriptsFor(htmlText){
+  return [...htmlText.matchAll(/<script\b[^>]*\bsrc=(["'])(.*?)\1/gi)]
+    .map(m=>m[2].split('?')[0])
+    .filter(src=>src.startsWith('/'))
+    .map(src=>path.join(root,src.slice(1)))
+    .filter(src=>fs.existsSync(src));
+}
+function assertInlineHandlers(htmlFile,requiredHandlers=[]){
+  const htmlPath=path.join(root,htmlFile),htmlText=fs.readFileSync(htmlPath,'utf8');
+  const jsText=localScriptsFor(htmlText).map(file=>fs.readFileSync(file,'utf8')).join('\n');
+  const onclickNames=[...htmlText.matchAll(/\bonclick=(["'])\s*([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[2]);
+  for(const name of [...new Set(onclickNames)]){
+    if(!new RegExp(`window\\.${name}\\s*=`).test(jsText))failures.push(`${htmlFile}: inline control calls ${name}() but no global window.${name} handler is exported`);
+  }
+  for(const name of requiredHandlers){
+    if(!new RegExp(`window\\.${name}\\s*=`).test(jsText))failures.push(`${htmlFile}: critical interaction handler window.${name} is missing`);
+  }
+}
+
+// Staging-specific release gate: clean storefront, isolation and Operations Control Center.
+const stagingConfigPath=path.join(root,'staging-config.js');
+if(fs.existsSync(stagingConfigPath)){
+  for(const file of ['clean-store.css','clean-store.js','staging-config.js','ops.html','ops.css','ops.js']){
+    if(!fs.existsSync(path.join(root,file)))failures.push(`Staging: missing required file ${file}`);
+  }
+  const stagingConfig=fs.readFileSync(stagingConfigPath,'utf8');
+  if(!stagingConfig.includes("environment: 'staging'"))failures.push('Staging: environment flag is not set to staging');
+  if(!stagingConfig.includes('rpnwssqvurpdennpzplx.supabase.co'))failures.push('Staging: UI is not configured for the isolated staging Supabase project');
+  if(stagingConfig.includes('yjauxyvtrmdriwtmckkl.supabase.co'))failures.push('Staging: staging config points at production Supabase');
+
+  const indexText=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  if(!/noindex\s*,?\s*nofollow/i.test(indexText))failures.push('Staging: preview page must remain noindex,nofollow');
+  if(indexText.includes('biotech-animated-background.js'))failures.push('Staging: dark animated DNA script is loaded in the default clean theme');
+  if(!indexText.includes('/clean-store.css')||!indexText.includes('/clean-store.js'))failures.push('Staging: clean storefront assets are not loaded');
+  assertInlineHandlers('index.html',['scrollToId','showAllProducts','toggleMobileMenu','openStageAccount','openCart','setCategory','openGuide','toast','closeCart','stageCheckout','closeModal','closeMobileMenu']);
+
+  const opsText=fs.readFileSync(path.join(root,'ops.html'),'utf8');
+  if(!/noindex\s*,?\s*nofollow/i.test(opsText))failures.push('ops.html: staging Operations Center must remain noindex,nofollow');
+  if(!opsText.includes('/ops.css')||!opsText.includes('/ops.js')||!opsText.includes('/staging-config.js'))failures.push('ops.html: Operations Center assets/config are not loaded');
+  assertInlineHandlers('ops.html',['opsSignIn','opsCreateAccount','opsResetPassword','openOpsView','opsSignOut','toggleOpsSidebar','closeOpsDialog']);
+
+  const opsJs=fs.readFileSync(path.join(root,'ops.js'),'utf8');
+  for(const forbidden of ['prompt(','confirm('])if(opsJs.includes(forbidden))failures.push(`ops.js: native browser ${forbidden.slice(0,-1)} dialog is forbidden in the professional Operations Control Center`);
+  for(const rpc of ['ops_update_product','ops_update_variant','ops_adjust_stock'])if(!opsJs.includes(rpc))failures.push(`ops.js: controlled service ${rpc} is not wired`);
+}
+
 if(failures.length){
   console.error('\nSite smoke check FAILED:\n- '+failures.join('\n- '));
   process.exit(1);

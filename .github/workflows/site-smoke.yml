@@ -2,7 +2,7 @@ name: AI BioTech site smoke check
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging/master-build]
   pull_request:
   workflow_dispatch:
 
@@ -22,6 +22,16 @@ jobs:
           node-version: '22'
       - name: Validate routes and linked assets
         run: node scripts/smoke-check.mjs
+      - name: Validate staging controls and AI isolation
+        run: node scripts/staging-control-check.mjs
+      - name: Validate staging integration safety
+        run: node scripts/staging-integration-check.mjs
+      - name: Validate automation dry-run safety
+        run: node scripts/staging-automation-check.mjs
+      - name: Validate recovery safety
+        run: node scripts/recovery-safety-check.mjs
+      - name: Validate visible interaction contracts
+        run: node scripts/interaction-check.mjs
       - name: Validate JavaScript syntax
         shell: bash
         run: |

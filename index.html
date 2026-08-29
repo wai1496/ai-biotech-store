@@ -3,53 +3,129 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Ai BioTech — Peptide Research</title>
-  <meta name="description" content="Ai BioTech peptide research catalog">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/product-detail.css">
-  <link rel="stylesheet" href="/faq.css">
-  <link rel="stylesheet" href="/performance.css">
-  <link rel="stylesheet" href="/responsive-hardening.css?v=202608291620">
-  <script src="/biotech-animated-background.js" defer></script>
+  <title>AI BioTech — Precision Peptide Research</title>
+  <meta name="description" content="AI BioTech research catalog with Vial, Cartridge and Pen format selection.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="/clean-store.css?v=20260829a">
+  <link rel="stylesheet" href="/storefront-control.css?v=20260829b">
+  <link rel="stylesheet" href="/faq.css?v=20260830a">
+  <link rel="stylesheet" href="/research-center.css?v=20260830a">
+  <link rel="stylesheet" href="/research-rich-enhance.css?v=20260830a">
+  <link rel="stylesheet" href="/storefront-visual-fix.css?v=20260830a">
+  <link rel="stylesheet" href="/ai-assistant.css?v=20260830a">
 </head>
-<body class="catalog-loading">
-  <div class="frame"></div>
-  <div class="utility"><span class="cyan">▣ FRESH MADE SAME DAY SHIP</span><span>❄ KEEP REFRIGERATED</span><span>◇ QUALITY • VALUE • TRUST</span><span>WhatsApp Support</span></div>
-  <header class="top">
-    <div class="brand"><div class="mark">🧬</div><div><strong><span style="color:#18c9ff">AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></div>
-    <div class="search"><input id="search" placeholder="Search peptides..." oninput="renderProducts()"></div>
-    <div class="actions"><button type="button" aria-label="Currency is Malaysian Ringgit" onclick="alert('All store prices are displayed in Malaysian Ringgit (MYR).')">MYR⌄</button><button id="memberNavBtn" type="button" aria-label="Member area" onclick="location.href='/member.html'">👤 MEMBER</button><button id="adminNavBtn" type="button" aria-label="Administration" onclick="location.href='/admin.html'">⚙ ADMIN</button><button id="cartNavBtn" type="button" aria-label="Open cart" onclick="toggleCart()">🛒 <span class="bubble" id="cartCount">0</span> <b id="headerTotal">RM0.00</b></button></div>
+<body>
+  <div class="stagebar">STAGING PREVIEW — ISOLATED FROM PRODUCTION WRITES</div>
+  <div class="utility"><span>❄ Cold Chain Packaging</span><span>2–8°C handling where applicable</span><span>Secure & Discreet Packaging</span><span>Research Use Only</span></div>
+
+  <header class="site-header">
+    <div class="header-main">
+      <a class="brand" href="#top" onclick="scrollToId('top');return false" aria-label="AI BioTech home">
+        <div class="brand-mark">🧬</div><div><strong><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <button class="active" onclick="scrollToId('top')">Home</button>
+        <button onclick="showAllProducts()">Shop</button>
+        <button onclick="openResearchCenter()">Research</button>
+        <button onclick="openGuides('home')">Guides</button>
+        <button onclick="scrollToId('faq')">FAQ</button>
+        <button onclick="scrollToId('contact')">Contact</button>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-btn mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Open menu">☰</button>
+        <button class="icon-btn" onclick="document.getElementById('searchInput').focus();scrollToId('catalog')" aria-label="Search products">⌕</button>
+        <button class="icon-btn" onclick="openStageAccount()" aria-label="Member account">♙ <span class="account-label">Account</span></button>
+        <button class="icon-btn" onclick="openCart()" aria-label="Shopping cart">🛒 <span data-cart-count>0</span></button>
+      </div>
+    </div>
   </header>
-  <nav class="nav" aria-label="Main navigation">
-    <button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ HOME</button>
-    <button type="button" onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">▣ CATALOG</button>
-    <button type="button" onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">⚗ PEPTIDES⌄</button>
-    <button type="button" onclick="openResearch()">⌘ RESEARCH</button>
-    <button type="button" onclick="openGuides('home')">ⓘ GUIDES</button>
-    <button type="button" onclick="openFAQ()">❔ FAQ</button>
-    <button type="button" onclick="location.href='/peptide-calculator.html'">▦ CALCULATOR</button>
-    <button type="button" onclick="document.querySelector('.footer').scrollIntoView({behavior:'smooth'})">♙ ABOUT US</button>
-  </nav>
-  <section class="hero"><div class="hero-copy"><small>NEXT GENERATION PEPTIDE SCIENCE</small><h1>SCIENCE.<br>PRECISION.<br><span>RESULTS.</span></h1><p>Premium research products with live category colours, variant-specific inventory and professional Vial, Pen and Cartridge options.</p><button class="primary" type="button" onclick="catalog.scrollIntoView({behavior:'smooth'})">EXPLORE PRODUCTS</button></div></section>
-  <section class="benefits"><div><b>✦ PREMIUM QUALITY</b><small>Lab tested · High purity</small></div><div><b>◈ FRESHLY PREPARED</b><small>Made to order · Same day ship</small></div><div><b>⬡ DISCREET PACKAGING</b><small>Secure · Confidential · Safe</small></div><div><b>❄ REFRIGERATED DELIVERY</b><small>Cold chain · Temperature safe</small></div></section>
-  <section class="cats" id="cats"></section>
-  <section class="section" id="catalog"><div class="head"><h2 id="catalogTitle">FEATURED PEPTIDES</h2><button type="button" onclick="showAll=true;category='All';renderProducts()">VIEW ALL PRODUCTS →</button></div><div class="grid" id="grid"><p>Loading live catalog…</p></div></section>
-  <section class="panels"><div role="link" tabindex="0" onclick="location.href='/peptide-calculator.html'" onkeydown="if(event.key==='Enter'||event.key===' '){location.href='/peptide-calculator.html'}" style="cursor:pointer"><b>PEPTIDE CALCULATOR</b><p>Calculate concentration and units with ease.</p><span style="color:#18c9ff;font-weight:800">OPEN CALCULATOR →</span></div><div role="button" tabindex="0" onclick="openResearch()" onkeydown="if(event.key==='Enter'||event.key===' ')openResearch()" style="cursor:pointer"><b>RESEARCH CATALOG</b><p>Explore peptide categories and applications.</p></div><div role="button" tabindex="0" onclick="openFAQ()" onkeydown="if(event.key==='Enter'||event.key===' ')openFAQ()" style="cursor:pointer"><b>KNOWLEDGE CENTRE</b><p>Guides, storage information and more.</p></div></section>
-  <section class="footer"><div>LAB TESTED</div><div>MADE TO ORDER</div><div>REFRIGERATED</div><div>DISCREET</div><div>SECURE PAYMENTS</div></section>
-  <div class="legal">For research purposes only. Not for human consumption.</div>
-  <aside class="drawer" id="drawer" aria-label="Shopping cart"><button class="close" type="button" aria-label="Close cart" onclick="toggleCart()">×</button><h2>Your Cart</h2><div id="cartItems"></div><p><b>Total: <span id="cartTotal">RM 0.00</span></b></p><button id="checkoutCartBtn" class="primary" type="button" style="width:100%;margin-top:12px" onclick="location.href='/checkout.html'">CHECKOUT</button></aside>
-  <div class="overlay" id="productOverlay"><div class="modal" id="productShell"><button class="close" type="button" aria-label="Close product" onclick="closeOverlay('productOverlay')">×</button><div id="productModal"></div></div></div>
-  <noscript><p style="padding:24px">JavaScript is required to load the live catalog.</p></noscript>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-inner">
+        <div>
+          <div class="eyebrow">AI BioTech Research Catalog</div>
+          <h1>Precision Peptide<br><span>Research Products</span></h1>
+          <p>Clean, professional catalog access with exact strength and format selection, live staging inventory and product-linked Research Insights.</p>
+          <div class="hero-actions"><button class="btn blue" onclick="showAllProducts()">Shop Products</button><button class="btn" onclick="openResearchCenter()">Explore Research</button></div>
+        </div>
+        <div class="hero-art" aria-label="AI BioTech approved product format visuals">
+          <img id="heroVial" class="art vial" alt="AI BioTech vial">
+          <img id="heroPen" class="art pen" alt="AI BioTech pen">
+          <img id="heroCartridge" class="art cartridge" alt="AI BioTech cartridge">
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip" aria-label="Store highlights">
+      <div class="trust-item"><div class="trust-icon">❄</div><div><b>Cold Chain Packaging</b><small>Heat exposure reduction</small></div></div>
+      <div class="trust-item"><div class="trust-icon">◇</div><div><b>Secure & Discreet</b><small>Professional packaging</small></div></div>
+      <div class="trust-item"><div class="trust-icon">⚗</div><div><b>Research Use Only</b><small>Research catalog information</small></div></div>
+      <div class="trust-item"><div class="trust-icon">✓</div><div><b>Variant Accurate</b><small>Live price and stock selection</small></div></div>
+    </section>
+
+    <div class="shell">
+      <section id="catalog">
+        <div class="toolbar">
+          <input id="searchInput" class="field" type="search" placeholder="Search products, strength, SKU..." aria-label="Search catalog">
+          <select id="categoryFilter" class="field category-field" aria-label="Filter by category"></select>
+          <select id="formatFilter" class="field format-field" aria-label="Filter by format"><option>All</option><option>Vial</option><option>Cartridge</option><option>Pen</option></select>
+          <select id="stockFilter" class="field stock-field" aria-label="Filter by stock"><option>All</option><option>In Stock</option><option>Out of Stock</option></select>
+          <select id="sortFilter" class="field sort-field" aria-label="Sort catalog"><option>Featured</option><option>Name</option><option>Price Low</option></select>
+        </div>
+        <div id="categoryChips" class="category-chips"></div>
+        <div class="content-grid">
+          <aside class="sidebar"><div class="side-title">CATEGORIES</div><div id="sideCategories" class="side-list"></div><div class="side-info"><b>Why AI BioTech?</b><p>Exact variant selection</p><p>Professional research catalog</p><p>Controlled Research Insights</p></div></aside>
+          <div>
+            <div class="catalog-head"><div><h2 id="catalogTitle">Featured Products</h2><p id="catalogSummary">Loading staging catalog…</p></div><div><span id="resultCount"></span></div></div>
+            <div id="productGrid" class="product-grid"></div>
+            <div class="load-more"><button id="viewAllBtn" class="btn" onclick="showAllProducts()">View All Products →</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="research" class="section"><h2>Research Center</h2><p class="section-lead">Explore all active catalog compounds with live category colours, molecular identity, pathways, evidence context and public literature links.</p><div style="margin:0 0 18px"><button class="btn blue" onclick="openResearchCenter()">Open Full Research Center →</button></div><div id="researchGrid" class="research-grid"></div></section>
+
+      <section id="guides" class="section"><h2>Guides & Handling</h2><p class="section-lead">Detailed guides for Pen, Vial, Cartridge, cold-chain packaging and receiving.</p><div class="guide-grid">
+        <article class="guide-card"><h3>Prefilled Pen Guide</h3><p>Seven illustrated steps, preparation, storage and troubleshooting.</p><button class="btn" onclick="openGuides('pen')">Open Pen Guide</button></article>
+        <article class="guide-card"><h3>Vial & Reconstitution</h3><p>Preparation workflow, concentration concepts and embedded video tutorial.</p><button class="btn" onclick="openGuides('vial')">Open Vial Guide</button></article>
+        <article class="guide-card"><h3>Cartridge Guide</h3><p>Cartridge anatomy, reusable device installation concepts and troubleshooting.</p><button class="btn" onclick="openGuides('cartridge')">Open Cartridge Guide</button></article>
+        <article class="guide-card"><h3>Cold Chain & Receiving</h3><p>Packaging layers, transit expectations, receiving checks and damage procedure.</p><button class="btn" onclick="openGuides('coldchain')">Open Shipping Guide</button></article>
+      </div></section>
+
+      <section id="faq" class="section"><h2>Frequently Asked Questions</h2><p class="section-lead">The FAQ library is being expanded into a complete Knowledge Centre.</p><div class="faq-grid">
+        <article class="faq-card"><h3>How do I choose a format?</h3><p>Select Vial, Cartridge or Pen directly on the product card. Only formats available for the selected strength are shown.</p></article>
+        <article class="faq-card"><h3>Why can a parcel feel warm?</h3><p>Insulated packaging reduces excessive heat exposure but does not guarantee the parcel remains at one exact refrigerator temperature throughout ordinary courier transit.</p></article>
+        <article class="faq-card"><h3>Where are private protocols?</h3><p>Protocols are separate from public Research Insights and are controlled by exact product, strength and format entitlement rules.</p></article>
+      </div></section>
+    </div>
+  </main>
+
+  <footer id="contact" class="site-footer"><div class="footer-inner">
+    <div><a class="brand" href="#top" onclick="scrollToId('top');return false"><div class="brand-mark">🧬</div><div><strong style="color:white"><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></a><p>Professional research catalog storefront. This staging preview is isolated from production writes.</p></div>
+    <div><h4>Shop</h4><button onclick="showAllProducts()">All Products</button><button onclick="setCategory('Metabolism')">Metabolism</button><button onclick="setCategory('Healing')">Healing</button><button onclick="setCategory('Longevity')">Longevity</button></div>
+    <div><h4>Information</h4><button onclick="openResearchCenter()">Research Center</button><button onclick="openGuides('home')">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="openStageAccount()">Member Area</button></div>
+    <div><h4>Contact & Policies</h4><button onclick="openPublishedPage('contact')">Contact</button><button onclick="openPublishedPage('terms')">Terms & Conditions</button><button onclick="openPublishedPage('privacy')">Privacy & Cookies</button></div>
+  </div><div class="footer-bottom">For research purposes only. Staging environment, no production order or payment writes.</div></footer>
+
+  <div id="cartOverlay" class="overlay"><aside class="drawer" aria-label="Cart"><div class="drawer-head"><h2>Your Cart</h2><button class="close-btn" onclick="closeCart()" aria-label="Close cart">×</button></div><div id="cartItems" class="drawer-body"></div><div class="drawer-footer"><div class="cart-total"><span>Total</span><span id="cartTotal">RM0</span></div><button class="btn blue" style="width:100%;margin-top:12px" onclick="stageCheckout()">Continue to Checkout</button></div></aside></div>
+
+  <div id="modalWrap" class="modal-wrap"><div class="modal"><div class="modal-head"><h2 id="modalTitle">Information</h2><button class="close-btn" onclick="closeModal()" aria-label="Close">×</button></div><div id="modalBody" class="modal-body"></div></div></div>
+
+  <div id="mobileMenu" class="mobile-drawer"><div class="mobile-panel"><button class="close-btn" onclick="closeMobileMenu()">×</button><a class="brand" href="#top" onclick="scrollToId('top');return false"><div class="brand-mark">🧬</div><div><strong><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></a><button onclick="scrollToId('top')">Home</button><button onclick="showAllProducts();closeMobileMenu()">Shop</button><button onclick="openResearchCenter();closeMobileMenu()">Research</button><button onclick="openGuides('home');closeMobileMenu()">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="scrollToId('contact')">Contact</button><button onclick="openStageAccount();closeMobileMenu()">Account</button><button onclick="openCart();closeMobileMenu()">Cart (<span data-cart-count>0</span>)</button></div></div>
+
+  <div class="mobile-sticky-cart"><div class="cart-count-pill">🛒 <span data-cart-count>0</span></div><button class="btn primary" onclick="openCart()">View Cart</button></div>
+  <div id="toast" class="toast"></div>
+
+  <noscript><div style="padding:24px">JavaScript is required to load the staging product catalog.</div></noscript>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/app.js"></script>
-  <script src="/center-fix.js"></script>
-  <script src="/product-detail.js?v=202608291620"></script>
-  <script src="/storefront-hardening.js?v=202608291620"></script>
-  <script src="/supabase-storefront.js?v=202608291545"></script>
-  <script src="/guides.js?v=202608291620"></script>
-  <script src="/faq.js"></script>
-  <script src="/research.js"></script>
-  <script src="/site-final-hardening.js?v=202608291620"></script>
-  <script>try{renderProducts();renderCart()}catch(error){console.error(error)}</script>
+  <script src="/staging-config.js?v=20260829a"></script>
+  <script src="/clean-store.js?v=20260829a"></script>
+  <script src="/storefront-control.js?v=20260830a"></script>
+  <script src="/research-center.js?v=20260830a"></script>
+  <script src="/research-rich-enhance.js?v=20260830a"></script>
+  <script src="/guides.js?v=20260830a"></script>
+  <script src="/storefront-visual-fix.js?v=20260830a"></script>
+  <script src="/ai-assistant.js?v=20260830a"></script>
 </body>
 </html>
