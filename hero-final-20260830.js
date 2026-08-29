@@ -5,7 +5,7 @@ const PEN='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/cat
 const CART='/assets/cartridge-master-v2.svg';
 function fill(){
   const b=document.querySelector('.aibt-hero-banner');
-  if(!b||b.dataset.built==='1')return;
+  if(!b||b.dataset.built==='1')return false;
   b.dataset.built='1';
   b.removeAttribute('role'); b.removeAttribute('aria-label');
   b.innerHTML=`<div class="aibt-hero-copy">
@@ -29,7 +29,15 @@ function fill(){
     </div>`;
   b.querySelector('.aibt-shop-btn')?.addEventListener('click',()=>window.showAllProducts?.());
   b.querySelector('.aibt-research-btn')?.addEventListener('click',()=>window.openResearchCenter?.());
+  return true;
 }
-function init(){fill();const mo=new MutationObserver(fill);mo.observe(document.body,{childList:true,subtree:true});}
+function init(){
+  if(fill())return;
+  const hero=document.querySelector('.hero');
+  if(!hero)return;
+  const mo=new MutationObserver(()=>{if(fill())mo.disconnect()});
+  mo.observe(hero,{childList:true,subtree:true});
+  setTimeout(()=>{fill();mo.disconnect()},1800);
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,260),{once:true});else setTimeout(init,260);
 })();
