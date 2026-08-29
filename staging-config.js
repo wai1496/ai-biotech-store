@@ -24,18 +24,23 @@ window.toast = window.toast || function(message){
       const script=document.createElement('script');script.src='/research-badges-copy.js?v=20260830h';script.dataset.aibtResearchBadges='1';document.head.appendChild(script);
     }
   };
+  const loadCoverage3=()=>{
+    if(!document.querySelector('script[data-pd-source-coverage3]')){
+      const script=document.createElement('script');script.src='/research-source-coverage-3.js?v=20260830j';script.dataset.pdSourceCoverage3='1';document.head.appendChild(script);
+    }
+  };
   const loadCoverage2=()=>{
     if(!document.querySelector('script[data-pd-source-coverage2]')){
-      const script=document.createElement('script');script.src='/research-source-coverage-2.js?v=20260830i';script.dataset.pdSourceCoverage2='1';document.head.appendChild(script);
-    }
+      const script=document.createElement('script');script.src='/research-source-coverage-2.js?v=20260830i';script.dataset.pdSourceCoverage2='1';script.onload=()=>setTimeout(loadCoverage3,80);document.head.appendChild(script);
+    }else setTimeout(loadCoverage3,80);
   };
   const loadSourceOnly=()=>{
     if(!document.querySelector('link[data-pd-source-only]')){
       const link=document.createElement('link');link.rel='stylesheet';link.href='/research-source-only.css?v=20260830g';link.dataset.pdSourceOnly='1';document.head.appendChild(link);
     }
     if(!document.querySelector('script[data-pd-source-only]')){
-      const script=document.createElement('script');script.src='/research-source-only.js?v=20260830g';script.dataset.pdSourceOnly='1';script.onload=()=>{setTimeout(loadCoverage2,70);setTimeout(loadBadgeCopy,120)};document.head.appendChild(script);
-    }else{setTimeout(loadCoverage2,70);setTimeout(loadBadgeCopy,120)}
+      const script=document.createElement('script');script.src='/research-source-only.js?v=20260830g';script.dataset.pdSourceOnly='1';script.onload=()=>{setTimeout(loadCoverage2,70);setTimeout(loadBadgeCopy,180)};document.head.appendChild(script);
+    }else{setTimeout(loadCoverage2,70);setTimeout(loadBadgeCopy,180)}
   };
   if(!document.querySelector('link[data-aibt-assistant]')){
     const link=document.createElement('link');link.rel='stylesheet';link.href='/ai-assistant.css?v=20260829a';link.dataset.aibtAssistant='1';document.head.appendChild(link);
@@ -56,5 +61,6 @@ window.toast = window.toast || function(message){
   }
   setTimeout(loadSourceOnly,1800);
   setTimeout(loadCoverage2,2200);
-  setTimeout(loadBadgeCopy,2400);
+  setTimeout(loadCoverage3,2450);
+  setTimeout(loadBadgeCopy,2600);
 })();
