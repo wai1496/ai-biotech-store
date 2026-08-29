@@ -89,6 +89,42 @@ if(fs.existsSync(vercelPath)){
   }catch(error){failures.push(`vercel.json is invalid JSON: ${error.message}`)}
 }
 
+// Staging-specific release gate: clean storefront assets, isolation and inline handler wiring.
+const stagingConfigPath=path.join(root,'staging-config.js');
+if(fs.existsSync(stagingConfigPath)){
+  for(const file of ['clean-store.css','clean-store.js','staging-config.js']){
+    if(!fs.existsSync(path.join(root,file)))failures.push(`Staging: missing required clean storefront file ${file}`);
+  }
+  const stagingConfig=fs.readFileSync(stagingConfigPath,'utf8');
+  if(!stagingConfig.includes("environment: 'staging'"))failures.push('Staging: environment flag is not set to staging');
+  if(!stagingConfig.includes('rpnwssqvurpdennpzplx.supabase.co'))failures.push('Staging: storefront is not configured for the isolated staging Supabase project');
+  if(stagingConfig.includes('yjauxyvtrmdriwtmckkl.supabase.co'))failures.push('Staging: staging config points at production Supabase');
+
+  const indexPath=path.join(root,'index.html');
+  const indexText=fs.readFileSync(indexPath,'utf8');
+  if(!/noindex\s*,?\s*nofollow/i.test(indexText))failures.push('Staging: preview page must remain noindex,nofollow');
+  if(indexText.includes('biotech-animated-background.js'))failures.push('Staging: dark animated DNA script is loaded in the default clean theme');
+  if(!indexText.includes('/clean-store.css')||!indexText.includes('/clean-store.js'))failures.push('Staging: clean storefront assets are not loaded');
+
+  const localScripts=[...indexText.matchAll(/<script\b[^>]*\bsrc=(["'])(.*?)\1/gi)]
+    .map(m=>m[2].split('?')[0])
+    .filter(src=>src.startsWith('/'))
+    .map(src=>path.join(root,src.slice(1)))
+    .filter(src=>fs.existsSync(src));
+  const jsText=localScripts.map(file=>fs.readFileSync(file,'utf8')).join('\n');
+  const onclickNames=[...indexText.matchAll(/\bonclick=(["'])\s*([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[2]);
+  const uniqueHandlers=[...new Set(onclickNames)];
+  for(const name of uniqueHandlers){
+    const exported=new RegExp(`window\\.${name}\\s*=`).test(jsText);
+    if(!exported)failures.push(`Staging: inline control calls ${name}() but no global window.${name} handler is exported`);
+  }
+
+  const requiredHandlers=['scrollToId','showAllProducts','toggleMobileMenu','openStageAccount','openCart','setCategory','openGuide','toast','closeCart','stageCheckout','closeModal','closeMobileMenu'];
+  for(const name of requiredHandlers){
+    if(!new RegExp(`window\\.${name}\\s*=`).test(jsText))failures.push(`Staging: critical interaction handler window.${name} is missing`);
+  }
+}
+
 if(failures.length){
   console.error('\nSite smoke check FAILED:\n- '+failures.join('\n- '));
   process.exit(1);
