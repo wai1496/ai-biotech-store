@@ -10,10 +10,11 @@ module.exports=async function handler(req,res){
   const url=process.env.AIBT_STAGING_SUPABASE_URL||STAGING_URL;
   const key=process.env.AIBT_STAGING_SUPABASE_KEY||STAGING_KEY;
   try{
-    const r=await fetch(`${url}/rest/v1/rpc/get_public_feature_flag`,{method:'POST',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({p_feature_key:'ai_storefront_assistant'})});
+    const r=await fetch(`${url}/rest/v1/public_feature_flags?feature_key=eq.ai_storefront_assistant&select=feature_key,enabled,status,version&limit=1`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
     const data=await r.json();
     if(!r.ok)throw new Error(data?.message||'Feature flag unavailable');
-    res.status(200).json(data);
+    const flag=Array.isArray(data)&&data[0]?data[0]:{feature_key:'ai_storefront_assistant',enabled:false,status:'missing',version:'0.1.0'};
+    res.status(200).json(flag);
   }catch(e){
     res.status(200).json({feature_key:'ai_storefront_assistant',enabled:false,status:'config_error',version:'0.1.0'});
   }
