@@ -23,12 +23,22 @@ function inlineSaveMessage(msg,ok=false){
   el.textContent=msg;
   el.style.borderColor=ok?'#2eaa61':'#e63c3c';
 }
+async function resolveVariant(id){
+  let v=(window.protocolVariants||[]).find(x=>x.id===id);
+  if(v)return v;
+  const {data,error}=await sb.from('variants').select('id,product_id,strength,strength_label,format,products(name)').eq('id',id).maybeSingle();
+  if(error||!data)return null;
+  v=data;
+  try{ if(Array.isArray(window.protocolVariants))window.protocolVariants.push(v); }catch(_){ }
+  return v;
+}
 async function saveProtocolSafely(ev){
   if(!protocolFormActive())return;
   ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
   const f=editForm.elements;
-  const v=(window.protocolVariants||[]).find(x=>x.id===f.protocol_variant.value);
-  if(!v)return inlineSaveMessage('Exact variant not found. Close and reopen the protocol editor.');
+  const variantId=f.protocol_variant.value;
+  const v=await resolveVariant(variantId);
+  if(!v)return inlineSaveMessage(`Variant ${variantId||'(missing)'} could not be loaded. Refresh the page and try again.`);
 
   let schedule;
   try{ schedule=window.parseSchedule?parseSchedule(f.schedule.value):[]; }
@@ -56,10 +66,10 @@ async function saveProtocolSafely(ev){
   saveEdit.disabled=true;
   saveEdit.textContent='Saving…';
   inlineSaveMessage('Saving protocol…',true);
-  const currentId=(window.rows||[]).find(r=>r.variant_id===v.id && r.title===f.protocol_title.value)?.id||null;
+  const currentId=(window.rows||[]).find(r=>r.variant_id===variantId && (r.title===f.protocol_title.value || r.id===window.__aibtEditingProtocolId))?.id||window.__aibtEditingProtocolId||null;
   const {data,error}=await sb.rpc('admin_save_protocol',{
     p_protocol_id:currentId,
-    p_variant_id:f.protocol_variant.value,
+    p_variant_id:variantId,
     p_source_url:f.source_url.value.trim()||null,
     p_source_product:f.source_product.value.trim(),
     p_source_strength:f.source_strength.value.trim(),
