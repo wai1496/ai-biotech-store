@@ -21,18 +21,21 @@ function decorateInfo(){
 }
 const original=window.openProductInfo;
 if(typeof original==='function'){
- window.openProductInfo=function(id){
-   original(id);
-   requestAnimationFrame(()=>requestAnimationFrame(decorateInfo));
- };
+ window.openProductInfo=function(id){original(id);requestAnimationFrame(()=>requestAnimationFrame(decorateInfo));};
 }
 function normalizeCards(){
  document.querySelectorAll('.product-card').forEach(card=>{
   const label=card.querySelector('.dynamic-label');
-  if(label&&!label.dataset.aibtNormalized){label.dataset.aibtNormalized='1';}
+  if(label&&!label.dataset.aibtNormalized)label.dataset.aibtNormalized='1';
  });
 }
+function ensureFaq(){
+ if(!document.getElementById('aibtFullFaqScript')){const s=document.createElement('script');s.id='aibtFullFaqScript';s.src='/faq.js?v=20260830b';s.defer=true;document.body.appendChild(s)}
+ const section=document.getElementById('faq');if(!section||section.querySelector('.full-faq-launch'))return;
+ const box=document.createElement('div');box.className='full-faq-launch';box.style.margin='18px 0 0';
+ const b=document.createElement('button');b.type='button';b.className='btn blue';b.textContent='Open Full FAQ & Knowledge Centre →';b.addEventListener('click',()=>{if(typeof window.openFAQ==='function')window.openFAQ();else setTimeout(()=>window.openFAQ?.(),120)});box.appendChild(b);section.insertBefore(box,section.querySelector('.faq-grid'));
+}
 const mo=new MutationObserver(()=>normalizeCards());
-function init(){normalizeCards();const grid=document.getElementById('productGrid');if(grid)mo.observe(grid,{childList:true,subtree:true})}
+function init(){normalizeCards();ensureFaq();const grid=document.getElementById('productGrid');if(grid)mo.observe(grid,{childList:true,subtree:true})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
