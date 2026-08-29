@@ -1,0 +1,109 @@
+/* Final mobile storefront visual guard, review only */
+.product-card .product-media{
+  position:relative!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:1/1!important;
+  overflow:hidden!important;
+  display:grid!important;
+  place-items:center!important;
+  background:#fff!important;
+}
+.product-card .product-media>img{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  padding:0!important;
+  margin:0!important;
+  transform:none!important;
+}
+.product-card .dynamic-label{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  aspect-ratio:1/1!important;
+  transform:none!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+}
+.product-card .dynamic-label .name,
+.product-card .dynamic-label .strength,
+.info-dynamic-label .name,
+.info-dynamic-label .strength{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  line-height:1!important;
+  font-weight:850!important;
+  box-sizing:border-box!important;
+  padding:0 3px!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+}
+/* Vial, cover the master orange fields with live category colour while keeping cap/body untouched. */
+.product-card[data-format="Vial"] .dynamic-label .name,
+.info-visual[data-format="Vial"] .info-dynamic-label .name{
+  left:34.4%!important;top:49.6%!important;width:31.6%!important;height:9.3%!important;
+  color:var(--cat,#1477ff)!important;background:#fff!important;
+  border:2px solid var(--cat,#1477ff)!important;border-radius:5px!important;
+  font-size:clamp(8px,2.6vw,12px)!important;
+}
+.product-card[data-format="Vial"] .dynamic-label .strength,
+.info-visual[data-format="Vial"] .info-dynamic-label .strength{
+  left:40.2%!important;top:59.0%!important;width:19.8%!important;height:6.1%!important;
+  color:var(--cat,#1477ff)!important;background:#fff!important;
+  border:2px solid var(--cat,#1477ff)!important;border-radius:5px!important;
+  font-size:clamp(7px,2.25vw,11px)!important;
+}
+/* Pen, same category-aware label treatment, the hardware/cap stays white. */
+.product-card[data-format="Pen"] .dynamic-label .name,
+.info-visual[data-format="Pen"] .info-dynamic-label .name{
+  left:44.5%!important;top:45.6%!important;width:28.0%!important;height:8.0%!important;
+  color:var(--cat,#1477ff)!important;background:#fff!important;
+  border:2px solid var(--cat,#1477ff)!important;border-radius:999px!important;
+  font-size:clamp(6px,1.9vw,10px)!important;
+}
+.product-card[data-format="Pen"] .dynamic-label .strength,
+.info-visual[data-format="Pen"] .info-dynamic-label .strength{
+  left:71.0%!important;top:45.7%!important;width:11.2%!important;height:7.4%!important;
+  color:#172238!important;background:#fff!important;
+  border:1.5px solid var(--cat,#1477ff)!important;border-radius:4px!important;
+  font-size:clamp(6px,1.65vw,9px)!important;
+}
+/* Detail modal visual must use the same square canvas as the product card. */
+.info-visual{
+  position:relative!important;
+  width:100%!important;
+  max-width:620px!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  overflow:hidden!important;
+  display:grid!important;
+  place-items:center!important;
+  background:#fff!important;
+  border:1px solid #dce6ef!important;
+  border-radius:18px!important;
+}
+.info-visual>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;}
+.info-dynamic-label{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;pointer-events:none!important;}
+/* Mobile spacing, prevent the sticky cart and Android viewport from covering actions/content. */
+@media(max-width:760px){
+  main{padding-bottom:104px!important}
+  .product-grid{padding-bottom:28px!important}
+  .modal-body{padding-bottom:116px!important}
+  .modal{max-height:calc(100dvh - 28px)!important}
+  .product-card .product-media{aspect-ratio:1/1!important}
+  .product-card[data-format="Vial"] .dynamic-label .name{font-size:clamp(9px,2.7vw,12px)!important}
+  .product-card[data-format="Vial"] .dynamic-label .strength{font-size:clamp(8px,2.3vw,11px)!important}
+}
+/* Approved hero direction is borderless. */
+.hero{border:0!important;box-shadow:none!important}
+.aibt-hero-banner{border:0!important;box-shadow:none!important}
