@@ -7,6 +7,7 @@
   <meta name="description" content="AI BioTech research catalog with Vial, Cartridge and Pen format selection.">
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="/clean-store.css?v=20260829a">
+  <link rel="stylesheet" href="/storefront-control.css?v=20260829b">
 </head>
 <body>
   <div class="stagebar">STAGING PREVIEW — ISOLATED FROM PRODUCTION WRITES</div>
@@ -80,14 +81,14 @@
 
       <section id="research" class="section"><h2>Research Insights</h2><p class="section-lead">Product-linked public research summaries mirrored into the isolated staging environment.</p><div id="researchGrid" class="research-grid"></div></section>
 
-      <section id="guides" class="section"><h2>Guides & Handling</h2><p class="section-lead">Structured guide destinations are active and will be managed from the future Content Control Center.</p><div class="guide-grid">
+      <section id="guides" class="section"><h2>Guides & Handling</h2><p class="section-lead">Structured guide destinations are active and will be managed from the Content Control Center.</p><div class="guide-grid">
         <article class="guide-card"><h3>Cold Chain & Receiving</h3><p>Packaging, receiving, storage and heat-exposure guidance.</p><button class="btn" onclick="openGuide('cold')">Open Guide</button></article>
         <article class="guide-card"><h3>Pen Usage</h3><p>Approved visual pen handling guide with replaceable step images.</p><button class="btn" onclick="openGuide('pen')">Open Guide</button></article>
         <article class="guide-card"><h3>Vial / Reconstitution</h3><p>Written preparation guidance plus configurable video support.</p><button class="btn" onclick="openGuide('vial')">Open Guide</button></article>
         <article class="guide-card"><h3>Cartridge Guide</h3><p>Cartridge handling and compatible-device information.</p><button class="btn" onclick="openGuide('cartridge')">Open Guide</button></article>
       </div></section>
 
-      <section id="faq" class="section"><h2>Frequently Asked Questions</h2><p class="section-lead">The staging layout uses concise answers now; the final FAQ will be admin-managed and expandable.</p><div class="faq-grid">
+      <section id="faq" class="section"><h2>Frequently Asked Questions</h2><p class="section-lead">Concise staging answers; final FAQ entries will be admin-managed.</p><div class="faq-grid">
         <article class="faq-card"><h3>How do I choose a format?</h3><p>Select Vial, Cartridge or Pen directly on the product card. Only formats available for the selected strength are shown.</p></article>
         <article class="faq-card"><h3>Why can a parcel feel warm?</h3><p>Insulated/cold-chain packaging reduces excessive heat exposure but does not guarantee the parcel remains frozen or feels ice-cold on arrival.</p></article>
         <article class="faq-card"><h3>Where are private protocols?</h3><p>Protocols are separate from public Research Insights and will be available only through legitimate exact-variant entitlement rules.</p></article>
@@ -99,7 +100,7 @@
     <div><a class="brand" href="#top" onclick="scrollToId('top');return false"><div class="brand-mark">🧬</div><div><strong style="color:white"><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></a><p>Professional research catalog storefront. This staging preview is isolated from production writes.</p></div>
     <div><h4>Shop</h4><button onclick="showAllProducts()">All Products</button><button onclick="setCategory('Metabolism')">Metabolism</button><button onclick="setCategory('Healing')">Healing</button><button onclick="setCategory('Longevity')">Longevity</button></div>
     <div><h4>Information</h4><button onclick="scrollToId('research')">Research Insights</button><button onclick="scrollToId('guides')">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="openStageAccount()">Member Area</button></div>
-    <div><h4>Contact & Policies</h4><button onclick="toast('Contact details will be managed from Store Settings in the Operations Control Center.')">Contact Details</button><button onclick="toast('Terms page is queued for the admin-managed policy module.')">Terms & Conditions</button><button onclick="toast('Privacy and cookie controls are queued for the consent module.')">Privacy & Cookies</button></div>
+    <div><h4>Contact & Policies</h4><button onclick="openPublishedPage('contact')">Contact</button><button onclick="openPublishedPage('terms')">Terms & Conditions</button><button onclick="openPublishedPage('privacy')">Privacy & Cookies</button></div>
   </div><div class="footer-bottom">For research purposes only. Staging environment — no production order or payment writes.</div></footer>
 
   <div id="cartOverlay" class="overlay"><aside class="drawer" aria-label="Cart"><div class="drawer-head"><h2>Your Cart</h2><button class="close-btn" onclick="closeCart()" aria-label="Close cart">×</button></div><div id="cartItems" class="drawer-body"></div><div class="drawer-footer"><div class="cart-total"><span>Total</span><span id="cartTotal">RM0</span></div><button class="btn blue" style="width:100%" onclick="stageCheckout()">Continue to Checkout</button></div></aside></div>
@@ -115,5 +116,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/staging-config.js?v=20260829a"></script>
   <script src="/clean-store.js?v=20260829a"></script>
+  <script src="/storefront-control.js?v=20260829b"></script>
 </body>
 </html>
