@@ -80,7 +80,12 @@ if(fs.existsSync(vercelPath)){
   try{
     const config=JSON.parse(fs.readFileSync(vercelPath,'utf8'));
     const rewrites=Array.isArray(config.rewrites)?config.rewrites:[];
-    if(!rewrites.some(r=>r.source==='/product/:slug'&&r.destination==='/product.html?product=:slug'))warnings.push('vercel.json: clean product permalink rewrite was not detected');
+    const redirects=Array.isArray(config.redirects)?config.redirects:[];
+    const headers=Array.isArray(config.headers)?config.headers:[];
+    if(!rewrites.some(r=>r.source==='/product/:id'&&r.destination==='/?product=:id'))failures.push('vercel.json: clean product permalink rewrite is missing');
+    if(!redirects.some(r=>r.source==='/plain.html'&&r.destination==='/'))warnings.push('vercel.json: legacy /plain.html is not redirected to the main store');
+    const allHeaders=headers.flatMap(rule=>rule.headers||[]).map(h=>String(h.key||'').toLowerCase());
+    for(const key of ['x-content-type-options','referrer-policy','permissions-policy'])if(!allHeaders.includes(key))warnings.push(`vercel.json: recommended ${key} header is missing`);
   }catch(error){failures.push(`vercel.json is invalid JSON: ${error.message}`)}
 }
 
