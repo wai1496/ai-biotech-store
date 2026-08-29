@@ -48,8 +48,7 @@
   };
 })();
 
-/* Responsive navigation/controller. It binds every visible header item explicitly so
-   mobile and tablet taps do not depend on overlapping inline handlers or implicit ID globals. */
+/* Responsive navigation/controller. */
 (function(){
   function toast(message){
     let el=document.querySelector('.shell-toast');
@@ -102,10 +101,4 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMobileNav();document.querySelector('.shell-about-backdrop')?.remove()}});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-})();
-
-/* Global reusable biotech background. This only creates a fixed pointer-events:none canvas layer and never modifies storefront interactions. */
-(function(){
-  if(window.__AIBioTechBackgroundLoader)return;window.__AIBioTechBackgroundLoader=true;
-  const s=document.createElement('script');s.src='/biotech-animated-background.js';s.defer=true;document.head.appendChild(s);
 })();
