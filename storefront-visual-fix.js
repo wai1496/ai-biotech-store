@@ -49,14 +49,57 @@ function ensureFaq(){
  const box=document.createElement('div');box.className='full-faq-launch';box.style.margin='18px 0 0';
  const b=document.createElement('button');b.type='button';b.className='btn blue';b.textContent='Open Full FAQ & Knowledge Centre →';b.addEventListener('click',()=>{if(typeof window.openFAQ==='function')window.openFAQ();else setTimeout(()=>window.openFAQ?.(),120)});box.appendChild(b);section.insertBefore(box,section.querySelector('.faq-grid'));
 }
+function patchResearchNavigation(){
+ const originalDetail=window.openResearchDetailCenter;
+ if(typeof originalDetail!=='function'||originalDetail.__aibtLightPatched)return;
+ const wrapped=async function(id){
+  const modalWrap=document.getElementById('modalWrap');
+  if(modalWrap?.classList.contains('show')){
+   if(typeof window.closeModal==='function')window.closeModal();
+   else modalWrap.classList.remove('show');
+  }
+  await originalDetail(id);
+  const back=document.getElementById('researchDetailCenter');
+  if(back?.classList.contains('show')){
+   document.body.style.overflow='hidden';
+   const close=back.querySelector('.rc-detail-close');
+   if(close)close.setAttribute('onclick','closeResearchDetailCenter()');
+  }
+ };
+ wrapped.__aibtLightPatched=true;
+ window.openResearchDetailCenter=wrapped;
+ window.openResearch=id=>wrapped(id);
+ window.closeResearchDetailCenter=function(){
+  document.getElementById('researchDetailCenter')?.classList.remove('show');
+  if(!document.querySelector('#researchCenterPage.show'))document.body.style.overflow='';
+ };
+}
+function patchModalClose(){
+ const wrap=document.getElementById('modalWrap');
+ if(wrap&&!wrap.dataset.aibtBackdropClose){
+  wrap.dataset.aibtBackdropClose='1';
+  wrap.addEventListener('click',e=>{if(e.target===wrap&&typeof window.closeModal==='function')window.closeModal()});
+ }
+ if(!document.documentElement.dataset.aibtEscClose){
+  document.documentElement.dataset.aibtEscClose='1';
+  document.addEventListener('keydown',e=>{
+   if(e.key!=='Escape')return;
+   if(document.querySelector('#researchDetailCenter.show'))return window.closeResearchDetailCenter?.();
+   if(document.querySelector('#researchCenterPage.show'))return window.closeResearchCenter?.();
+   if(document.querySelector('#modalWrap.show'))return window.closeModal?.();
+   if(document.querySelector('#cartOverlay.show'))return window.closeCart?.();
+  });
+ }
+}
 const mo=new MutationObserver(()=>normalizeCards());
 const heroMo=new MutationObserver(()=>normalizeCards());
 function init(){
- patchCartStorage();normalizeCards();ensureFaq();
+ patchCartStorage();normalizeCards();ensureFaq();patchResearchNavigation();patchModalClose();
  const grid=document.getElementById('productGrid');if(grid)mo.observe(grid,{childList:true,subtree:true});
  const cart=document.getElementById('cartItems');if(cart)mo.observe(cart,{childList:true,subtree:true});
  const hero=document.getElementById('heroCartridge');if(hero)heroMo.observe(hero,{attributes:true,attributeFilter:['src']});
  setTimeout(normalizeCards,250);setTimeout(normalizeCards,900);setTimeout(normalizeCards,1800);
+ setTimeout(patchResearchNavigation,150);setTimeout(patchResearchNavigation,700);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
