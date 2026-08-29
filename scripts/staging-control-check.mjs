@@ -1,22 +1,31 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const root=process.cwd(),fail=[];
-const req=['storefront-control.js','storefront-control.css','ops-control.js','ops-control.css','ops-intelligence.js','ops-intelligence.css','ops-ai-control.js','ops-ai-control.css','api/staging-ai-product.js','staging-config.js','ops.html'];
+const req=['storefront-control.js','storefront-control.css','ops-control.js','ops-control.css','ops-intelligence.js','ops-intelligence.css','ops-ai-control.js','ops-ai-control.css','ops-commerce.js','ops-commerce.css','api/staging-ai-product.js','staging-config.js','ops.html','member.html','checkout.html','staging-member.js','staging-member.css','staging-checkout.js'];
 for(const f of req)if(!fs.existsSync(path.join(root,f)))fail.push(`missing ${f}`);
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 if(fs.existsSync(path.join(root,'vercel.json'))){const v=JSON.parse(read('vercel.json'));if(v?.git?.deploymentEnabled?.['staging/master-build']!==false)fail.push('staging/master-build must not auto-deploy to Vercel');}
-const control=read('ops-control.js'),intel=read('ops-intelligence.js'),ai=read('ops-ai-control.js'),store=read('storefront-control.js'),api=read('api/staging-ai-product.js'),opsHtml=read('ops.html');
-for(const [name,text] of [['ops-control.js',control],['ops-intelligence.js',intel],['ops-ai-control.js',ai]])for(const bad of ['prompt(','confirm('])if(text.includes(bad))fail.push(`${name} contains forbidden native ${bad.slice(0,-1)} dialog`);
+const control=read('ops-control.js'),intel=read('ops-intelligence.js'),ai=read('ops-ai-control.js'),commerce=read('ops-commerce.js'),store=read('storefront-control.js'),api=read('api/staging-ai-product.js'),opsHtml=read('ops.html'),memberHtml=read('member.html'),checkoutHtml=read('checkout.html'),member=read('staging-member.js'),checkout=read('staging-checkout.js'),config=read('staging-config.js');
+for(const [name,text] of [['ops-control.js',control],['ops-intelligence.js',intel],['ops-ai-control.js',ai],['ops-commerce.js',commerce],['staging-member.js',member],['staging-checkout.js',checkout]])for(const bad of ['prompt(','confirm(','alert('])if(text.includes(bad))fail.push(`${name} contains forbidden native ${bad.slice(0,-1)} dialog`);
 for(const rpc of ['ops_save_site_control','ops_save_page','ops_save_menu_item','ops_save_media_template','ops_toggle_feature','ops_save_integration'])if(!control.includes(rpc))fail.push(`ops-control.js missing controlled RPC ${rpc}`);
+for(const rpc of ['ops_save_customer','ops_adjust_wallet','ops_set_order_status','ops_record_payment','ops_update_shipment','ops_save_voucher','ops_save_commerce_settings'])if(!commerce.includes(rpc))fail.push(`ops-commerce.js missing controlled RPC ${rpc}`);
 if(!intel.includes("ops_update_product")||!intel.includes("p_source:'ai'"))fail.push('Product Intelligence must write via ops_update_product with AI source attribution');
 if(!intel.includes('/api/staging-ai-product'))fail.push('Product Intelligence is not wired to staging-only AI endpoint');
 for(const table of ['site_control','menu_items','content_pages'])if(!store.includes(`from('${table}')`))fail.push(`storefront-control.js is not reading ${table}`);
 for(const token of ["process.env.VERCEL_ENV==='production'",'rpnwssqvurpdennpzplx.supabase.co','admin_users','GEMINI_API_KEY','Authenticated staging admin required'])if(!api.includes(token))fail.push(`staging AI endpoint missing protection/config token: ${token}`);
 if(api.includes('yjauxyvtrmdriwtmckkl.supabase.co'))fail.push('staging AI endpoint references production Supabase');
-for(const asset of ['/ops-control.js','/ops-intelligence.js','/ops-ai-control.js','/ops-control.css','/ops-intelligence.css','/ops-ai-control.css'])if(!opsHtml.includes(asset))fail.push(`ops.html missing ${asset}`);
-for(const view of ['pages','media','themes','features','integrations','intelligence','ai-control'])if(!opsHtml.includes(`data-view="${view}"`))fail.push(`ops.html missing working navigation entry ${view}`);
+for(const asset of ['/ops-control.js','/ops-intelligence.js','/ops-ai-control.js','/ops-commerce.js','/ops-control.css','/ops-intelligence.css','/ops-ai-control.css','/ops-commerce.css'])if(!opsHtml.includes(asset))fail.push(`ops.html missing ${asset}`);
+for(const view of ['customers','orders','wallet','payments','invoices','shipping','vouchers','commerce-settings','pages','media','themes','features','integrations','intelligence','ai-control'])if(!opsHtml.includes(`data-view="${view}"`))fail.push(`ops.html missing working navigation entry ${view}`);
 if(!ai.includes('READ / PLAN ONLY')&&!ai.includes('zero direct write permission'))fail.push('AI Control Center does not declare read/plan-only mode');
 for(const forbidden of [".insert(",".update(",".delete(",".upsert(",".rpc('ops_"])if(ai.includes(forbidden))fail.push(`AI Control Center has a direct write-capable pattern: ${forbidden}`);
 for(const table of ['products','variants','research_entries'])if(!ai.includes(`from('${table}')`))fail.push(`AI Control Center is not reading ${table}`);
+for(const [name,text] of [['staging-config.js',config],['staging-member.js',member],['staging-checkout.js',checkout],['member.html',memberHtml],['checkout.html',checkoutHtml]])if(text.includes('yjauxyvtrmdriwtmckkl.supabase.co'))fail.push(`${name} references production Supabase`);
+if(!config.includes('checkoutEnabled: true')||!config.includes('memberEnabled: true'))fail.push('staging config must enable isolated member and checkout routes');
+if(memberHtml.includes('/member.js')||memberHtml.includes('/member-enhancements.js'))fail.push('member.html still loads legacy production member scripts');
+if(checkoutHtml.includes('/checkout.js'))fail.push('checkout.html still loads legacy production checkout script');
+for(const rpc of ['member_ensure_profile','member_save_profile','member_save_address','member_delete_address'])if(!member.includes(rpc))fail.push(`staging member missing ${rpc}`);
+for(const rpc of ['commerce_quote','commerce_create_order','member_save_address'])if(!checkout.includes(rpc))fail.push(`staging checkout missing ${rpc}`);
+if(!checkout.includes('aibt_staging_cart'))fail.push('staging checkout is not using isolated staging cart storage');
+if(!checkout.includes('crypto.randomUUID')||!checkout.includes('p_checkout_key'))fail.push('staging checkout idempotency key is missing');
 if(fail.length){console.error('Staging control check FAILED:\n- '+fail.join('\n- '));process.exit(1)}
-console.log('Staging control check passed: audited controls, AI isolation/read-plan mode, Vercel throttling guard and module wiring verified.');
+console.log('Staging control check passed: audited controls, isolated commerce/member/checkout, AI read-plan mode and Vercel throttling guard verified.');
