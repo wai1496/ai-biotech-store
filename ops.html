@@ -8,73 +8,20 @@
 <link rel="stylesheet" href="/ops.css?v=20260829a">
 <link rel="stylesheet" href="/ops-control.css?v=20260829b">
 <link rel="stylesheet" href="/ops-intelligence.css?v=20260829c">
+<link rel="stylesheet" href="/ops-ai-control.css?v=20260829d">
 </head>
 <body>
 <div class="stage">STAGING OPERATIONS CONTROL CENTER — NO PRODUCTION WRITES</div>
-
-<section id="loginWrap" class="login-wrap">
-  <div class="login-card">
-    <div class="login-brand"><div class="mark">🧬</div><div><strong><span>AI</span> BioTech</strong><div class="muted">Operations Control Center · Staging</div></div></div>
-    <h1>Protected Administration</h1>
-    <p class="muted">Use a staging-only account. Production credentials and data are not copied here.</p>
-    <label>Email</label><input id="loginEmail" class="field" type="email" autocomplete="username" placeholder="Admin email">
-    <label>Password</label><input id="loginPassword" class="field" type="password" autocomplete="current-password" minlength="8" placeholder="Staging password">
-    <div class="login-actions"><button id="signInBtn" class="btn primary" onclick="opsSignIn()">Sign In</button><button class="btn" onclick="opsCreateAccount()">Create Staging Account</button><button class="btn wide" onclick="opsResetPassword()">Forgot Staging Password</button></div>
-    <div id="loginNotice" class="notice"></div>
-  </div>
-</section>
-
-<div id="opsApp" class="app" hidden>
-  <aside id="opsSidebar" class="sidebar">
-    <div class="side-brand"><strong><span>AI</span> BioTech</strong><small>OPERATIONS · STAGING</small></div>
-    <nav class="nav" id="opsNav">
-      <h4>OVERVIEW</h4>
-      <button data-view="dashboard" class="active" onclick="openOpsView('dashboard')">▦ Dashboard</button>
-      <button data-view="health" onclick="openOpsView('health')">♡ Website Health</button>
-
-      <h4>COMMERCE</h4>
-      <button data-view="products" onclick="openOpsView('products')">□ Products & Variants</button>
-      <button data-view="inventory" onclick="openOpsView('inventory')">▤ Inventory</button>
-
-      <h4>CONTENT</h4>
-      <button data-view="intelligence" onclick="openOpsView('intelligence')">✦ Product Intelligence</button>
-      <button data-view="research" onclick="openOpsView('research')">⌘ Research Insights</button>
-      <button data-view="pages" onclick="openOpsView('pages')">▧ Pages & Menus</button>
-      <button data-view="media" onclick="openOpsView('media')">▣ Media & Placeholders</button>
-
-      <h4>DESIGN</h4>
-      <button data-view="themes" onclick="openOpsView('themes')">◈ Themes & Site Modes</button>
-
-      <h4>EXTENSIONS</h4>
-      <button data-view="features" onclick="openOpsView('features')">⊞ Plugins & Features</button>
-      <button data-view="integrations" onclick="openOpsView('integrations')">⇄ Integrations</button>
-
-      <h4>SYSTEM</h4>
-      <button data-view="history" onclick="openOpsView('history')">↶ Change History</button>
-    </nav>
-    <div class="side-foot"><button class="btn" onclick="opsSignOut()">Sign Out</button></div>
-  </aside>
-
-  <main class="main">
-    <header class="topbar">
-      <div style="display:flex;align-items:center;gap:10px"><button class="btn mobile-nav-btn" onclick="toggleOpsSidebar()">☰</button><div><h1 id="opsTitle">Dashboard</h1><p id="opsSubtitle">Safe manual operations in isolated staging</p></div></div>
-      <div class="top-actions"><button class="btn desktop-only" onclick="window.open('/','_blank')">Open Staging Store ↗</button><span id="roleBadge" class="badge blue">Loading role…</span></div>
-    </header>
-    <div id="opsContent" class="content"></div>
-  </main>
-</div>
-
-<dialog id="opsDialog" class="dialog">
-  <div class="dialog-head"><div><h2 id="dialogTitle">Edit</h2><p id="dialogSubtitle"></p></div><button class="x" onclick="closeOpsDialog()" aria-label="Close">×</button></div>
-  <div id="dialogBody" class="dialog-body"></div>
-  <div id="dialogFoot" class="dialog-foot"></div>
-</dialog>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/staging-config.js?v=20260829a"></script>
-<script src="/ops.js?v=20260829a"></script>
-<script src="/ops-undo.js?v=20260829a"></script>
-<script src="/ops-control.js?v=20260829b"></script>
-<script src="/ops-intelligence.js?v=20260829c"></script>
-</body>
-</html>
+<section id="loginWrap" class="login-wrap"><div class="login-card"><div class="login-brand"><div class="mark">🧬</div><div><strong><span>AI</span> BioTech</strong><div class="muted">Operations Control Center · Staging</div></div></div><h1>Protected Administration</h1><p class="muted">Use a staging-only account. Production credentials and data are not copied here.</p><label>Email</label><input id="loginEmail" class="field" type="email" autocomplete="username" placeholder="Admin email"><label>Password</label><input id="loginPassword" class="field" type="password" autocomplete="current-password" minlength="8" placeholder="Staging password"><div class="login-actions"><button id="signInBtn" class="btn primary" onclick="opsSignIn()">Sign In</button><button class="btn" onclick="opsCreateAccount()">Create Staging Account</button><button class="btn wide" onclick="opsResetPassword()">Forgot Staging Password</button></div><div id="loginNotice" class="notice"></div></div></section>
+<div id="opsApp" class="app" hidden><aside id="opsSidebar" class="sidebar"><div class="side-brand"><strong><span>AI</span> BioTech</strong><small>OPERATIONS · STAGING</small></div><nav class="nav" id="opsNav">
+<h4>OVERVIEW</h4><button data-view="dashboard" class="active" onclick="openOpsView('dashboard')">▦ Dashboard</button><button data-view="health" onclick="openOpsView('health')">♡ Website Health</button>
+<h4>COMMERCE</h4><button data-view="products" onclick="openOpsView('products')">□ Products & Variants</button><button data-view="inventory" onclick="openOpsView('inventory')">▤ Inventory</button>
+<h4>CONTENT</h4><button data-view="intelligence" onclick="openOpsView('intelligence')">✦ Product Intelligence</button><button data-view="research" onclick="openOpsView('research')">⌘ Research Insights</button><button data-view="pages" onclick="openOpsView('pages')">▧ Pages & Menus</button><button data-view="media" onclick="openOpsView('media')">▣ Media & Placeholders</button>
+<h4>AI</h4><button data-view="ai-control" onclick="openOpsView('ai-control')">✧ AI Control Center</button>
+<h4>DESIGN</h4><button data-view="themes" onclick="openOpsView('themes')">◈ Themes & Site Modes</button>
+<h4>EXTENSIONS</h4><button data-view="features" onclick="openOpsView('features')">⊞ Plugins & Features</button><button data-view="integrations" onclick="openOpsView('integrations')">⇄ Integrations</button>
+<h4>SYSTEM</h4><button data-view="history" onclick="openOpsView('history')">↶ Change History</button></nav><div class="side-foot"><button class="btn" onclick="opsSignOut()">Sign Out</button></div></aside>
+<main class="main"><header class="topbar"><div style="display:flex;align-items:center;gap:10px"><button class="btn mobile-nav-btn" onclick="toggleOpsSidebar()">☰</button><div><h1 id="opsTitle">Dashboard</h1><p id="opsSubtitle">Safe manual operations in isolated staging</p></div></div><div class="top-actions"><button class="btn desktop-only" onclick="window.open('/','_blank')">Open Staging Store ↗</button><span id="roleBadge" class="badge blue">Loading role…</span></div></header><div id="opsContent" class="content"></div></main></div>
+<dialog id="opsDialog" class="dialog"><div class="dialog-head"><div><h2 id="dialogTitle">Edit</h2><p id="dialogSubtitle"></p></div><button class="x" onclick="closeOpsDialog()" aria-label="Close">×</button></div><div id="dialogBody" class="dialog-body"></div><div id="dialogFoot" class="dialog-foot"></div></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/staging-config.js?v=20260829a"></script><script src="/ops.js?v=20260829a"></script><script src="/ops-undo.js?v=20260829a"></script><script src="/ops-control.js?v=20260829b"></script><script src="/ops-intelligence.js?v=20260829c"></script><script src="/ops-ai-control.js?v=20260829d"></script>
+</body></html>
