@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/product-detail.css">
   <link rel="stylesheet" href="/faq.css">
   <link rel="stylesheet" href="/performance.css">
-  <link rel="stylesheet" href="/responsive-hardening.css?v=202608291615">
+  <link rel="stylesheet" href="/responsive-hardening.css?v=202608291620">
   <script src="/biotech-animated-background.js" defer></script>
 </head>
 <body class="catalog-loading">
@@ -18,7 +18,7 @@
   <header class="top">
     <div class="brand"><div class="mark">🧬</div><div><strong><span style="color:#18c9ff">AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></div>
     <div class="search"><input id="search" placeholder="Search peptides..." oninput="renderProducts()"></div>
-    <div class="actions"><button type="button" aria-label="Currency is Malaysian Ringgit">MYR⌄</button><button id="memberNavBtn" type="button" aria-label="Member area" onclick="location.href='/member.html'">👤 MEMBER</button><button id="adminNavBtn" type="button" aria-label="Administration" onclick="location.href='/admin.html'">⚙ ADMIN</button><button id="cartNavBtn" type="button" aria-label="Open cart" onclick="toggleCart()">🛒 <span class="bubble" id="cartCount">0</span> <b id="headerTotal">RM0.00</b></button></div>
+    <div class="actions"><button type="button" aria-label="Currency is Malaysian Ringgit" onclick="alert('All store prices are displayed in Malaysian Ringgit (MYR).')">MYR⌄</button><button id="memberNavBtn" type="button" aria-label="Member area" onclick="location.href='/member.html'">👤 MEMBER</button><button id="adminNavBtn" type="button" aria-label="Administration" onclick="location.href='/admin.html'">⚙ ADMIN</button><button id="cartNavBtn" type="button" aria-label="Open cart" onclick="toggleCart()">🛒 <span class="bubble" id="cartCount">0</span> <b id="headerTotal">RM0.00</b></button></div>
   </header>
   <nav class="nav" aria-label="Main navigation">
     <button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ HOME</button>
@@ -43,13 +43,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/app.js"></script>
   <script src="/center-fix.js"></script>
-  <script src="/product-detail.js?v=202608291545"></script>
-  <script src="/storefront-hardening.js?v=202608291615"></script>
+  <script src="/product-detail.js?v=202608291620"></script>
+  <script src="/storefront-hardening.js?v=202608291620"></script>
   <script src="/supabase-storefront.js?v=202608291545"></script>
-  <script src="/guides.js?v=202608291615"></script>
+  <script src="/guides.js?v=202608291620"></script>
   <script src="/faq.js"></script>
   <script src="/research.js"></script>
-  <script src="/site-final-hardening.js?v=202608291545"></script>
+  <script src="/site-final-hardening.js?v=202608291620"></script>
   <script>try{renderProducts();renderCart()}catch(error){console.error(error)}</script>
 </body>
 </html>
