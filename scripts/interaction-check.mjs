@@ -4,6 +4,11 @@ const root=process.cwd(),fail=[],warn=[];
 const pages=['index.html','member.html','checkout.html','ops.html'];
 const builtins=new Set(['open','focus','scrollIntoView','reload','print','close','showModal']);
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const prodHost='yjauxyvtrmdriwtmckkl.supabase.co';
+function hasProductionDataRef(text){
+  const safeAsset=new RegExp(`https:\\/\\/${prodHost.replaceAll('.','\\.')}\\/storage\\/v1\\/object\\/public\\/[^'\"\\s)]+`,'g');
+  return String(text||'').replace(safeAsset,'').includes(prodHost);
+}
 function localScripts(html){return [...html.matchAll(/<script\b[^>]*\bsrc=(["'])(.*?)\1/gi)].map(m=>m[2].split('?')[0]).filter(x=>x.startsWith('/')).map(x=>x.slice(1)).filter(x=>fs.existsSync(path.join(root,x)));}
 function exported(name,js){return new RegExp(`window\\.${name}\\s*=|window\\[(["'])${name}\\1\\]\\s*=|function\\s+${name}\\s*\\(`).test(js)}
 for(const page of pages){
@@ -23,7 +28,7 @@ for(const page of pages){
  }
  const internal=[...html.matchAll(/\bhref=(["'])(\/[^"'#?]*)(?:[?#][^"']*)?\1/gi)].map(m=>m[2]);
  for(const href of internal){if(href==='/'||href.startsWith('/product/'))continue;const candidate=href.replace(/^\//,'');if(candidate&&!fs.existsSync(path.join(root,candidate)))fail.push(`${page}: internal route target does not exist: ${href}`)}
- for(const src of scripts){const text=read(src);if(/\b(prompt|confirm|alert)\s*\(/.test(text))fail.push(`${src}: native browser dialog is forbidden in active staging UI`);if(text.includes('yjauxyvtrmdriwtmckkl.supabase.co'))fail.push(`${src}: active staging script references production Supabase`)}
+ for(const src of scripts){const text=read(src);if(/\b(prompt|confirm|alert)\s*\(/.test(text))fail.push(`${src}: native browser dialog is forbidden in active staging UI`);if(hasProductionDataRef(text))fail.push(`${src}: active staging script references a production Supabase data/auth/API endpoint`)}
 }
 if(fail.length){console.error('Interaction contract check FAILED:\n- '+[...new Set(fail)].join('\n- '));process.exit(1)}
 console.log(`Interaction contract check passed for ${pages.length} active staging surfaces.`);
