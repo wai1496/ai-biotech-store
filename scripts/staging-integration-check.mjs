@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const root=process.cwd(),fail=[];
-const req=['staging-member-agent.js','staging-member-wallet.js','api/staging-wallet/_shared.js','api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js','api/staging-shipping/_shared.js','api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js','ops-easyparcel.js','member.html','ops.html'];
+const req=['staging-member-agent.js','staging-member-wallet.js','api/staging-wallet/_shared.js','api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js','api/staging-shipping/_shared.js','api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js','api/staging-integrations/status.js','ops-easyparcel.js','ops-adapter-settings.js','member.html','ops.html'];
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 for(const f of req)if(!fs.existsSync(path.join(root,f)))fail.push(`missing ${f}`);
 if(fail.length){console.error('Staging integration check FAILED:\n- '+fail.join('\n- '));process.exit(1)}
-const agent=read('staging-member-agent.js'),walletUI=read('staging-member-wallet.js'),memberHtml=read('member.html'),opsHtml=read('ops.html');
+const agent=read('staging-member-agent.js'),walletUI=read('staging-member-wallet.js'),memberHtml=read('member.html'),opsHtml=read('ops.html'),adapterUI=read('ops-adapter-settings.js'),statusApi=read('api/staging-integrations/status.js');
 const walletEndpoints=['api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js'];
 const shipEndpoints=['api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js'];
 const walletFiles=['api/staging-wallet/_shared.js',...walletEndpoints];
@@ -19,7 +19,7 @@ if(!walletUI.includes('adapter_ready')||!walletUI.includes('topup_enabled'))fail
 if(!walletShared.includes("VERCEL_ENV==='production'")||!walletShared.includes('function denyProduction'))fail.push('ToyyibPay shared adapter is missing production guard');
 if(!shipShared.includes("VERCEL_ENV==='production'")||!shipShared.includes('function denyProduction'))fail.push('EasyParcel shared adapter is missing production guard');
 for(const f of [...walletEndpoints,...shipEndpoints]){const text=read(f);if(!text.includes('denyProduction()'))fail.push(`${f}: endpoint does not invoke shared production guard`);}
-for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)])])if(text.includes('yjauxyvtrmdriwtmckkl'))fail.push(`${name}: staging adapter references production Supabase`);
+for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)]),['api/staging-integrations/status.js',statusApi]])if(text.includes('yjauxyvtrmdriwtmckkl'))fail.push(`${name}: staging adapter references production Supabase`);
 if(!walletShared.includes("https://dev.toyyibpay.com"))fail.push('ToyyibPay wallet adapter must use sandbox dev.toyyibpay.com');
 if(walletText.includes('https://toyyibpay.com')&&!walletText.includes('https://dev.toyyibpay.com'))fail.push('ToyyibPay wallet adapter appears to use live endpoint');
 for(const token of ['TOYYIBPAY_SANDBOX_SECRET_KEY','STAGING_SUPABASE_SERVICE_ROLE_KEY'])if(!walletShared.includes(token))fail.push(`ToyyibPay adapter missing server env token ${token}`);
@@ -31,8 +31,11 @@ for(const token of ['EASYPARCEL_DEMO_API_KEY','STAGING_SUPABASE_SERVICE_ROLE_KEY
 if(!pay.includes('confirm_payment')||!pay.includes("String(b.confirm_payment)!=='true'"))fail.push('EasyParcel payment endpoint must require explicit confirm_payment=true');
 if(!opsEp.includes('I Understand — Pay EasyParcel Credit'))fail.push('Operations EasyParcel financial confirmation UI is missing');
 for(const rpc of ['service_store_shipping_quotes','service_record_easyparcel_booking','service_record_easyparcel_payment','service_record_easyparcel_status'])if(!shipText.includes(rpc))fail.push(`EasyParcel adapter missing service RPC ${rpc}`);
-if(!opsHtml.includes('/ops-easyparcel.js'))fail.push('Operations is not loading EasyParcel workspace');
+if(!opsHtml.includes('/ops-easyparcel.js')||!opsHtml.includes('/ops-adapter-settings.js'))fail.push('Operations is not loading EasyParcel/configuration workspaces');
+if(!statusApi.includes("VERCEL_ENV==='production'")||!statusApi.includes('TOYYIBPAY_SANDBOX_SECRET_KEY')||!statusApi.includes('EASYPARCEL_DEMO_API_KEY'))fail.push('Integration readiness endpoint is not production-blocked or does not check required server credentials');
+for(const token of ['wallet_topup_enabled','wallet_topup_min','wallet_topup_max','shipping_mode:\'flat\'','secrets_stored_client_side:false'])if(!adapterUI.includes(token))fail.push(`Safe adapter settings UI missing contract token: ${token}`);
+if(adapterUI.includes("status:'ready'")||shipText.includes("status!=='ready'")||opsEp.includes("status==='ready'"))fail.push('Integration code must use canonical healthy state, not unsupported ready state');
 const obviousSecrets=[/sb_secret_[A-Za-z0-9_-]{10,}/,/sk-proj-[A-Za-z0-9_-]{10,}/,/userSecretKey\s*[:=]\s*['"][^'"]{8,}['"]/];
-for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)])])for(const re of obviousSecrets)if(re.test(text))fail.push(`${name}: possible embedded secret detected`);
+for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)]),['ops-adapter-settings.js',adapterUI],['api/staging-integrations/status.js',statusApi]])for(const re of obviousSecrets)if(re.test(text))fail.push(`${name}: possible embedded secret detected`);
 if(fail.length){console.error('Staging integration check FAILED:\n- '+[...new Set(fail)].join('\n- '));process.exit(1)}
-console.log('Staging integration check passed: Agent dashboard, shared production guards, ToyyibPay sandbox wallet verification, service-only wallet capture and explicitly confirmed EasyParcel demo payment are enforced.');
+console.log('Staging integration check passed: Agent dashboard, readiness-gated configuration, shared production guards, ToyyibPay sandbox wallet verification, service-only wallet capture and explicitly confirmed EasyParcel demo payment are enforced.');
