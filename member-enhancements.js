@@ -2,7 +2,6 @@
 'use strict';
 let memberInvoices=[],memberShipments=[];
 const baseTab=window.tab;
-const baseOrderCard=window.orderCard;
 const eh=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function invoiceFor(orderId){return memberInvoices.find(x=>x.order_id===orderId)||null}
@@ -31,7 +30,7 @@ window.tab=function(name){
 
 async function loadOrderExtras(){
   try{
-    if(!window.me||!Array.isArray(window.orders)||!orders.length)return;
+    if(typeof me==='undefined'||!me||typeof orders==='undefined'||!Array.isArray(orders)||!orders.length)return;
     const ids=orders.map(o=>o.id).filter(Boolean);
     const [ir,sr]=await Promise.all([
       msb.from('invoices').select('id,order_id,invoice_number,snapshot,version,generated_at').in('order_id',ids),
@@ -43,5 +42,5 @@ async function loadOrderExtras(){
   }catch(_){ }
 }
 
-document.addEventListener('DOMContentLoaded',()=>setTimeout(loadOrderExtras,500));
+document.addEventListener('DOMContentLoaded',()=>setTimeout(loadOrderExtras,650));
 })();
