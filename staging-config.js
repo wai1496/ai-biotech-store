@@ -46,14 +46,14 @@ window.toast = window.toast || function(message){
     script.src='/hero-final-20260830.js?v=20260830c';script.async=true;script.dataset.aibtFinalHero='1';
     document.head.appendChild(script);
   }
-  if(!document.querySelector('link[data-aibt-research-depth]')){
+  if(!document.querySelector('link[data-pd-source-only]')){
     const link=document.createElement('link');
-    link.rel='stylesheet';link.href='/research-customer-depth-v2.css?v=20260830e';link.dataset.aibtResearchDepth='1';
+    link.rel='stylesheet';link.href='/research-source-only.css?v=20260830f';link.dataset.pdSourceOnly='1';
     document.head.appendChild(link);
   }
-  if(!document.querySelector('script[data-aibt-research-depth]')){
+  if(!document.querySelector('script[data-pd-source-only]')){
     const script=document.createElement('script');
-    script.src='/research-customer-depth-v2.js?v=20260830e';script.async=true;script.dataset.aibtResearchDepth='1';
+    script.src='/research-source-only.js?v=20260830f';script.async=true;script.dataset.pdSourceOnly='1';
     document.head.appendChild(script);
   }
 })();
