@@ -10,6 +10,8 @@ function runMenu(item){
  if(!item)return;
  if(item.target_type==='section'){
    if(item.target==='catalog'&&typeof window.showAllProducts==='function')return window.showAllProducts();
+   if(item.target==='research'&&typeof window.openResearchCenter==='function')return window.openResearchCenter();
+   if(item.target==='guides'&&typeof window.openGuides==='function')return window.openGuides('home');
    return window.scrollToId?.(item.target);
  }
  if(item.target_type==='page')return window.openPublishedPage(item.target);
@@ -18,7 +20,7 @@ function runMenu(item){
    return;
  }
  if(item.target_type==='action'){
-   const actions={shop:()=>window.showAllProducts?.(),account:()=>window.openStageAccount?.(),cart:()=>window.openCart?.(),research:()=>window.scrollToId?.('research')};
+   const actions={shop:()=>window.showAllProducts?.(),account:()=>window.openStageAccount?.(),cart:()=>window.openCart?.(),research:()=>window.openResearchCenter?.(),guides:()=>window.openGuides?.('home')};
    return actions[item.target]?.()||storeToast('This menu action is not available yet.');
  }
 }
@@ -72,8 +74,6 @@ async function load(){
  site=s.data;menu=m.data||[];pages=p.data||[];applyBrand();applyMenus();applyFooterPages();
 }
 
-// Active isolated staging routes. These intentionally override the obsolete
-// temporary safety-gate functions defined earlier in clean-store.js.
 window.openStageAccount=()=>{window.location.href='/member.html'};
 window.stageCheckout=()=>{
   const cart=JSON.parse(localStorage.getItem('aibt_staging_cart')||'[]');
