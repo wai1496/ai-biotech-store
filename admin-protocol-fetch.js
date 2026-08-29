@@ -26,7 +26,7 @@ function parseFetchedSchedule(table, defaultFrequency=''){
 function sectionText(data,key){
   return (data.sections||[]).filter(s=>s?.key===key).map(s=>`${s.heading}\n${s.content}`).join('\n\n').trim();
 }
-function compact(text,max=260){
+function compact(text,max=220){
   const s=String(text||'').replace(/\s+/g,' ').trim();
   if(!s)return '';
   return s.length>max?s.slice(0,max-1).trimEnd()+'…':s;
@@ -38,22 +38,29 @@ function formatLabel(v){
   return 'Vial';
 }
 function formatPreparation(v,sourcePrep){
-  const format=formatLabel(v),base=compact(sourcePrep,360);
+  const format=formatLabel(v),base=compact(sourcePrep,280);
   if(format==='Vial')return base||'Follow the source-supported vial preparation / reconstitution instructions for this exact strength.';
-  const device=format==='Cartridge'?'cartridge':'pen';
-  const prefix=`${format} preparation: Prepare the solution using the source-supported final volume and concentration for this exact strength. Load/use the prepared ${device} according to the device instructions. Prime separately if required; priming is not part of the scheduled dose.`;
-  return [prefix,base].filter(Boolean).join('\n');
+  const device=format==='Cartridge'?'cartridge/compatible pen device':'pen';
+  const heading=`${format} preparation`;
+  const steps=[
+    `${heading}: prepare to the selected final volume and concentration for this exact strength.`,
+    `1. Confirm the final volume and concentration shown above before use.`,
+    `2. Fit a new sterile compatible needle to the ${device}.`,
+    `3. Prime only according to the device instructions or verified priming setting; priming is separate from the scheduled dose.`,
+    `4. Dial/set the calculated units that correspond to the verified mg dose.`,
+    `5. Use a new needle for each administration and remove/discard it safely afterwards.`
+  ];
+  return [steps.join('\n'),base].filter(Boolean).join('\n\n');
 }
 function formatTiming(v,sourceTiming,sourceCfg){
   const format=formatLabel(v),parts=[];
-  if(sourceTiming)parts.push(compact(sourceTiming,220));
   if(sourceCfg?.frequency)parts.push(`Frequency: ${sourceCfg.frequency}`);
-  if(format==='Pen')parts.push('Administration: use the pen setting calculated from the verified mg dose and current concentration.');
-  if(format==='Cartridge')parts.push('Administration: use the cartridge/pen-device setting calculated from the verified mg dose and current concentration.');
+  if(sourceTiming)parts.push(compact(sourceTiming,150));
+  if(format==='Pen')parts.push('Pen use: dial only the calculated units for the verified mg dose; hold the needle in place briefly after activation according to the device instructions.');
+  if(format==='Cartridge')parts.push('Cartridge use: install in the compatible pen device, dial only the calculated units for the verified mg dose, and follow the device instructions for administration.');
   if(format==='Vial'&&sourceCfg?.route)parts.push(`Route: ${sourceCfg.route}`);
   return parts.join('\n');
 }
-function reviewFallback(label){return `REVIEW REQUIRED — ${label} was not clearly identified in the exact reference page.`;}
 function addFetchButton(){
   const f=window.editForm?.elements;
   if(!f?.protocol_variant || document.getElementById('aibtProtocolFetchFill'))return;
@@ -91,10 +98,10 @@ async function fetchProtocolIntoForm(){
     if(f.source_product)f.source_product.value=v.products?.name||v.product_id||'';
     if(f.source_strength)f.source_strength.value=v.strength_label||'';
     if(f.protocol_title)f.protocol_title.value=`${v.products?.name||v.product_id} ${v.strength_label} ${format} Protocol`;
-    if(f.schedule)f.schedule.value=schedule.length?schedule.join('\n'):reviewFallback('dosage schedule');
+    if(f.schedule)f.schedule.value=schedule.length?schedule.join('\n'):'';
     if(f.preparation)f.preparation.value=formatPreparation(v,prep);
-    if(f.timing)f.timing.value=formatTiming(v,timing,sourceCfg)||reviewFallback('timing / frequency');
-    if(f.duration)f.duration.value=compact(duration,180)||reviewFallback('duration / cycle');
+    if(f.timing)f.timing.value=formatTiming(v,timing,sourceCfg)||'';
+    if(f.duration)f.duration.value=compact(duration,140)||'';
 
     if(f.fill_volume){
       if(cfg?.fill_volume_ml!=null)f.fill_volume.value=cfg.fill_volume_ml;
@@ -114,10 +121,11 @@ async function fetchProtocolIntoForm(){
     }
     if(f.config_status)f.config_status.value=cfg?.configuration_status==='verified'?'verified':'review_required';
     if(f.protocol_status)f.protocol_status.value='review_required';
-    if(f.protocol_notes)f.protocol_notes.value=compact(sourceNotes,220)||'Review exact dosage, concentration and calculated units before publishing.';
+    if(f.protocol_notes)f.protocol_notes.value=compact(sourceNotes,150)||'Review dosage, concentration and calculated units before publishing.';
 
     f.fill_volume?.dispatchEvent(new Event('input',{bubbles:true}));
-    flash(`${format} template filled from the exact reference. Dosage remains source-locked; review before saving.`);
+    if(!schedule.length)flash(`${format} template filled, but no valid dosage rows were parsed. Review the source and enter the verified schedule before publishing.`);
+    else flash(`${format} template filled. Dosage remains source-locked; review before saving.`);
   }catch(e){
     flash(`Fetch failed: ${e?.message||String(e)}`);
   }finally{
