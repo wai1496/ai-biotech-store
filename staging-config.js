@@ -17,3 +17,18 @@ window.toast = window.toast || function(message){
   clearTimeout(window.__aibtToastTimer);
   window.__aibtToastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 };
+
+(function loadStorefrontAssistant(){
+  const path=String(location.pathname||'').toLowerCase();
+  if(path.includes('/ops')||path.includes('/admin')) return;
+  if(!document.querySelector('link[data-aibt-assistant]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';link.href='/ai-assistant.css?v=20260829a';link.dataset.aibtAssistant='1';
+    document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[data-aibt-assistant]')){
+    const script=document.createElement('script');
+    script.src='/ai-assistant.js?v=20260829a';script.async=true;script.dataset.aibtAssistant='1';
+    document.head.appendChild(script);
+  }
+})();
