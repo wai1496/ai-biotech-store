@@ -4,17 +4,23 @@
 function findDoseTable(tables){
   return (tables||[]).find(t=>Array.isArray(t)&&t.length>1&&t.some(r=>Array.isArray(r)&&r.some(c=>/dose|dosage|phase|week|schedule|frequency/i.test(String(c)))) ) || (tables||[])[0] || [];
 }
-function parseFetchedSchedule(table){
+function parseFetchedSchedule(table, defaultFrequency=''){
   if(!Array.isArray(table)||table.length<2)return [];
+  const header=(table[0]||[]).map(x=>String(x||'').toLowerCase());
+  const stageIdx=header.findIndex(x=>/week|phase|stage|period|schedule/.test(x));
+  const doseIdx=header.findIndex(x=>/dose/.test(x)&&!/unit|volume/.test(x));
+  const freqIdx=header.findIndex(x=>/frequency|timing/.test(x));
   return table.slice(1).map((r,i)=>{
-    const cells=(r||[]).map(x=>String(x||'').trim()).filter(Boolean);
-    if(!cells.length)return null;
+    const cells=(r||[]).map(x=>String(x||'').trim());
+    if(!cells.some(Boolean))return null;
     const joined=cells.join(' ');
-    const amount=joined.match(/([0-9]+(?:\.[0-9]+)?)\s*mg\b/i);
+    const doseCell=(doseIdx>=0?cells[doseIdx]:'')||joined;
+    const amount=doseCell.match(/([0-9]+(?:\.[0-9]+)?)\s*mg\b/i) || joined.match(/([0-9]+(?:\.[0-9]+)?)\s*mg\b/i);
     if(!amount)return null;
-    const stage=cells.find(c=>/week|phase|start|increase|maint|titr|day|month/i.test(c))||`Stage ${i+1}`;
-    const frequency=cells.find(c=>/daily|weekly|every\s+\d+|once|twice|monthly|per\s+day|per\s+week/i.test(c))||'';
-    return [stage,amount[1],frequency,joined].join(' | ');
+    const stage=(stageIdx>=0?cells[stageIdx]:'') || cells.find(c=>/week|phase|start|increase|maint|titr|day|month/i.test(c)) || `Stage ${i+1}`;
+    const frequency=(freqIdx>=0?cells[freqIdx]:'') || defaultFrequency || '';
+    const notes=cells.filter((_,idx)=>![stageIdx,doseIdx,freqIdx].includes(idx)).filter(Boolean).join(' · ');
+    return [stage,amount[1],frequency,notes].join(' | ');
   }).filter(Boolean);
 }
 function sectionText(data,key){
@@ -50,7 +56,8 @@ async function fetchProtocolIntoForm(){
     const {data,error}=await sb.functions.invoke('protocol-reference-fetch',{body:{product:v.products?.name||v.product_id,strength:v.strength_label,format:v.format}});
     if(error)throw error;
     if(!data?.found)throw new Error(data?.message||data?.error||'No exact reference page was found');
-    const table=findDoseTable(data.tables||[]),schedule=parseFetchedSchedule(table);
+    const sourceCfg=data.reconstitution||{};
+    const table=findDoseTable(data.tables||[]),schedule=parseFetchedSchedule(table,sourceCfg.frequency||'');
     const prep=sectionText(data,'preparation');
     const timing=sectionText(data,'timing');
     const duration=sectionText(data,'duration');
@@ -63,28 +70,31 @@ async function fetchProtocolIntoForm(){
     if(f.protocol_title)f.protocol_title.value=`AI BioTech Product Guide — ${v.products?.name||v.product_id} ${v.strength_label} ${v.format}`;
     if(f.schedule)f.schedule.value=schedule.length?schedule.join('\n'):reviewFallback('dosage schedule',data);
     if(f.preparation)f.preparation.value=prep||reviewFallback('preparation / reconstitution',data);
-    if(f.timing)f.timing.value=timing||reviewFallback('timing',data);
+    if(f.timing)f.timing.value=timing || [sourceCfg.route?`Route: ${sourceCfg.route}`:'',sourceCfg.frequency?`Frequency: ${sourceCfg.frequency}`:''].filter(Boolean).join('\n') || reviewFallback('timing',data);
     if(f.duration)f.duration.value=duration||reviewFallback('duration / cycle',data);
 
     if(f.fill_volume){
       if(cfg?.fill_volume_ml!=null)f.fill_volume.value=cfg.fill_volume_ml;
+      else if(sourceCfg.fill_volume_ml!=null)f.fill_volume.value=sourceCfg.fill_volume_ml;
       else f.fill_volume.value='';
     }
     if(f.concentration){
       if(cfg?.concentration_mg_ml!=null)f.concentration.value=cfg.concentration_mg_ml;
+      else if(sourceCfg.concentration_mg_ml!=null)f.concentration.value=sourceCfg.concentration_mg_ml;
       else f.concentration.value='';
     }
     if(f.priming_units){
       if(cfg?.priming_units!=null)f.priming_units.value=cfg.priming_units;
+      else if(sourceCfg.priming_units!=null)f.priming_units.value=sourceCfg.priming_units;
       else f.priming_units.value='';
     }
     if(f.config_status)f.config_status.value=cfg?.configuration_status==='verified'?'verified':'review_required';
     if(f.protocol_status)f.protocol_status.value='review_required';
 
-    const auditNote=`FETCHED DRAFT — ${new Date(data.retrieved_at||Date.now()).toLocaleString()}\nSource: ${data.source_title||data.source_url}\nExact variant: ${v.products?.name||v.product_id} / ${v.strength_label} / ${v.format}\n${schedule.length?`${schedule.length} dosage rows parsed from the source table.`:'Dosage table requires manual review; no reliable mg rows were parsed.'}\n${cfg?.configuration_status==='verified'?'Existing verified calculation configuration was retained.':'Calculation configuration still requires review; no numeric values were invented.'}\nReview every populated field before changing status to verified/published.`;
+    const auditNote=`FETCHED DRAFT — ${new Date(data.retrieved_at||Date.now()).toLocaleString()}\nSource: ${data.source_title||data.source_url}\nExact variant: ${v.products?.name||v.product_id} / ${v.strength_label} / ${v.format}\n${schedule.length?`${schedule.length} dosage rows parsed from the source table.`:'Dosage table requires manual review; no reliable mg rows were parsed.'}\n${cfg?.configuration_status==='verified'?'Existing verified calculation configuration was retained.':'Source-supported reconstitution values were filled where available; configuration still requires review.'}\nReview every populated field before changing status to verified/published.`;
     if(f.protocol_notes)f.protocol_notes.value=[sourceNotes||reviewFallback('source notes / cautions',data),auditNote].filter(Boolean).join('\n\n');
 
-    flash('Fetched and filled all reviewable protocol fields. Please review before saving or publishing.');
+    flash('Fetched and filled all source-supported protocol fields. Please review before saving or publishing.');
   }catch(e){
     flash(`Fetch failed: ${e?.message||String(e)}`);
   }finally{
