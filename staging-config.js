@@ -31,4 +31,19 @@ window.toast = window.toast || function(message){
     script.src='/ai-assistant.js?v=20260829a';script.async=true;script.dataset.aibtAssistant='1';
     document.head.appendChild(script);
   }
+  if(!document.querySelector('link[data-aibt-final-polish]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';link.href='/storefront-polish-20260830.css?v=20260830c';link.dataset.aibtFinalPolish='1';
+    document.head.appendChild(link);
+  }
+  if(!document.querySelector('script[data-aibt-final-polish]')){
+    const script=document.createElement('script');
+    script.src='/storefront-polish-20260830.js?v=20260830c';script.async=true;script.dataset.aibtFinalPolish='1';
+    document.head.appendChild(script);
+  }
+  if(!document.querySelector('script[data-aibt-final-hero]')){
+    const script=document.createElement('script');
+    script.src='/hero-final-20260830.js?v=20260830c';script.async=true;script.dataset.aibtFinalHero='1';
+    document.head.appendChild(script);
+  }
 })();
