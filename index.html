@@ -8,6 +8,8 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="/clean-store.css?v=20260829a">
   <link rel="stylesheet" href="/storefront-control.css?v=20260829b">
+  <link rel="stylesheet" href="/faq.css?v=20260830a">
+  <link rel="stylesheet" href="/ai-assistant.css?v=20260830a">
 </head>
 <body>
   <div class="stagebar">STAGING PREVIEW — ISOLATED FROM PRODUCTION WRITES</div>
@@ -22,7 +24,7 @@
         <button class="active" onclick="scrollToId('top')">Home</button>
         <button onclick="showAllProducts()">Shop</button>
         <button onclick="scrollToId('research')">Research</button>
-        <button onclick="scrollToId('guides')">Guides</button>
+        <button onclick="openGuides('home')">Guides</button>
         <button onclick="scrollToId('faq')">FAQ</button>
         <button onclick="scrollToId('contact')">Contact</button>
       </nav>
@@ -81,17 +83,17 @@
 
       <section id="research" class="section"><h2>Research Insights</h2><p class="section-lead">Product-linked public research summaries mirrored into the isolated staging environment.</p><div id="researchGrid" class="research-grid"></div></section>
 
-      <section id="guides" class="section"><h2>Guides & Handling</h2><p class="section-lead">Structured guide destinations are active and will be managed from the Content Control Center.</p><div class="guide-grid">
-        <article class="guide-card"><h3>Cold Chain & Receiving</h3><p>Packaging, receiving, storage and heat-exposure guidance.</p><button class="btn" onclick="openGuide('cold')">Open Guide</button></article>
-        <article class="guide-card"><h3>Pen Usage</h3><p>Approved visual pen handling guide with replaceable step images.</p><button class="btn" onclick="openGuide('pen')">Open Guide</button></article>
-        <article class="guide-card"><h3>Vial / Reconstitution</h3><p>Written preparation guidance plus configurable video support.</p><button class="btn" onclick="openGuide('vial')">Open Guide</button></article>
-        <article class="guide-card"><h3>Cartridge Guide</h3><p>Cartridge handling and compatible-device information.</p><button class="btn" onclick="openGuide('cartridge')">Open Guide</button></article>
+      <section id="guides" class="section"><h2>Guides & Handling</h2><p class="section-lead">Detailed guides for Pen, Vial, Cartridge, cold-chain packaging and receiving.</p><div class="guide-grid">
+        <article class="guide-card"><h3>Prefilled Pen Guide</h3><p>Seven illustrated steps, preparation, storage and troubleshooting.</p><button class="btn" onclick="openGuides('pen')">Open Pen Guide</button></article>
+        <article class="guide-card"><h3>Vial & Reconstitution</h3><p>Preparation workflow, concentration concepts and embedded video tutorial.</p><button class="btn" onclick="openGuides('vial')">Open Vial Guide</button></article>
+        <article class="guide-card"><h3>Cartridge Guide</h3><p>Cartridge anatomy, reusable device installation concepts and troubleshooting.</p><button class="btn" onclick="openGuides('cartridge')">Open Cartridge Guide</button></article>
+        <article class="guide-card"><h3>Cold Chain & Receiving</h3><p>Packaging layers, transit expectations, receiving checks and damage procedure.</p><button class="btn" onclick="openGuides('coldchain')">Open Shipping Guide</button></article>
       </div></section>
 
-      <section id="faq" class="section"><h2>Frequently Asked Questions</h2><p class="section-lead">Concise staging answers; final FAQ entries will be admin-managed.</p><div class="faq-grid">
+      <section id="faq" class="section"><h2>Frequently Asked Questions</h2><p class="section-lead">The FAQ library is being expanded into a complete Knowledge Centre.</p><div class="faq-grid">
         <article class="faq-card"><h3>How do I choose a format?</h3><p>Select Vial, Cartridge or Pen directly on the product card. Only formats available for the selected strength are shown.</p></article>
-        <article class="faq-card"><h3>Why can a parcel feel warm?</h3><p>Insulated/cold-chain packaging reduces excessive heat exposure but does not guarantee the parcel remains frozen or feels ice-cold on arrival.</p></article>
-        <article class="faq-card"><h3>Where are private protocols?</h3><p>Protocols are separate from public Research Insights and will be available only through legitimate exact-variant entitlement rules.</p></article>
+        <article class="faq-card"><h3>Why can a parcel feel warm?</h3><p>Insulated packaging reduces excessive heat exposure but does not guarantee the parcel remains at one exact refrigerator temperature throughout ordinary courier transit.</p></article>
+        <article class="faq-card"><h3>Where are private protocols?</h3><p>Protocols are separate from public Research Insights and are controlled by exact product, strength and format entitlement rules.</p></article>
       </div></section>
     </div>
   </main>
@@ -99,15 +101,15 @@
   <footer id="contact" class="site-footer"><div class="footer-inner">
     <div><a class="brand" href="#top" onclick="scrollToId('top');return false"><div class="brand-mark">🧬</div><div><strong style="color:white"><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></a><p>Professional research catalog storefront. This staging preview is isolated from production writes.</p></div>
     <div><h4>Shop</h4><button onclick="showAllProducts()">All Products</button><button onclick="setCategory('Metabolism')">Metabolism</button><button onclick="setCategory('Healing')">Healing</button><button onclick="setCategory('Longevity')">Longevity</button></div>
-    <div><h4>Information</h4><button onclick="scrollToId('research')">Research Insights</button><button onclick="scrollToId('guides')">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="openStageAccount()">Member Area</button></div>
+    <div><h4>Information</h4><button onclick="scrollToId('research')">Research Insights</button><button onclick="openGuides('home')">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="openStageAccount()">Member Area</button></div>
     <div><h4>Contact & Policies</h4><button onclick="openPublishedPage('contact')">Contact</button><button onclick="openPublishedPage('terms')">Terms & Conditions</button><button onclick="openPublishedPage('privacy')">Privacy & Cookies</button></div>
-  </div><div class="footer-bottom">For research purposes only. Staging environment — no production order or payment writes.</div></footer>
+  </div><div class="footer-bottom">For research purposes only. Staging environment, no production order or payment writes.</div></footer>
 
-  <div id="cartOverlay" class="overlay"><aside class="drawer" aria-label="Cart"><div class="drawer-head"><h2>Your Cart</h2><button class="close-btn" onclick="closeCart()" aria-label="Close cart">×</button></div><div id="cartItems" class="drawer-body"></div><div class="drawer-footer"><div class="cart-total"><span>Total</span><span id="cartTotal">RM0</span></div><button class="btn blue" style="width:100%" onclick="stageCheckout()">Continue to Checkout</button></div></aside></div>
+  <div id="cartOverlay" class="overlay"><aside class="drawer" aria-label="Cart"><div class="drawer-head"><h2>Your Cart</h2><button class="close-btn" onclick="closeCart()" aria-label="Close cart">×</button></div><div id="cartItems" class="drawer-body"></div><div class="drawer-footer"><div class="cart-total"><span>Total</span><span id="cartTotal">RM0</span></div><button class="btn blue" style="width:100%;margin-top:12px" onclick="stageCheckout()">Continue to Checkout</button></div></aside></div>
 
   <div id="modalWrap" class="modal-wrap"><div class="modal"><div class="modal-head"><h2 id="modalTitle">Information</h2><button class="close-btn" onclick="closeModal()" aria-label="Close">×</button></div><div id="modalBody" class="modal-body"></div></div></div>
 
-  <div id="mobileMenu" class="mobile-drawer"><div class="mobile-panel"><button class="close-btn" onclick="closeMobileMenu()">×</button><a class="brand" href="#top" onclick="scrollToId('top');return false"><div class="brand-mark">🧬</div><div><strong><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></a><button onclick="scrollToId('top')">Home</button><button onclick="showAllProducts();closeMobileMenu()">Shop</button><button onclick="scrollToId('research')">Research</button><button onclick="scrollToId('guides')">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="scrollToId('contact')">Contact</button><button onclick="openStageAccount();closeMobileMenu()">Account</button><button onclick="openCart();closeMobileMenu()">Cart (<span data-cart-count>0</span>)</button></div></div>
+  <div id="mobileMenu" class="mobile-drawer"><div class="mobile-panel"><button class="close-btn" onclick="closeMobileMenu()">×</button><a class="brand" href="#top" onclick="scrollToId('top');return false"><div class="brand-mark">🧬</div><div><strong><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></a><button onclick="scrollToId('top')">Home</button><button onclick="showAllProducts();closeMobileMenu()">Shop</button><button onclick="scrollToId('research')">Research</button><button onclick="openGuides('home');closeMobileMenu()">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="scrollToId('contact')">Contact</button><button onclick="openStageAccount();closeMobileMenu()">Account</button><button onclick="openCart();closeMobileMenu()">Cart (<span data-cart-count>0</span>)</button></div></div>
 
   <div class="mobile-sticky-cart"><div class="cart-count-pill">🛒 <span data-cart-count>0</span></div><button class="btn primary" onclick="openCart()">View Cart</button></div>
   <div id="toast" class="toast"></div>
@@ -117,5 +119,7 @@
   <script src="/staging-config.js?v=20260829a"></script>
   <script src="/clean-store.js?v=20260829a"></script>
   <script src="/storefront-control.js?v=20260829b"></script>
+  <script src="/guides.js?v=20260830a"></script>
+  <script src="/ai-assistant.js?v=20260830a"></script>
 </body>
 </html>
