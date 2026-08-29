@@ -50,6 +50,13 @@ function ensureFaq(){
  const b=document.createElement('button');b.type='button';b.className='btn blue';b.textContent='Open Full FAQ & Knowledge Centre →';b.addEventListener('click',()=>{if(typeof window.openFAQ==='function')window.openFAQ();else setTimeout(()=>window.openFAQ?.(),120)});box.appendChild(b);section.insertBefore(box,section.querySelector('.faq-grid'));
 }
 const mo=new MutationObserver(()=>normalizeCards());
-function init(){patchCartStorage();normalizeCards();ensureFaq();const grid=document.getElementById('productGrid');if(grid)mo.observe(grid,{childList:true,subtree:true});const cart=document.getElementById('cartItems');if(cart)mo.observe(cart,{childList:true,subtree:true});setTimeout(normalizeCards,250);setTimeout(normalizeCards,900)}
+const heroMo=new MutationObserver(()=>normalizeCards());
+function init(){
+ patchCartStorage();normalizeCards();ensureFaq();
+ const grid=document.getElementById('productGrid');if(grid)mo.observe(grid,{childList:true,subtree:true});
+ const cart=document.getElementById('cartItems');if(cart)mo.observe(cart,{childList:true,subtree:true});
+ const hero=document.getElementById('heroCartridge');if(hero)heroMo.observe(hero,{attributes:true,attributeFilter:['src']});
+ setTimeout(normalizeCards,250);setTimeout(normalizeCards,900);setTimeout(normalizeCards,1800);
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
