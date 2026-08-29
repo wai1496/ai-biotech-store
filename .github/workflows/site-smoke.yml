@@ -22,6 +22,8 @@ jobs:
           node-version: '22'
       - name: Validate routes and linked assets
         run: node scripts/smoke-check.mjs
+      - name: Validate staging controls and AI isolation
+        run: node scripts/staging-control-check.mjs
       - name: Validate JavaScript syntax
         shell: bash
         run: |
