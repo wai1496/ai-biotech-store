@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const root=process.cwd(),fail=[];
-const req=['staging-member-agent.js','staging-member-wallet.js','api/staging-wallet/_shared.js','api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js','api/staging-shipping/_shared.js','api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js','api/staging-integrations/status.js','ops-easyparcel.js','ops-adapter-settings.js','member.html','ops.html'];
+const req=['staging-member-agent.js','staging-member-wallet.js','api/staging-wallet/_shared.js','api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js','api/staging-shipping/_shared.js','api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js','api/staging-integrations/status.js','ops-easyparcel.js','ops-adapter-settings.js','ops-agent-referrals.js','member.html','ops.html'];
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 for(const f of req)if(!fs.existsSync(path.join(root,f)))fail.push(`missing ${f}`);
 if(fail.length){console.error('Staging integration check FAILED:\n- '+fail.join('\n- '));process.exit(1)}
-const agent=read('staging-member-agent.js'),walletUI=read('staging-member-wallet.js'),memberHtml=read('member.html'),opsHtml=read('ops.html'),adapterUI=read('ops-adapter-settings.js'),statusApi=read('api/staging-integrations/status.js');
+const agent=read('staging-member-agent.js'),walletUI=read('staging-member-wallet.js'),memberHtml=read('member.html'),opsHtml=read('ops.html'),adapterUI=read('ops-adapter-settings.js'),statusApi=read('api/staging-integrations/status.js'),referralUI=read('ops-agent-referrals.js');
 const walletEndpoints=['api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js'];
 const shipEndpoints=['api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js'];
 const walletFiles=['api/staging-wallet/_shared.js',...walletEndpoints];
@@ -13,6 +13,8 @@ const shipFiles=['api/staging-shipping/_shared.js',...shipEndpoints];
 const walletText=walletFiles.map(read).join('\n'),shipText=shipFiles.map(read).join('\n'),pay=read('api/staging-shipping/pay.js'),callback=read('api/staging-wallet/callback.js'),walletShared=read('api/staging-wallet/_shared.js'),shipShared=read('api/staging-shipping/_shared.js'),opsEp=read('ops-easyparcel.js');
 if(!agent.includes('member_get_agent_dashboard'))fail.push('Agent member dashboard is not wired to member_get_agent_dashboard');
 if(!memberHtml.includes('/staging-member-agent.js'))fail.push('Member Area is not loading Agent dashboard module');
+if(!referralUI.includes('ops_assign_agent_referral')||!referralUI.includes('Confirm Referral Attribution'))fail.push('Agent referral workspace is not wired to audited preview/confirm assignment');
+if(!opsHtml.includes('data-view="referrals"')||!opsHtml.includes('/ops-agent-referrals.js'))fail.push('Operations is not loading Agent referral workspace');
 if(!walletUI.includes('member_wallet_topup_status')||!walletUI.includes('member_create_wallet_topup_intent'))fail.push('Member wallet top-up status/intent contracts are not wired');
 if(!memberHtml.includes('/staging-member-wallet.js'))fail.push('Member Area is not loading staged wallet top-up module');
 if(!walletUI.includes('adapter_ready')||!walletUI.includes('topup_enabled'))fail.push('Wallet UI must gate payment button on explicit top-up and adapter readiness');
@@ -38,4 +40,4 @@ if(adapterUI.includes("status:'ready'")||shipText.includes("status!=='ready'")||
 const obviousSecrets=[/sb_secret_[A-Za-z0-9_-]{10,}/,/sk-proj-[A-Za-z0-9_-]{10,}/,/userSecretKey\s*[:=]\s*['"][^'"]{8,}['"]/];
 for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)]),['ops-adapter-settings.js',adapterUI],['api/staging-integrations/status.js',statusApi]])for(const re of obviousSecrets)if(re.test(text))fail.push(`${name}: possible embedded secret detected`);
 if(fail.length){console.error('Staging integration check FAILED:\n- '+[...new Set(fail)].join('\n- '));process.exit(1)}
-console.log('Staging integration check passed: Agent dashboard, readiness-gated configuration, shared production guards, ToyyibPay sandbox wallet verification, service-only wallet capture and explicitly confirmed EasyParcel demo payment are enforced.');
+console.log('Staging integration check passed: Agent dashboard/referrals, readiness-gated configuration, shared production guards, ToyyibPay sandbox wallet verification, service-only wallet capture and explicitly confirmed EasyParcel demo payment are enforced.');
