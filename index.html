@@ -1,1 +1,54 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Ai BioTech — Peptide Research</title><meta name="description" content="Ai BioTech peptide research catalog"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/product-detail.css"><link rel="stylesheet" href="/faq.css"><link rel="stylesheet" href="/performance.css"><script src="/biotech-animated-background.js" defer></script></head><body><div class="frame"></div><div class="utility"><span class="cyan">▣ FRESH MADE SAME DAY SHIP</span><span>❄ KEEP REFRIGERATED</span><span>◇ QUALITY • VALUE • TRUST</span><span>WhatsApp Support</span></div><header class="top"><div class="brand"><div class="mark">🧬</div><div><strong><span style="color:#18c9ff">AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></div><div class="search"><input id="search" placeholder="Search peptides..." oninput="renderProducts()"></div><div class="actions"><button>MYR⌄</button><button onclick="window.location.href='/admin.html'">⚙ ADMIN</button><button onclick="toggleCart()">🛒 <span class="bubble" id="cartCount">0</span> <b id="headerTotal">RM0.00</b></button></div></header><nav class="nav"><button onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ HOME</button><button onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">▣ CATALOG</button><button onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">⚗ PEPTIDES⌄</button><button onclick="openResearch()">⌘ RESEARCH</button><button onclick="openGuides('home')">ⓘ GUIDES</button><button onclick="openFAQ()">❔ FAQ</button><button onclick="window.location.href='/peptide-calculator.html'">▦ CALCULATOR</button><button onclick="document.querySelector('.footer').scrollIntoView({behavior:'smooth'})">♙ ABOUT US</button></nav><section class="hero"><div class="hero-copy"><small>NEXT GENERATION PEPTIDE SCIENCE</small><h1>SCIENCE.<br>PRECISION.<br><span>RESULTS.</span></h1><p>Premium research products with live category colours, variant-specific inventory and professional Vial, Pen and Cartridge options.</p><button class="primary" onclick="catalog.scrollIntoView({behavior:'smooth'})">EXPLORE PRODUCTS</button></div></section><section class="benefits"><div><b>✦ PREMIUM QUALITY</b><small>Lab tested · High purity</small></div><div><b>◈ FRESHLY PREPARED</b><small>Made to order · Same day ship</small></div><div><b>⬡ DISCREET PACKAGING</b><small>Secure · Confidential · Safe</small></div><div><b>❄ REFRIGERATED DELIVERY</b><small>Cold chain · Temperature safe</small></div></section><section class="cats" id="cats"></section><section class="section" id="catalog"><div class="head"><h2 id="catalogTitle">FEATURED PEPTIDES</h2><button onclick="showAll=true;category='All';renderProducts()">VIEW ALL PRODUCTS →</button></div><div class="grid" id="grid"></div></section><section class="panels"><div role="link" tabindex="0" onclick="window.location.href='/peptide-calculator.html'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='/peptide-calculator.html'}" style="cursor:pointer"><b>PEPTIDE CALCULATOR</b><p>Calculate concentration and units with ease.</p><span style="color:#18c9ff;font-weight:800">OPEN CALCULATOR →</span></div><div onclick="openResearch()" style="cursor:pointer"><b>RESEARCH CATALOG</b><p>Explore peptide categories and applications.</p></div><div onclick="openFAQ()" style="cursor:pointer"><b>KNOWLEDGE CENTRE</b><p>Guides, storage information and more.</p></div></section><section class="footer"><div>LAB TESTED</div><div>MADE TO ORDER</div><div>REFRIGERATED</div><div>DISCREET</div><div>SECURE PAYMENTS</div></section><div class="legal">For research purposes only. Not for human consumption.</div><aside class="drawer" id="drawer"><button class="close" onclick="toggleCart()">×</button><h2>Your Cart</h2><div id="cartItems"></div><p><b>Total: <span id="cartTotal">RM 0.00</span></b></p></aside><div class="overlay" id="productOverlay"><div class="modal" id="productShell"><button class="close" onclick="closeOverlay('productOverlay')">×</button><div id="productModal"></div></div></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/app.js"></script><script src="/storefront-hardening.js?v=202608291520"></script><script src="/center-fix.js"></script><script src="/product-detail.js"></script><script src="/supabase-storefront.js"></script><script src="/guides.js"></script><script src="/faq.js"></script><script src="/research.js"></script><script>renderProducts();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Ai BioTech — Peptide Research</title>
+  <meta name="description" content="Ai BioTech peptide research catalog">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/product-detail.css">
+  <link rel="stylesheet" href="/faq.css">
+  <link rel="stylesheet" href="/performance.css">
+  <script src="/biotech-animated-background.js" defer></script>
+</head>
+<body class="catalog-loading">
+  <div class="frame"></div>
+  <div class="utility"><span class="cyan">▣ FRESH MADE SAME DAY SHIP</span><span>❄ KEEP REFRIGERATED</span><span>◇ QUALITY • VALUE • TRUST</span><span>WhatsApp Support</span></div>
+  <header class="top">
+    <div class="brand"><div class="mark">🧬</div><div><strong><span style="color:#18c9ff">AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></div>
+    <div class="search"><input id="search" placeholder="Search peptides..." oninput="renderProducts()"></div>
+    <div class="actions"><button type="button">MYR⌄</button><button id="memberNavBtn" type="button" onclick="location.href='/member.html'">👤 MEMBER</button><button type="button" onclick="location.href='/admin.html'">⚙ ADMIN</button><button type="button" onclick="toggleCart()">🛒 <span class="bubble" id="cartCount">0</span> <b id="headerTotal">RM0.00</b></button></div>
+  </header>
+  <nav class="nav">
+    <button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ HOME</button>
+    <button type="button" onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">▣ CATALOG</button>
+    <button type="button" onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">⚗ PEPTIDES⌄</button>
+    <button type="button" onclick="openResearch()">⌘ RESEARCH</button>
+    <button type="button" onclick="openGuides('home')">ⓘ GUIDES</button>
+    <button type="button" onclick="openFAQ()">❔ FAQ</button>
+    <button type="button" onclick="location.href='/peptide-calculator.html'">▦ CALCULATOR</button>
+    <button type="button" onclick="document.querySelector('.footer').scrollIntoView({behavior:'smooth'})">♙ ABOUT US</button>
+  </nav>
+  <section class="hero"><div class="hero-copy"><small>NEXT GENERATION PEPTIDE SCIENCE</small><h1>SCIENCE.<br>PRECISION.<br><span>RESULTS.</span></h1><p>Premium research products with live category colours, variant-specific inventory and professional Vial, Pen and Cartridge options.</p><button class="primary" type="button" onclick="catalog.scrollIntoView({behavior:'smooth'})">EXPLORE PRODUCTS</button></div></section>
+  <section class="benefits"><div><b>✦ PREMIUM QUALITY</b><small>Lab tested · High purity</small></div><div><b>◈ FRESHLY PREPARED</b><small>Made to order · Same day ship</small></div><div><b>⬡ DISCREET PACKAGING</b><small>Secure · Confidential · Safe</small></div><div><b>❄ REFRIGERATED DELIVERY</b><small>Cold chain · Temperature safe</small></div></section>
+  <section class="cats" id="cats"></section>
+  <section class="section" id="catalog"><div class="head"><h2 id="catalogTitle">FEATURED PEPTIDES</h2><button type="button" onclick="showAll=true;category='All';renderProducts()">VIEW ALL PRODUCTS →</button></div><div class="grid" id="grid"><p>Loading live catalog…</p></div></section>
+  <section class="panels"><div role="link" tabindex="0" onclick="location.href='/peptide-calculator.html'" onkeydown="if(event.key==='Enter'||event.key===' '){location.href='/peptide-calculator.html'}" style="cursor:pointer"><b>PEPTIDE CALCULATOR</b><p>Calculate concentration and units with ease.</p><span style="color:#18c9ff;font-weight:800">OPEN CALCULATOR →</span></div><div onclick="openResearch()" style="cursor:pointer"><b>RESEARCH CATALOG</b><p>Explore peptide categories and applications.</p></div><div onclick="openFAQ()" style="cursor:pointer"><b>KNOWLEDGE CENTRE</b><p>Guides, storage information and more.</p></div></section>
+  <section class="footer"><div>LAB TESTED</div><div>MADE TO ORDER</div><div>REFRIGERATED</div><div>DISCREET</div><div>SECURE PAYMENTS</div></section>
+  <div class="legal">For research purposes only. Not for human consumption.</div>
+  <aside class="drawer" id="drawer"><button class="close" type="button" onclick="toggleCart()">×</button><h2>Your Cart</h2><div id="cartItems"></div><p><b>Total: <span id="cartTotal">RM 0.00</span></b></p><button id="checkoutCartBtn" class="primary" type="button" style="width:100%;margin-top:12px" onclick="location.href='/checkout.html'">CHECKOUT</button></aside>
+  <div class="overlay" id="productOverlay"><div class="modal" id="productShell"><button class="close" type="button" onclick="closeOverlay('productOverlay')">×</button><div id="productModal"></div></div></div>
+  <noscript><p style="padding:24px">JavaScript is required to load the live catalog.</p></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/app.js"></script>
+  <script src="/center-fix.js"></script>
+  <script src="/product-detail.js?v=202608291545"></script>
+  <script src="/storefront-hardening.js?v=202608291545"></script>
+  <script src="/supabase-storefront.js?v=202608291545"></script>
+  <script src="/guides.js"></script>
+  <script src="/faq.js"></script>
+  <script src="/research.js"></script>
+  <script src="/site-final-hardening.js?v=202608291545"></script>
+  <script>try{renderProducts();renderCart()}catch(error){console.error(error)}</script>
+</body>
+</html>
