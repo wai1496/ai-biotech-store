@@ -24,6 +24,8 @@ jobs:
         run: node scripts/smoke-check.mjs
       - name: Validate staging controls and AI isolation
         run: node scripts/staging-control-check.mjs
+      - name: Validate staging integration safety
+        run: node scripts/staging-integration-check.mjs
       - name: Validate visible interaction contracts
         run: node scripts/interaction-check.mjs
       - name: Validate JavaScript syntax
