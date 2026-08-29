@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 const root=process.cwd(),fail=[];
-const req=['staging-member-agent.js','staging-member-wallet.js','api/staging-wallet/_shared.js','api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js','api/staging-shipping/_shared.js','api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js','api/staging-integrations/status.js','ops-easyparcel.js','ops-adapter-settings.js','ops-agent-referrals.js','member.html','ops.html'];
+const req=['staging-member-agent.js','staging-member-wallet.js','staging-checkout-dropship.js','api/staging-wallet/_shared.js','api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js','api/staging-shipping/_shared.js','api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js','api/staging-integrations/status.js','ops-easyparcel.js','ops-adapter-settings.js','ops-agent-referrals.js','ops-dropship-orders.js','member.html','checkout.html','ops.html'];
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 for(const f of req)if(!fs.existsSync(path.join(root,f)))fail.push(`missing ${f}`);
 if(fail.length){console.error('Staging integration check FAILED:\n- '+fail.join('\n- '));process.exit(1)}
-const agent=read('staging-member-agent.js'),walletUI=read('staging-member-wallet.js'),memberHtml=read('member.html'),opsHtml=read('ops.html'),adapterUI=read('ops-adapter-settings.js'),statusApi=read('api/staging-integrations/status.js'),referralUI=read('ops-agent-referrals.js');
+const agent=read('staging-member-agent.js'),walletUI=read('staging-member-wallet.js'),dropship=read('staging-checkout-dropship.js'),memberHtml=read('member.html'),checkoutHtml=read('checkout.html'),opsHtml=read('ops.html'),adapterUI=read('ops-adapter-settings.js'),statusApi=read('api/staging-integrations/status.js'),referralUI=read('ops-agent-referrals.js'),dropshipOps=read('ops-dropship-orders.js');
 const walletEndpoints=['api/staging-wallet/start.js','api/staging-wallet/callback.js','api/staging-wallet/return.js'];
 const shipEndpoints=['api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js'];
 const walletFiles=['api/staging-wallet/_shared.js',...walletEndpoints];
@@ -15,6 +15,11 @@ if(!agent.includes('member_get_agent_dashboard'))fail.push('Agent member dashboa
 if(!memberHtml.includes('/staging-member-agent.js'))fail.push('Member Area is not loading Agent dashboard module');
 if(!referralUI.includes('ops_assign_agent_referral')||!referralUI.includes('Confirm Referral Attribution'))fail.push('Agent referral workspace is not wired to audited preview/confirm assignment');
 if(!opsHtml.includes('data-view="referrals"')||!opsHtml.includes('/ops-agent-referrals.js'))fail.push('Operations is not loading Agent referral workspace');
+if(!agent.includes('/checkout.html?mode=dropship')||!agent.includes('dropship_enabled'))fail.push('Agent Dashboard does not gate and expose secure Dropship Checkout');
+if(!checkoutHtml.includes('/staging-checkout-dropship.js'))fail.push('Checkout is not loading Dropship mode overlay');
+if(!dropship.includes("get('mode')!=='dropship'")||!dropship.includes('member_get_agent_dashboard')||!dropship.includes('dropship_enabled')||!dropship.includes('agent_create_dropship_order'))fail.push('Dropship Checkout must activate only by mode, verify Agent permission and call secure dropship RPC');
+for(const bad of [".insert(",".update(",".delete(",".upsert("])if(dropship.includes(bad))fail.push(`Dropship browser code contains direct write pattern ${bad}`);
+if(!dropshipOps.includes("eq('order_channel','agent_dropship')")||!opsHtml.includes('data-view="dropship-orders"')||!opsHtml.includes('/ops-dropship-orders.js'))fail.push('Dedicated Dropship Orders Operations view is missing or not filtered to agent_dropship');
 if(!walletUI.includes('member_wallet_topup_status')||!walletUI.includes('member_create_wallet_topup_intent'))fail.push('Member wallet top-up status/intent contracts are not wired');
 if(!memberHtml.includes('/staging-member-wallet.js'))fail.push('Member Area is not loading staged wallet top-up module');
 if(!walletUI.includes('adapter_ready')||!walletUI.includes('topup_enabled'))fail.push('Wallet UI must gate payment button on explicit top-up and adapter readiness');
@@ -40,4 +45,4 @@ if(adapterUI.includes("status:'ready'")||shipText.includes("status!=='ready'")||
 const obviousSecrets=[/sb_secret_[A-Za-z0-9_-]{10,}/,/sk-proj-[A-Za-z0-9_-]{10,}/,/userSecretKey\s*[:=]\s*['"][^'"]{8,}['"]/];
 for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)]),['ops-adapter-settings.js',adapterUI],['api/staging-integrations/status.js',statusApi]])for(const re of obviousSecrets)if(re.test(text))fail.push(`${name}: possible embedded secret detected`);
 if(fail.length){console.error('Staging integration check FAILED:\n- '+[...new Set(fail)].join('\n- '));process.exit(1)}
-console.log('Staging integration check passed: Agent dashboard/referrals, readiness-gated configuration, shared production guards, ToyyibPay sandbox wallet verification, service-only wallet capture and explicitly confirmed EasyParcel demo payment are enforced.');
+console.log('Staging integration check passed: Agent dashboard/referrals/dropship, readiness-gated configuration, ToyyibPay sandbox wallet verification and explicitly confirmed EasyParcel demo payment are enforced.');
