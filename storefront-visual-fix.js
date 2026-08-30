@@ -26,6 +26,30 @@ function ensureFaq(){
  section.insertBefore(box,section.querySelector('.faq-grid'));
 }
 
+function patchProductInfoVisual(){
+ const original=window.openProductInfo;
+ if(typeof original!=='function'||original.__aibtInfoVisualPatched)return;
+ const wrapped=function(id){
+  const result=original(id);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   const layout=document.querySelector('#modalWrap.show .info-layout');
+   if(!layout||layout.querySelector(':scope > .info-visual'))return;
+   const stage=layout.querySelector(':scope > .product-visual-stage');
+   if(!stage)return;
+   const visual=document.createElement('div');
+   visual.className='info-visual';
+   visual.dataset.format=stage.dataset.format||'';
+   visual.dataset.overlayMode=stage.dataset.overlayMode||'none';
+   layout.insertBefore(visual,stage);
+   visual.appendChild(stage);
+   window.fitVisualText?.(visual);
+  }));
+  return result;
+ };
+ wrapped.__aibtInfoVisualPatched=true;
+ window.openProductInfo=wrapped;
+}
+
 function patchResearchNavigation(){
  const originalDetail=window.openResearchDetailCenter;
  if(typeof originalDetail!=='function'||originalDetail.__aibtLightPatched)return;
@@ -74,8 +98,10 @@ function patchModalClose(){
 
 function init(){
  ensureFaq();
+ patchProductInfoVisual();
  patchResearchNavigation();
  patchModalClose();
+ setTimeout(patchProductInfoVisual,150);
  setTimeout(patchResearchNavigation,150);
  setTimeout(patchResearchNavigation,700);
 }
