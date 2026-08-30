@@ -1,0 +1,2 @@
+WP-03 visual contract version: 2026-08-30.1
+Authoritative masters: Vial v4, Pen v4, Cartridge v5.
