@@ -21,9 +21,14 @@
     ctx.fillText(text,cx-(ink/2)-left,cy);
   }
   window.visual=function(p,v,el){
+    const form=v?.form||'Vial';
+    if(form==='Cartridge'){
+      el.innerHTML=`<img src="/assets/cartridge-master-approved.webp" alt="AI BioTech peptide cartridge">`;
+      return;
+    }
     const rr=real(p,v);
     if(rr){el.innerHTML=`<img src="${rr}" alt="${p.name}">`;return}
-    const form=v?.form||'Vial',src=masters[form];
+    const src=masters[form];
     if(!src){el.innerHTML=`<div class="missing"><b>${form} MASTER NOT UPLOADED</b><br><small>Admin → Master Placeholders</small></div>`;return}
     const im=new Image();
     im.onload=()=>{
