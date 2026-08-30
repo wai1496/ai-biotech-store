@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
-const baseUrl = process.env.AIBT_BASE_URL || 'https://ai-biotech-store-git-review-master-build-20260829-rk-cd1c.vercel.app';
+const baseUrl = process.env.AIBT_BASE_URL || 'http://127.0.0.1:4173';
 const evidenceDir = path.resolve(process.env.AIBT_EVIDENCE_DIR || 'artifacts/wp03-browser');
 const viewports = [
   ['mobile-360x800',{width:360,height:800}],
