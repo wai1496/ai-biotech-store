@@ -1,0 +1,80 @@
+name: WP-03 product visual browser QA
+
+on:
+  push:
+    branches: [review/master-build-20260829]
+    paths:
+      - index.html
+      - staging-config.js
+      - clean-store.js
+      - clean-store.css
+      - product-visual-resolver.js
+      - product-visuals.css
+      - storefront-visual-fix.js
+      - assets/vial-master-v4.svg
+      - assets/pen-master-v4.svg
+      - assets/cartridge-master-v5.svg
+      - assets/vial-cap-mask.svg
+      - assets/vial-stopper-mask.svg
+      - assets/vial-strength-mask.svg
+      - scripts/wp03-browser-check.mjs
+      - .github/workflows/wp03-browser-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wp03-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out review candidate
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright without modifying the repository
+        run: npm install --no-save --no-package-lock playwright@1.55.0
+
+      - name: Install Chromium runtime
+        run: npx playwright install --with-deps chromium
+
+      - name: Start exact review commit locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/aibt-wp03-server.log 2>&1 &
+          echo $! > /tmp/aibt-wp03-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/aibt-wp03-server.log
+          exit 1
+
+      - name: Run six-viewport product visual QA
+        env:
+          AIBT_BASE_URL: http://127.0.0.1:4173
+          AIBT_EVIDENCE_DIR: artifacts/wp03-browser
+        run: node scripts/wp03-browser-check.mjs
+
+      - name: Upload visual and JSON evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wp03-product-visual-evidence-${{ github.sha }}
+          path: |
+            artifacts/wp03-browser
+            /tmp/aibt-wp03-server.log
+          if-no-files-found: warn
+          retention-days: 14
