@@ -1,0 +1,12 @@
+{
+  "name": "ai-biotech-store-staging-qa",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test:visual": "playwright test tests/product-visuals.spec.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0"
+  }
+}
