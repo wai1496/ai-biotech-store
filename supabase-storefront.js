@@ -84,7 +84,11 @@
       if(typeof renderProducts==='function')renderProducts();
       if(typeof renderCart==='function')renderCart();
       window.dispatchEvent(new CustomEvent('aibt:catalog-loaded',{detail:{products:live.length,variants:live.reduce((n,p)=>n+p.variants.length,0)}}));
-      const requested=new URLSearchParams(location.search).get('product');
+      const queryRequested=new URLSearchParams(location.search).get('product');
+      const pathMatch=String(location.pathname||'').match(/^\/product\/([^/?#]+)/i);
+      let pathRequested='';
+      try{pathRequested=pathMatch?.[1]?decodeURIComponent(pathMatch[1]):''}catch(_){pathRequested=pathMatch?.[1]||''}
+      const requested=queryRequested||pathRequested;
       if(requested){
         const p=products.find(x=>x.id===requested||x.slug===requested||String(x.name).toLowerCase()===requested.toLowerCase());
         if(p&&typeof openProduct==='function')setTimeout(()=>openProduct(p.id),0);
