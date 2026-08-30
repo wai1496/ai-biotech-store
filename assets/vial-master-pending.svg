@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">AI BioTech Vial master pending staging migration</title>
+  <desc id="desc">Neutral staging placeholder shown instead of a legacy or cartoon product image.</desc>
+  <rect width="512" height="512" fill="#f7f9fc"/>
+  <g fill="none" stroke="#b7c4d3" stroke-width="8">
+    <rect x="174" y="124" width="164" height="270" rx="38"/>
+    <rect x="190" y="86" width="132" height="62" rx="22"/>
+    <path d="M204 210h104M204 246h104M204 282h76"/>
+  </g>
+  <text x="256" y="430" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#17365f">Vial master migration in progress</text>
+  <text x="256" y="458" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#66768a">Staging safety placeholder</text>
+</svg>
