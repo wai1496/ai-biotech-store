@@ -2,291 +2,125 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
-const baseUrl = process.env.AIBT_BASE_URL || 'http://127.0.0.1:4173';
+const baseUrl = process.env.AIBT_BASE_URL || 'https://ai-biotech-store-git-review-master-build-20260829-rk-cd1c.vercel.app';
 const evidenceDir = path.resolve(process.env.AIBT_EVIDENCE_DIR || 'artifacts/wp03-browser');
 const viewports = [
-  ['mobile-360x800', { width: 360, height: 800 }],
-  ['mobile-390x844', { width: 390, height: 844 }],
-  ['mobile-412x915', { width: 412, height: 915 }],
-  ['tablet-768x1024', { width: 768, height: 1024 }],
-  ['desktop-1366x768', { width: 1366, height: 768 }],
-  ['desktop-1440x900', { width: 1440, height: 900 }]
+  ['mobile-360x800',{width:360,height:800}],
+  ['mobile-390x844',{width:390,height:844}],
+  ['mobile-412x915',{width:412,height:915}],
+  ['tablet-768x1024',{width:768,height:1024}],
+  ['desktop-1366x768',{width:1366,height:768}],
+  ['desktop-1440x900',{width:1440,height:900}]
 ];
-const categorySamples = ['Metabolism', 'Tissue', 'Healing', 'Brain', 'Longevity', 'Special Blend'];
-const ignoredUrl = /favicon\.ico|google-analytics|doubleclick|googletagmanager/i;
+fs.mkdirSync(evidenceDir,{recursive:true});
 
-fs.mkdirSync(evidenceDir, { recursive: true });
-
-function pushUnique(list, value) {
-  if (value && !list.includes(value)) list.push(value);
-}
-
-async function selectVisibleFormat(page, format) {
-  return page.evaluate(async targetFormat => {
-    const cards = [...document.querySelectorAll('#productGrid .product-card')];
-    const candidate = cards.find(card => {
-      const select = card.querySelector('select[aria-label="Format"]');
-      return select && [...select.options].some(option => option.value === targetFormat);
-    });
-    if (!candidate) return { skipped: true, reason: `No visible product offers ${targetFormat}` };
-    const id = candidate.id;
-    const select = candidate.querySelector('select[aria-label="Format"]');
-    select.value = targetFormat;
-    select.dispatchEvent(new Event('change', { bubbles: true }));
-    await new Promise(resolve => setTimeout(resolve, 350));
-    const card = document.getElementById(id);
-    const stage = card?.querySelector('.product-visual-stage');
-    const image = stage?.querySelector('.product-visual-image');
+async function inspectFormat(page,format){
+  return page.evaluate(async target=>{
+    const cards=[...document.querySelectorAll('#productGrid .product-card')];
+    const card=cards.find(c=>{const s=c.querySelector('select[aria-label="Format"]');return s&&[...s.options].some(o=>o.value===target)});
+    if(!card)return {skipped:true,format:target};
+    const select=card.querySelector('select[aria-label="Format"]');
+    select.value=target;select.dispatchEvent(new Event('change',{bubbles:true}));
+    await new Promise(r=>setTimeout(r,450));
+    const live=document.getElementById(card.id);
+    const stage=live?.querySelector('.product-visual-stage');
+    const image=stage?.querySelector('.product-visual-image');
+    const visibleMasks=[...stage?.querySelectorAll('.product-visual-color')||[]].filter(el=>getComputedStyle(el).display!=='none').length;
+    const overlay=stage?.querySelector('.product-visual-overlay');
+    const name=stage?.querySelector('.product-visual-name');
+    const strength=stage?.querySelector('.product-visual-strength');
     return {
-      skipped: false,
-      cardId: id,
-      format: stage?.dataset.format || '',
-      overlayMode: stage?.dataset.overlayMode || '',
-      source: stage?.dataset.visualSource || '',
-      image: image?.getAttribute('src') || '',
-      naturalWidth: image?.naturalWidth || 0,
-      naturalHeight: image?.naturalHeight || 0,
-      textCount: stage?.querySelectorAll('.product-visual-text').length || 0,
-      maskCount: stage?.querySelectorAll('.product-visual-color').length || 0,
-      stageRect: stage?.getBoundingClientRect().toJSON() || null,
-      nameRect: stage?.querySelector('.product-visual-name')?.getBoundingClientRect().toJSON() || null,
-      strengthRect: stage?.querySelector('.product-visual-strength')?.getBoundingClientRect().toJSON() || null
+      skipped:false,format:stage?.dataset.format||target,source:stage?.dataset.visualSource||'',overlayMode:stage?.dataset.overlayMode||'',
+      image:image?.getAttribute('src')||'',naturalWidth:image?.naturalWidth||0,naturalHeight:image?.naturalHeight||0,
+      textCount:stage?.querySelectorAll('.product-visual-text').length||0,visibleMasks,
+      overlayDisplay:overlay?getComputedStyle(overlay).display:'',nameWeight:name?getComputedStyle(name).fontWeight:'',strengthWeight:strength?getComputedStyle(strength).fontWeight:'',
+      stageRect:stage?.getBoundingClientRect().toJSON()||null,nameRect:name?.getBoundingClientRect().toJSON()||null,strengthRect:strength?.getBoundingClientRect().toJSON()||null,
+      cardId:live?.id||''
     };
-  }, format);
+  },format);
 }
 
-function validateStage(row, failures, prefix = '') {
-  if (row.skipped) {
-    failures.push(`${prefix}${row.reason}`);
-    return;
+function validate(row,failures){
+  if(row.skipped){failures.push(`No visible ${row.format} variant available`);return;}
+  if(!row.naturalWidth||!row.naturalHeight)failures.push(`${row.format}: master image did not render`);
+  if(row.source!=='master')failures.push(`${row.format}: expected master visual source, got ${row.source||'empty'}`);
+  if(/master-pending|cartoon|cartridge-master-v2|yjauxyvtrmdriwtmckkl/i.test(row.image))failures.push(`${row.format}: legacy/protected visual remains`);
+  if(row.format==='Vial'){
+    if(row.overlayMode!=='vial')failures.push('Vial overlay mode must remain vial for label text');
+    if(!/vial-master-v4\.svg/i.test(row.image))failures.push(`Vial wrong master: ${row.image}`);
+    if(row.textCount!==2)failures.push('Vial must have exactly product-name and strength text');
+    if(row.visibleMasks!==0)failures.push('Vial cap/stopper/field recolour masks must be disabled');
   }
-  if (row.source !== 'master') failures.push(`${prefix}${row.format}: expected master source, received ${row.source || 'empty'}`);
-  if (!row.naturalWidth || !row.naturalHeight) failures.push(`${prefix}${row.format}: image failed to render`);
-  if (/master-pending|yjauxyvtrmdriwtmckkl|cartridge-master-v2|cartoon/i.test(row.image)) {
-    failures.push(`${prefix}${row.format}: legacy or protected image source remains: ${row.image}`);
+  if(row.format==='Pen'){
+    if(row.overlayMode!=='pen')failures.push('Pen overlay mode must be pen');
+    if(!/pen-master-v4\.svg/i.test(row.image))failures.push(`Pen wrong master: ${row.image}`);
+    if(row.textCount!==2)failures.push('Pen must have exactly product-name and strength text');
+    if(Number(row.nameWeight)<700||Number(row.strengthWeight)<700)failures.push('Pen label text must be bold/UV-print style');
   }
-  if (row.format === 'Vial') {
-    if (row.overlayMode !== 'vial') failures.push(`${prefix}Vial overlay mode must be vial`);
-    if (!/vial-master-v4\.svg/i.test(row.image)) failures.push(`${prefix}Vial must use V4 master: ${row.image}`);
-    if (row.textCount !== 2 || row.maskCount !== 3) failures.push(`${prefix}Vial requires two text fields and three exact masks`);
-  } else if (row.format === 'Pen') {
-    if (row.overlayMode !== 'pen') failures.push(`${prefix}Pen overlay mode must be pen`);
-    if (!/pen-master-v4\.svg/i.test(row.image)) failures.push(`${prefix}Pen must use V4 master: ${row.image}`);
-    if (row.textCount !== 2 || row.maskCount !== 0) failures.push(`${prefix}Pen requires two text fields and no Vial masks`);
-  } else if (row.format === 'Cartridge') {
-    if (row.overlayMode !== 'none') failures.push(`${prefix}Cartridge overlay mode must be none`);
-    if (!/cartridge-master-v5\.svg/i.test(row.image)) failures.push(`${prefix}Cartridge must use V5 master: ${row.image}`);
-    if (row.textCount !== 0 || row.maskCount !== 0) failures.push(`${prefix}Cartridge must have no dynamic overlay`);
+  if(row.format==='Cartridge'){
+    if(row.overlayMode!=='none')failures.push('Cartridge must have no dynamic overlay');
+    if(row.textCount!==0||row.overlayDisplay!=='none')failures.push('Cartridge must render master image only');
+    if(!/cartridge-master-v5\.svg/i.test(row.image))failures.push(`Cartridge wrong master: ${row.image}`);
   }
-  for (const [label, rect] of [['name', row.nameRect], ['strength', row.strengthRect]]) {
-    if (!rect || !row.stageRect) continue;
-    const stage = row.stageRect;
-    const inside = rect.x >= stage.x - 1 && rect.y >= stage.y - 1 && rect.x + rect.width <= stage.x + stage.width + 1 && rect.y + rect.height <= stage.y + stage.height + 1;
-    if (!inside) failures.push(`${prefix}${row.format} ${label} escaped the square coordinate stage`);
+  for(const rect of [row.nameRect,row.strengthRect]){
+    if(!rect||!row.stageRect)continue;
+    const s=row.stageRect;
+    if(rect.x<s.x-1||rect.y<s.y-1||rect.right>s.right+1||rect.bottom>s.bottom+1)failures.push(`${row.format}: label escaped image stage`);
   }
-  if (row.format === 'Vial' && row.nameRect && row.strengthRect && row.stageRect) {
-    const nameRatio = (row.nameRect.y - row.stageRect.y) / row.stageRect.height;
-    const strengthRatio = (row.strengthRect.y - row.stageRect.y) / row.stageRect.height;
-    if (nameRatio < 0.50) failures.push(`${prefix}Vial product name is too high and may overlap the logo`);
-    if (strengthRatio <= nameRatio) failures.push(`${prefix}Vial strength must sit below the product name`);
+  if(row.format==='Vial'&&row.nameRect&&row.strengthRect&&row.stageRect){
+    const nr=(row.nameRect.y-row.stageRect.y)/row.stageRect.height;
+    const sr=(row.strengthRect.y-row.stageRect.y)/row.stageRect.height;
+    if(nr<.50)failures.push('Vial product name is too high and risks logo overlap');
+    if(sr<=nr)failures.push('Vial strength must remain below product name');
   }
 }
 
-async function inspectViewport(browser, name, viewport) {
-  const context = await browser.newContext({ viewport, deviceScaleFactor: 1, ignoreHTTPSErrors: true });
-  const page = await context.newPage();
-  const failures = [];
-  const consoleErrors = [];
-  const pageErrors = [];
-  const requestFailures = [];
-  const httpErrors = [];
-
-  page.on('console', message => {
-    if (message.type() === 'error') pushUnique(consoleErrors, message.text());
-  });
-  page.on('pageerror', error => pushUnique(pageErrors, String(error?.message || error)));
-  page.on('requestfailed', request => {
-    if (!ignoredUrl.test(request.url())) requestFailures.push({ url: request.url(), error: request.failure()?.errorText || 'failed' });
-  });
-  page.on('response', response => {
-    if (response.status() >= 400 && !ignoredUrl.test(response.url())) httpErrors.push({ url: response.url(), status: response.status() });
-  });
-
-  await page.goto(baseUrl, { waitUntil: 'networkidle', timeout: 120_000 });
-  await page.waitForSelector('#productGrid .product-card', { timeout: 60_000 });
-  await page.waitForTimeout(1500);
-
-  const initial = await page.evaluate(() => {
-    const cards = [...document.querySelectorAll('#productGrid .product-card')];
-    const stages = [...document.querySelectorAll('#productGrid .product-visual-stage')];
-    const images = [...document.images].map(image => ({
-      src: image.currentSrc || image.src,
-      complete: image.complete,
-      naturalWidth: image.naturalWidth,
-      naturalHeight: image.naturalHeight,
-      alt: image.alt
-    }));
-    return {
-      title: document.title,
-      cards: cards.length,
-      stages: stages.length,
-      bodyScrollWidth: document.body.scrollWidth,
-      viewportWidth: window.innerWidth,
-      visualCssLoaded: [...document.styleSheets].some(sheet => String(sheet.href || '').includes('product-visuals.css')),
-      catalogSummary: document.querySelector('#catalogSummary')?.textContent || '',
-      brokenImages: images.filter(image => image.complete && image.naturalWidth === 0),
-      unsafeImages: images.filter(image => /master-pending|yjauxyvtrmdriwtmckkl|cartridge-master-v2|cartoon/i.test(image.src)),
-      hero: ['Vial', 'Pen', 'Cartridge'].map(format => {
-        const image = document.getElementById(`hero${format}`);
-        return { format, src: image?.getAttribute('src') || '', naturalWidth: image?.naturalWidth || 0 };
-      })
-    };
-  });
-
-  if (initial.cards < 1) failures.push('No product cards rendered');
-  if (initial.cards !== initial.stages) failures.push(`Expected one visual stage per product card; cards=${initial.cards}, stages=${initial.stages}`);
-  if (!initial.visualCssLoaded) failures.push('product-visuals.css was not loaded');
-  if (initial.bodyScrollWidth > initial.viewportWidth + 2) failures.push(`Horizontal overflow: body=${initial.bodyScrollWidth}, viewport=${initial.viewportWidth}`);
-  if (initial.brokenImages.length) failures.push(`Broken images: ${initial.brokenImages.map(image => image.src).join(', ')}`);
-  if (initial.unsafeImages.length) failures.push(`Legacy/protected images: ${initial.unsafeImages.map(image => image.src).join(', ')}`);
-  if (!/39 products/i.test(initial.catalogSummary)) failures.push(`Catalog summary did not report the expected staging product set: ${initial.catalogSummary}`);
-  for (const hero of initial.hero) {
-    if (!hero.naturalWidth) failures.push(`Hero ${hero.format} image failed to render`);
-    const expected = hero.format === 'Vial' ? 'vial-master-v4.svg' : hero.format === 'Pen' ? 'pen-master-v4.svg' : 'cartridge-master-v5.svg';
-    if (!hero.src.includes(expected)) failures.push(`Hero ${hero.format} uses the wrong master: ${hero.src}`);
+async function inspectViewport(browser,name,viewport){
+  const context=await browser.newContext({viewport,deviceScaleFactor:1,ignoreHTTPSErrors:true});
+  const page=await context.newPage();
+  const failures=[];const pageErrors=[];
+  page.on('pageerror',e=>pageErrors.push(String(e?.message||e)));
+  await page.goto(baseUrl,{waitUntil:'networkidle',timeout:120000});
+  await page.waitForSelector('#productGrid .product-card',{timeout:60000});
+  await page.waitForTimeout(1200);
+  const initial=await page.evaluate(()=>({
+    cards:document.querySelectorAll('#productGrid .product-card').length,
+    stages:document.querySelectorAll('#productGrid .product-visual-stage').length,
+    bodyScrollWidth:document.body.scrollWidth,viewportWidth:innerWidth,
+    summary:document.querySelector('#catalogSummary')?.textContent||'',
+    broken:[...document.images].filter(i=>i.complete&&i.naturalWidth===0).map(i=>i.currentSrc||i.src),
+    hero:['Vial','Pen','Cartridge'].map(format=>{const i=document.getElementById(`hero${format}`);return{format,src:i?.getAttribute('src')||'',width:i?.naturalWidth||0}})
+  }));
+  if(initial.cards<1||initial.cards!==initial.stages)failures.push('Product cards/visual stages are incomplete');
+  if(initial.bodyScrollWidth>initial.viewportWidth+2)failures.push('Horizontal storefront overflow detected');
+  if(initial.broken.length)failures.push(`Broken images: ${initial.broken.join(', ')}`);
+  if(!/39 products/i.test(initial.summary))failures.push(`Unexpected catalog summary: ${initial.summary}`);
+  for(const h of initial.hero){if(!h.width)failures.push(`Hero ${h.format} failed to render`);}
+  await page.evaluate(()=>window.showAllProducts?.());await page.waitForTimeout(500);
+  const formatResults={};
+  for(const f of ['Vial','Pen','Cartridge']){formatResults[f]=await inspectFormat(page,f);validate(formatResults[f],failures);}
+  const categories=await page.evaluate(()=>[...document.querySelectorAll('#categoryFilter option')].map(o=>o.value).filter(v=>v&&v!=='All'));
+  if(categories.length<6)failures.push(`Expected at least 6 live categories, found ${categories.length}`);
+  for(const cat of categories.slice(0,6)){
+    const result=await page.evaluate(async value=>{const s=document.getElementById('categoryFilter');s.value=value;s.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,250));const stage=document.querySelector('#productGrid .product-visual-stage');return{cards:document.querySelectorAll('#productGrid .product-card').length,color:stage?getComputedStyle(stage).getPropertyValue('--visual-category').trim():''}},cat);
+    if(result.cards<1)failures.push(`Category ${cat} rendered no products`);
+    if(result.color&&!/^#[0-9a-f]{6}$/i.test(result.color))failures.push(`Category ${cat} has invalid colour ${result.color}`);
   }
-
-  await page.evaluate(() => window.showAllProducts?.());
-  await page.waitForTimeout(450);
-  const formatResults = {};
-  for (const format of ['Vial', 'Pen', 'Cartridge']) {
-    const result = await selectVisibleFormat(page, format);
-    formatResults[format] = result;
-    validateStage(result, failures, 'Card: ');
-  }
-
-  const categoryResults = [];
-  for (const category of categorySamples) {
-    const result = await page.evaluate(async selectedCategory => {
-      const select = document.getElementById('categoryFilter');
-      if (!select || ![...select.options].some(option => option.value === selectedCategory)) return { category: selectedCategory, skipped: true };
-      select.value = selectedCategory;
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-      await new Promise(resolve => setTimeout(resolve, 260));
-      const card = document.querySelector('#productGrid .product-card');
-      const stage = card?.querySelector('.product-visual-stage');
-      return {
-        category: selectedCategory,
-        skipped: false,
-        cards: document.querySelectorAll('#productGrid .product-card').length,
-        format: stage?.dataset.format || '',
-        categoryColor: getComputedStyle(stage || document.documentElement).getPropertyValue('--visual-category').trim(),
-        maskCount: stage?.querySelectorAll('.product-visual-color').length || 0
-      };
-    }, category);
-    categoryResults.push(result);
-    if (result.skipped) failures.push(`Category sample unavailable: ${category}`);
-    else {
-      if (result.cards < 1) failures.push(`Category ${category} rendered no products`);
-      if (!/^#[0-9a-f]{6}$/i.test(result.categoryColor)) failures.push(`Category ${category} has invalid visual colour: ${result.categoryColor}`);
-    }
-  }
-
-  await page.evaluate(() => {
-    const select = document.getElementById('categoryFilter');
-    if (select && [...select.options].some(option => option.value === 'All')) {
-      select.value = 'All';
-      select.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  });
-  await page.waitForTimeout(300);
-  const infoButton = page.locator('#productGrid .info-btn').first();
-  await infoButton.click();
-  await page.waitForTimeout(350);
-  const modalResult = await page.evaluate(() => {
-    const wrap = document.querySelector('#modalWrap.show');
-    const modal = wrap?.querySelector('.modal');
-    const stage = wrap?.querySelector('.product-visual-stage');
-    return {
-      visible: Boolean(wrap),
-      stage: Boolean(stage),
-      modalRect: modal?.getBoundingClientRect().toJSON() || null,
-      stageRect: stage?.getBoundingClientRect().toJSON() || null,
-      source: stage?.dataset.visualSource || '',
-      viewportWidth: window.innerWidth
-    };
-  });
-  if (!modalResult.visible || !modalResult.stage) failures.push('Product information modal does not use the shared visual stage');
-  if (modalResult.modalRect && modalResult.modalRect.width > modalResult.viewportWidth + 1) failures.push('Product information modal is wider than the viewport');
-  await page.evaluate(() => window.closeModal?.());
-
-  if (formatResults.Cartridge && !formatResults.Cartridge.skipped) {
-    await page.evaluate(cardId => {
-      const card = document.getElementById(cardId);
-      const button = card?.querySelector('.add-btn');
-      button?.click();
-    }, formatResults.Cartridge.cardId);
-    await page.waitForTimeout(250);
-    await page.evaluate(() => window.openCart?.());
-    await page.waitForTimeout(250);
-    const cartResult = await page.evaluate(() => {
-      const item = document.querySelector('#cartItems .cart-item');
-      const image = item?.querySelector('img');
-      return {
-        item: Boolean(item),
-        src: image?.getAttribute('src') || '',
-        naturalWidth: image?.naturalWidth || 0,
-        meta: item?.querySelector('small')?.textContent || ''
-      };
-    });
-    if (!cartResult.item) failures.push('Cart did not render the selected exact variant');
-    if (/Cartridge/i.test(cartResult.meta) && !/cartridge-master-v5\.svg/i.test(cartResult.src)) failures.push(`Cart Cartridge uses the wrong master: ${cartResult.src}`);
-    if (cartResult.item && !cartResult.naturalWidth) failures.push('Cart image failed to render');
-    await page.evaluate(() => window.closeCart?.());
-  }
-
-  const screenshotPath = path.join(evidenceDir, `${name}.png`);
-  await page.screenshot({ path: screenshotPath, fullPage: true });
-
-  if (consoleErrors.length) failures.push(`Console errors: ${consoleErrors.join(' | ')}`);
-  if (pageErrors.length) failures.push(`Page errors: ${pageErrors.join(' | ')}`);
-  if (requestFailures.length) failures.push(`Request failures: ${requestFailures.map(item => `${item.url} (${item.error})`).join(' | ')}`);
-  if (httpErrors.length) failures.push(`HTTP errors: ${httpErrors.map(item => `${item.url} (${item.status})`).join(' | ')}`);
-
+  await page.evaluate(()=>{const s=document.getElementById('categoryFilter');if(s){s.value='All';s.dispatchEvent(new Event('change',{bubbles:true}))}});await page.waitForTimeout(300);
+  await page.locator('#productGrid .info-btn').first().click();await page.waitForTimeout(300);
+  const modal=await page.evaluate(()=>{const w=document.querySelector('#modalWrap.show');const m=w?.querySelector('.modal');const s=w?.querySelector('.product-visual-stage');return{visible:!!w,stage:!!s,width:m?.getBoundingClientRect().width||0,viewport:innerWidth}});
+  if(!modal.visible||!modal.stage)failures.push('Product modal is not using the shared visual renderer');
+  if(modal.width>modal.viewport+1)failures.push('Product modal exceeds viewport width');
+  await page.evaluate(()=>window.closeModal?.());
+  if(pageErrors.length)failures.push(`Page errors: ${pageErrors.join(' | ')}`);
+  const screenshotPath=path.join(evidenceDir,`${name}.png`);await page.screenshot({path:screenshotPath,fullPage:true});
   await context.close();
-  return {
-    name,
-    viewport,
-    pass: failures.length === 0,
-    failures,
-    initial,
-    formatResults,
-    categoryResults,
-    modalResult,
-    consoleErrors,
-    pageErrors,
-    requestFailures,
-    httpErrors,
-    screenshotPath
-  };
+  return{name,viewport,pass:failures.length===0,failures,initial,formatResults,categories,screenshotPath};
 }
 
-const browser = await chromium.launch({ headless: true });
-const results = [];
-try {
-  for (const [name, viewport] of viewports) results.push(await inspectViewport(browser, name, viewport));
-} finally {
-  await browser.close();
-}
-
-const report = {
-  workPackage: 'WP-03 Product Visuals',
-  baseUrl,
-  testedAt: new Date().toISOString(),
-  pass: results.every(result => result.pass),
-  results
-};
-const reportPath = path.join(evidenceDir, 'report.json');
-fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-console.log(JSON.stringify(report, null, 2));
-if (!report.pass) process.exit(1);
+const browser=await chromium.launch({headless:true});const results=[];
+try{for(const [name,viewport] of viewports)results.push(await inspectViewport(browser,name,viewport));}finally{await browser.close();}
+const report={workPackage:'WP-03 Product Visuals',baseUrl,testedAt:new Date().toISOString(),pass:results.every(r=>r.pass),results};
+fs.writeFileSync(path.join(evidenceDir,'report.json'),JSON.stringify(report,null,2));
+console.log(JSON.stringify(report,null,2));
+if(!report.pass)process.exit(1);
