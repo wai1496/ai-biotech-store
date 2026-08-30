@@ -1,0 +1,50 @@
+name: AI BioTech product visual QA reporter
+
+on:
+  workflow_run:
+    workflows: ['AI BioTech product visual QA']
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    if: ${{ github.event.workflow_run.head_branch == 'review/master-build-20260829' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post WP-03 evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "$CONCLUSION" = "success" ]; then
+            STATUS="PASS"
+            ICON="✅"
+            DETAIL="The six-viewport Playwright product-visual contract completed successfully. Screenshots and traces are attached to the workflow run artifact."
+          else
+            STATUS="FAIL / FIXING"
+            ICON="❌"
+            DETAIL="The independent Playwright product-visual contract failed. WP-03 remains open; inspect the workflow report and repair before retest."
+          fi
+
+          BODY=$(cat <<EOF
+          ## Automated visual QA — ${ICON} ${STATUS}
+
+          - Branch: \\`review/master-build-20260829\`
+          - Commit: \\`${SHA}\`
+          - Workflow conclusion: **${CONCLUSION}**
+          - Evidence: ${RUN_URL}
+
+          ${DETAIL}
+
+          This report is generated automatically. A green Vercel deployment alone is not treated as QA approval.
+          EOF
+          )
+
+          gh api "repos/${REPOSITORY}/issues/8/comments" -f body="$BODY"
