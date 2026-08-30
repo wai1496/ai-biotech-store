@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const CARTRIDGE='/assets/cartridge-master-v2.svg';
+const CARTRIDGE='/assets/cartridge-master-v5.svg?masterv=5';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
 function patchCartStorage(){
  try{
@@ -35,7 +35,7 @@ function normalizeCards(){
  document.querySelectorAll('.product-card').forEach(card=>{
   const format=card.dataset.format||'';
   const img=card.querySelector('.product-media img');
-  if(format==='Cartridge'&&img&&img.getAttribute('src')!==CARTRIDGE)img.src=CARTRIDGE;
+  if(format==='Cartridge'&&img&&img.getAttribute('src')!==CARTRIDGE){img.removeAttribute('srcset');img.removeAttribute('sizes');img.src=CARTRIDGE}
   const label=card.querySelector('.dynamic-label');if(label&&!label.dataset.aibtNormalized)label.dataset.aibtNormalized='1';
  });
  document.querySelectorAll('.cart-item').forEach(item=>{
@@ -97,8 +97,8 @@ function init(){
  patchCartStorage();normalizeCards();ensureFaq();patchResearchNavigation();patchModalClose();
  const grid=document.getElementById('productGrid');if(grid)mo.observe(grid,{childList:true,subtree:true});
  const cart=document.getElementById('cartItems');if(cart)mo.observe(cart,{childList:true,subtree:true});
- const hero=document.getElementById('heroCartridge');if(hero)heroMo.observe(hero,{attributes:true,attributeFilter:['src']});
- setTimeout(normalizeCards,250);setTimeout(normalizeCards,900);setTimeout(normalizeCards,1800);
+ const hero=document.getElementById('heroCartridge');if(hero)heroMo.observe(hero,{attributes:true,attributeFilter:['src','srcset']});
+ setTimeout(normalizeCards,0);setTimeout(normalizeCards,250);setTimeout(normalizeCards,900);setTimeout(normalizeCards,1800);
  setTimeout(patchResearchNavigation,150);setTimeout(patchResearchNavigation,700);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
