@@ -1,0 +1,65 @@
+name: AI BioTech product visual QA
+
+on:
+  push:
+    branches: [review/master-build-20260829]
+    paths:
+      - 'index.html'
+      - 'staging-config.js'
+      - 'clean-store.js'
+      - 'product-visual-resolver.js'
+      - 'product-visuals.css'
+      - 'assets/**'
+      - 'tests/product-visuals.spec.mjs'
+      - 'playwright.config.mjs'
+      - 'package.json'
+      - '.github/workflows/product-visual-qa.yml'
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'staging-config.js'
+      - 'clean-store.js'
+      - 'product-visual-resolver.js'
+      - 'product-visuals.css'
+      - 'assets/**'
+      - 'tests/product-visuals.spec.mjs'
+      - 'playwright.config.mjs'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run six-viewport product visual tests
+        run: npm run test:visual
+
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-visual-qa-${{ github.sha }}
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: warn
+          retention-days: 14
