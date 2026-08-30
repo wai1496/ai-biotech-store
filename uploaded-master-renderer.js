@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const SB_URL='https://yjauxyvtrmdriwtmckkl.supabase.co';
 const SB_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
-let masters={};
+let masters={Cartridge:{url:'/assets/cartridge-master-v5.svg?masterv=5',version:5}};
 function color(el){return getComputedStyle(el).getPropertyValue('--cat').trim()||'#1477ff'}
 function cleanName(v){return String(v||'').replace(/\s+/g,' ').trim()}
 function selectedStrength(card){const selects=[...card.querySelectorAll('select')];const s=selects.find(x=>/strength/i.test(x.getAttribute('aria-label')||'')||/strength/i.test(x.name||'')||/strength/i.test(x.id||''));return cleanName(s?.value||selects[0]?.value||'')}
@@ -12,5 +12,6 @@ function decorate(box,format,name,strength,cat){let layer=box.querySelector('.ma
 function applyCard(card){const format=card.dataset.format;if(!masters[format])return;const box=card.querySelector('.product-media'),img=box?.querySelector('img');if(!box||!img)return;forceImage(img,format);const name=cleanName(card.querySelector('.product-name')?.textContent||card.querySelector('h3')?.textContent||'');decorate(box,format,name,selectedStrength(card),color(card))}
 function applyInfo(box){const format=box.dataset.format;if(!masters[format])return;const img=box.querySelector('img');if(!img)return;forceImage(img,format);if(format==='Cartridge'){box.querySelector('.master-dynamic-layer')?.remove();return}const modal=box.closest('.modal'),title=cleanName(modal?.querySelector('#modalTitle')?.textContent||document.getElementById('modalTitle')?.textContent||'');const sku=cleanName(modal?.textContent||'');const match=sku.match(/(?:^|[-\s])(\d+(?:\.\d+)?\s*(?:mg|mcg|ml))(?:[-\s]|$)/i);decorate(box,format,title,match?.[1]||'',color(box.closest('[style*="--cat"]')||box))}
 function apply(){document.querySelectorAll('.product-card[data-format]').forEach(applyCard);document.querySelectorAll('.info-visual[data-format]').forEach(applyInfo)}
-window.AIBT_UPLOADED_MASTERS={apply,get:()=>Object.fromEntries(Object.entries(masters).map(([k,v])=>[k,v.url]))};let pending=false;new MutationObserver(()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','srcset','data-format']});document.addEventListener('change',e=>{if(e.target.closest('.product-card'))setTimeout(apply,0)});window.addEventListener('pageshow',()=>setTimeout(apply,0));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadMasters);else loadMasters();
+function start(){apply();loadMasters()}
+window.AIBT_UPLOADED_MASTERS={apply,get:()=>Object.fromEntries(Object.entries(masters).map(([k,v])=>[k,v.url]))};let pending=false;new MutationObserver(()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','srcset','data-format']});document.addEventListener('change',e=>{if(e.target.closest('.product-card'))setTimeout(apply,0)});window.addEventListener('pageshow',()=>setTimeout(apply,0));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
