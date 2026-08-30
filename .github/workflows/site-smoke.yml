@@ -24,6 +24,8 @@ jobs:
         run: node scripts/environment-contract-check.mjs
       - name: Validate product visual resolver behavior
         run: node scripts/product-visual-resolver-check.mjs
+      - name: Validate approved staging product master assets
+        run: node scripts/master-asset-contract-check.mjs
       - name: Validate single storefront visual writer
         run: node scripts/visual-writer-contract-check.mjs
       - name: Validate routes and linked assets
