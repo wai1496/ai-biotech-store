@@ -44,24 +44,25 @@ jobs:
       - name: Install Chromium runtime
         run: npx playwright install --with-deps chromium
 
-      - name: Wait for live staging alias
+      - name: Start exact review commit locally
         shell: bash
         run: |
           set -euo pipefail
-          URL='https://ai-biotech-store-git-review-master-build-20260829-rk-cd1c.vercel.app'
-          for attempt in {1..60}; do
-            if curl -L --fail --silent "$URL/product-visuals.css" | grep -q 'mix-blend-mode:multiply'; then
-              echo 'Live staging alias is ready.'
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/aibt-wp03-server.log 2>&1 &
+          echo $! > /tmp/aibt-wp03-server.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              echo 'Exact review commit is ready for browser QA.'
               exit 0
             fi
-            sleep 5
+            sleep 1
           done
-          echo 'Timed out waiting for staging alias to update.'
+          cat /tmp/aibt-wp03-server.log
           exit 1
 
       - name: Run six-viewport product visual QA
         env:
-          AIBT_BASE_URL: https://ai-biotech-store-git-review-master-build-20260829-rk-cd1c.vercel.app
+          AIBT_BASE_URL: http://127.0.0.1:4173
           AIBT_EVIDENCE_DIR: artifacts/wp03-browser
         run: node scripts/wp03-browser-check.mjs
 
@@ -70,6 +71,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wp03-product-visual-evidence-${{ github.sha }}
-          path: artifacts/wp03-browser
+          path: |
+            artifacts/wp03-browser
+            /tmp/aibt-wp03-server.log
           if-no-files-found: warn
           retention-days: 14
