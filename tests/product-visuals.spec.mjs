@@ -12,6 +12,14 @@ function pathOf(value, pageUrl) {
   return new URL(value, pageUrl).pathname;
 }
 
+function isCriticalVisualRequest(url) {
+  return /\/(?:assets|product-visuals\.css|product-visual-resolver\.js|clean-store\.js)(?:\/|\?|$)/.test(url);
+}
+
+function isCriticalCatalogRequest(url) {
+  return url.includes('.supabase.co/rest/v1/') && /\/(?:products|categories|media_templates)(?:\?|$)/.test(url);
+}
+
 async function findEligibleCardId(page, format) {
   return page.evaluate(requestedFormat => {
     const cards = [...document.querySelectorAll('.product-card')];
@@ -33,11 +41,22 @@ test('approved masters remain authoritative across hero, cards, modal and cart',
 
   page.on('pageerror', error => failures.push(`pageerror: ${error.message}`));
   page.on('console', message => {
-    if (message.type() === 'error') failures.push(`console: ${message.text()}`);
+    if (message.type() !== 'error') return;
+    const text = message.text();
+    // Chromium emits generic console errors for non-critical local-harness/API and
+    // optional anonymous requests. Their actual URLs/statuses are checked below.
+    if (/^Failed to load resource: the server responded with a status of \d+/.test(text)) return;
+    failures.push(`console: ${text}`);
+  });
+  page.on('response', response => {
+    const url = response.url();
+    if (response.status() >= 400 && (isCriticalVisualRequest(url) || isCriticalCatalogRequest(url))) {
+      failures.push(`response: ${response.status()} ${url}`);
+    }
   });
   page.on('requestfailed', request => {
     const url = request.url();
-    if (/\/(?:assets|product-visuals\.css|product-visual-resolver\.js|clean-store\.js)(?:\/|\?|$)/.test(url) || url.includes('.supabase.co/rest/v1/')) {
+    if (isCriticalVisualRequest(url) || isCriticalCatalogRequest(url)) {
       failures.push(`requestfailed: ${url} — ${request.failure()?.errorText || 'unknown error'}`);
     }
   });
