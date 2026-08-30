@@ -22,6 +22,8 @@ const centerFix=read('center-fix.js');
 if(!centerFix.includes('/assets/cartridge-master-approved.webp'))failures.push('center-fix.js must keep the bundled Cartridge fallback asset');
 if(!centerFix.includes('catalog-media/masters/cartridge-master-admin.webp'))failures.push('center-fix.js must prefer the admin-managed Cartridge master from Supabase Storage');
 if(!/form\s*===\s*['"]Cartridge['"]/.test(centerFix))failures.push('center-fix.js must have Cartridge-specific rendering logic');
+if(!centerFix.includes('isSharedMasterImage'))failures.push('center-fix.js must detect shared Vial/Pen master image URLs');
+if(!centerFix.includes('masterImageSource'))failures.push('center-fix.js must composite shared Vial/Pen master images through canvas instead of returning the blank image directly');
 const cartridgePath='assets/cartridge-master-approved.webp';
 if(!fs.existsSync(cartridgePath)){
   failures.push('approved Cartridge master asset is missing');
