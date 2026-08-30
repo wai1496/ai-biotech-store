@@ -24,7 +24,7 @@ function productSelection(p){
  const active=(p.variants||[]).filter(v=>v.active!==false);
  const strengths=[...new Set(active.map(v=>v.strength_label))].sort(byStrength);
  if(!s||!strengths.includes(s.strength)){const first=active.find(v=>v.format==='Vial')||active[0];s={strength:first?.strength_label||strengths[0],format:first?.format||'Vial'};selections.set(p.id,s)}
- let compatible=active.filter(v=>v.strength_label===s.strength);
+ const compatible=active.filter(v=>v.strength_label===s.strength);
  if(!compatible.some(v=>v.format===s.format)){s.format=(compatible.find(v=>v.format==='Vial')||compatible[0])?.format||s.format}
  return s;
 }
@@ -33,15 +33,42 @@ function available(v){return !!v&&v.active!==false&&Number(v.stock_quantity||0)-
 function isStagingOwnedAsset(value){
  if(!visualApi.isSafeAssetUrl(value))return false;
  const url=String(value).trim();
- if(url.startsWith('/')&&!url.startsWith('//'))return true;
+ if(url.startsWith('/')&&!url.startsWith('//'))return !/master-pending/i.test(url);
  try{
   const assetOrigin=new URL(url,location.origin).origin;
   const stagingOrigin=new URL(cfg.supabaseUrl).origin;
-  return assetOrigin===location.origin||assetOrigin===stagingOrigin;
+  return (assetOrigin===location.origin||assetOrigin===stagingOrigin)&&!/master-pending/i.test(url);
  }catch{return false}
 }
 function visualFor(v){return visualApi.resolveProductVisual({variant:v||{},masters:masterVisuals,neutralFallback:NEUTRAL_VISUAL})}
 function imageFor(v){return visualFor(v).url}
+function overlayMode(visual){return visual.overlayAllowed?String(visual.format||'').toLowerCase():'none'}
+function productVisualStage(p,v,visual,context='card'){
+ const format=visual.format||v?.format||'';
+ const mode=overlayMode(visual);
+ const name=p?.name||'';
+ const strength=v?.strength_label||'';
+ const cat=categoryColor(p||{});
+ const maskLayers=mode==='vial'?'<span class="product-visual-color product-visual-cap"></span><span class="product-visual-color product-visual-stopper"></span><span class="product-visual-color product-visual-strength-field"></span>':'';
+ const textLayers=mode==='none'?'':`<span class="product-visual-text product-visual-name" data-fit-visual-text data-max-ratio="0.046" data-min-size="6">${esc(name)}</span><span class="product-visual-text product-visual-strength" data-fit-visual-text data-max-ratio="0.038" data-min-size="6">${esc(strength)}</span>`;
+ return `<div class="product-visual-stage product-visual-stage-${esc(context)}" data-format="${esc(format)}" data-overlay-mode="${esc(mode)}" data-visual-source="${esc(visual.source)}" style="--visual-category:${esc(cat)}">${visual.url?`<img class="product-visual-image" src="${esc(visual.url)}" alt="${esc(`${name} ${strength} ${format}`.trim())}" ${context==='card'?'loading="lazy"':''}>`:''}<div class="product-visual-overlay">${maskLayers}${textLayers}</div></div>`
+}
+function fitVisualText(root=document){
+ $$('[data-fit-visual-text]',root).forEach(el=>{
+  const stage=el.closest('.product-visual-stage');
+  if(!stage||!el.clientWidth||!el.clientHeight)return;
+  const ratio=Number(el.dataset.maxRatio||0.04);
+  const min=Number(el.dataset.minSize||6);
+  let size=Math.max(min,Math.min(24,stage.clientWidth*ratio));
+  el.style.fontSize=`${size}px`;
+  while(size>min&&(el.scrollWidth>el.clientWidth||el.scrollHeight>el.clientHeight)){
+   size=Math.max(min,size-.5);
+   el.style.fontSize=`${size}px`;
+  }
+ });
+}
+function scheduleVisualFit(root=document){requestAnimationFrame(()=>requestAnimationFrame(()=>fitVisualText(root)))}
+window.fitVisualText=fitVisualText;
 function saveCart(){localStorage.setItem('aibt_staging_cart',JSON.stringify(cart));renderCartCount();renderCart()}
 function renderCartCount(){const n=cart.reduce((s,x)=>s+x.qty,0);$$('[data-cart-count]').forEach(x=>x.textContent=n)}
 function loadSkeleton(){const g=$('#productGrid');g.innerHTML=Array.from({length:8},()=>'<div class="skeleton"></div>').join('')}
@@ -49,10 +76,10 @@ async function loadData(){
  if(!sb){$('#productGrid').innerHTML='<div class="empty">Staging database connection is unavailable.</div>';return}
  loadSkeleton();
  const [pr,cr,rr,mr]=await Promise.all([
-   sb.from('products').select('id,name,slug,featured,published,status,short_description,long_description,category_id,categories(id,name,slug,color,description),variants(id,strength,strength_unit,strength_label,format,sku,price,stock_quantity,reserved_quantity,image_url,active)').eq('published',true).eq('status','active'),
-   sb.from('categories').select('id,name,slug,color,description,status').eq('status','active').order('name'),
-   sb.from('research_entries').select('id,product_id,title,category,short_summary,full_content,references_json,published').eq('published',true),
-   sb.from('media_templates').select('format,master_image_url,version')
+  sb.from('products').select('id,name,slug,featured,published,status,short_description,long_description,category_id,categories(id,name,slug,color,description),variants(id,strength,strength_unit,strength_label,format,sku,price,stock_quantity,reserved_quantity,image_url,active)').eq('published',true).eq('status','active'),
+  sb.from('categories').select('id,name,slug,color,description,status').eq('status','active').order('name'),
+  sb.from('research_entries').select('id,product_id,title,category,short_summary,full_content,references_json,published').eq('published',true),
+  sb.from('media_templates').select('format,master_image_url,version')
  ]);
  if(pr.error){$('#productGrid').innerHTML='<div class="empty">Catalog could not be loaded: '+esc(pr.error.message)+'</div>';return}
  if(!mr.error){
@@ -67,10 +94,7 @@ async function loadData(){
 }
 function renderHeroAssets(){
  const map=[['heroVial','Vial'],['heroPen','Pen'],['heroCartridge','Cartridge']];
- for(const [id,format] of map){
-  const el=document.getElementById(id),visual=visualFor({format});
-  if(el&&visual.url){el.src=visual.url;el.dataset.visualSource=visual.source;el.dataset.visualFormat=format}
- }
+ for(const [id,format] of map){const el=document.getElementById(id),visual=visualFor({format});if(el&&visual.url){el.src=visual.url;el.dataset.visualSource=visual.source;el.dataset.visualFormat=format}}
 }
 function renderCategories(){
  const all=[{name:'All',color:'#0d2e63'},...categories];
@@ -82,12 +106,12 @@ window.setCategory=name=>{selectedCategory=name;featuredOnly=false;renderCategor
 function filtered(){
  const q=($('#searchInput')?.value||'').trim().toLowerCase();
  let a=products.filter(p=>{
-   const variants=(p.variants||[]).filter(v=>v.active!==false);
-   const cat=selectedCategory==='All'||p.categories?.name===selectedCategory;
-   const form=selectedFormat==='All'||variants.some(v=>v.format===selectedFormat);
-   const stock=stockFilter==='All'||(stockFilter==='In Stock'?variants.some(available):!variants.some(available));
-   const text=!q||[p.name,p.slug,p.categories?.name,...variants.map(v=>`${v.strength_label} ${v.format} ${v.sku}`)].join(' ').toLowerCase().includes(q);
-   return cat&&form&&stock&&text&&(!featuredOnly||p.featured);
+  const variants=(p.variants||[]).filter(v=>v.active!==false);
+  const cat=selectedCategory==='All'||p.categories?.name===selectedCategory;
+  const form=selectedFormat==='All'||variants.some(v=>v.format===selectedFormat);
+  const stock=stockFilter==='All'||(stockFilter==='In Stock'?variants.some(available):!variants.some(available));
+  const text=!q||[p.name,p.slug,p.categories?.name,...variants.map(v=>`${v.strength_label} ${v.format} ${v.sku}`)].join(' ').toLowerCase().includes(q);
+  return cat&&form&&stock&&text&&(!featuredOnly||p.featured);
  });
  if(sortMode==='Name')a.sort((x,y)=>x.name.localeCompare(y.name));
  else if(sortMode==='Price Low')a.sort((x,y)=>Math.min(...x.variants.filter(v=>v.active).map(v=>Number(v.price)))-Math.min(...y.variants.filter(v=>v.active).map(v=>Number(v.price))));
@@ -96,21 +120,14 @@ function filtered(){
 }
 function productCard(p){
  const s=productSelection(p),v=selectedVariant(p),act=(p.variants||[]).filter(x=>x.active!==false),strengths=[...new Set(act.map(x=>x.strength_label))].sort(byStrength),forms=[...new Set(act.filter(x=>x.strength_label===s.strength).map(x=>x.format))];
- const cat=categoryColor(p),ok=available(v),visual=visualFor(v),image=visual.url;
- const dynamicLabel=visual.overlayAllowed?`<div class="dynamic-label"><div class="name">${esc(p.name)}</div><div class="strength">${esc(v?.strength_label||'')}</div></div>`:'';
- return `<article class="product-card" id="card-${esc(p.id)}" data-format="${esc(v?.format||'Vial')}" data-visual-source="${esc(visual.source)}" style="--cat:${cat}">
- <div class="product-media"><span class="category-badge">${esc(p.categories?.name||'Research')}</span><span class="format-badge">${esc(v?.format||'—')}</span>${image?`<img src="${esc(image)}" alt="${esc(p.name+' '+(v?.strength_label||'')+' '+(v?.format||''))}" loading="lazy">`:''}${dynamicLabel}</div>
- <div class="product-body"><div><div class="product-name">${esc(p.name)}</div><div class="product-category">${esc(p.categories?.description||p.categories?.name||'Research product')}</div></div>
- <div class="variant-row"><div><div class="mini-label">Strength</div><select class="select" onchange="changeStrength('${esc(p.id)}',this.value)">${strengths.map(x=>`<option ${x===s.strength?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div><div class="mini-label">Format</div><select class="select" onchange="changeFormat('${esc(p.id)}',this.value)">${forms.map(x=>`<option ${x===s.format?'selected':''}>${esc(x)}</option>`).join('')}</select></div></div>
- <div class="price-row"><div class="price">${v?money(v.price):'—'}</div><div class="stock ${ok?'':'out'}">${ok?'● In Stock':'● Sold Out'}</div></div>
- <div class="card-actions"><button class="add-btn" ${ok?'':'disabled'} onclick="addToCart('${esc(p.id)}')">${ok?'Add to Cart':'Sold Out'}</button><button class="info-btn" title="Product information" aria-label="Product information" onclick="openProductInfo('${esc(p.id)}')">ⓘ</button></div>
- <button class="research-link" onclick="openResearch('${esc(p.id)}')">Research Insight →</button></div></article>`;
+ const cat=categoryColor(p),ok=available(v),visual=visualFor(v);
+ return `<article class="product-card" id="card-${esc(p.id)}" data-format="${esc(v?.format||'Vial')}" data-visual-source="${esc(visual.source)}" style="--cat:${cat}"><div class="product-media"><span class="category-badge">${esc(p.categories?.name||'Research')}</span><span class="format-badge">${esc(v?.format||'—')}</span>${productVisualStage(p,v,visual,'card')}</div><div class="product-body"><div><div class="product-name">${esc(p.name)}</div><div class="product-category">${esc(p.categories?.description||p.categories?.name||'Research product')}</div></div><div class="variant-row"><div><div class="mini-label">Strength</div><select class="select" aria-label="Strength" onchange="changeStrength('${esc(p.id)}',this.value)">${strengths.map(x=>`<option ${x===s.strength?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div><div class="mini-label">Format</div><select class="select" aria-label="Format" onchange="changeFormat('${esc(p.id)}',this.value)">${forms.map(x=>`<option ${x===s.format?'selected':''}>${esc(x)}</option>`).join('')}</select></div></div><div class="price-row"><div class="price">${v?money(v.price):'—'}</div><div class="stock ${ok?'':'out'}">${ok?'● In Stock':'● Sold Out'}</div></div><div class="card-actions"><button class="add-btn" ${ok?'':'disabled'} onclick="addToCart('${esc(p.id)}')">${ok?'Add to Cart':'Sold Out'}</button><button class="info-btn" title="Product information" aria-label="Product information" onclick="openProductInfo('${esc(p.id)}')">ⓘ</button></div><button class="research-link" onclick="openResearch('${esc(p.id)}')">Research Insight →</button></div></article>`;
 }
 function renderProducts(){
  const a=filtered();$('#catalogTitle').textContent=featuredOnly?'Featured Products':selectedCategory==='All'?'All Products':selectedCategory;
  $('#resultCount').textContent=`${a.length} product${a.length===1?'':'s'}`;
  $('#productGrid').innerHTML=a.length?a.map(productCard).join(''):'<div class="empty">No products match these filters.</div>';
- $('#viewAllBtn').hidden=!featuredOnly;
+ $('#viewAllBtn').hidden=!featuredOnly;scheduleVisualFit($('#productGrid'));
 }
 window.changeStrength=(id,strength)=>{const p=products.find(x=>x.id===id);if(!p)return;const s=productSelection(p);s.strength=strength;const compatible=p.variants.filter(v=>v.active!==false&&v.strength_label===strength);if(!compatible.some(v=>v.format===s.format))s.format=(compatible.find(v=>v.format==='Vial')||compatible[0])?.format||s.format;renderProducts()};
 window.changeFormat=(id,format)=>{const p=products.find(x=>x.id===id);if(!p)return;productSelection(p).format=format;renderProducts()};
@@ -118,11 +135,12 @@ window.showAllProducts=()=>{featuredOnly=false;renderProducts();scrollToId('cata
 window.applyFilters=()=>{selectedCategory=$('#categoryFilter').value;selectedFormat=$('#formatFilter').value;stockFilter=$('#stockFilter').value;sortMode=$('#sortFilter').value;featuredOnly=false;renderCategories();renderProducts()};
 window.searchCatalog=()=>{featuredOnly=false;renderProducts()};
 window.addToCart=id=>{const p=products.find(x=>x.id===id),v=p&&selectedVariant(p);if(!p||!available(v))return toast('This variant is currently unavailable.');const hit=cart.find(x=>x.variantId===v.id);const max=Math.max(0,Number(v.stock_quantity||0)-Number(v.reserved_quantity||0));if(hit){if(hit.qty>=max)return toast('Maximum available stock already in cart.');hit.qty++}else cart.push({variantId:v.id,productId:p.id,name:p.name,strength:v.strength_label,format:v.format,price:Number(v.price),image:imageFor(v),qty:1,max});saveCart();toast(`${p.name} ${v.strength_label} ${v.format} added to cart`)};
-function renderCart(){const host=$('#cartItems');if(!host)return;host.innerHTML=cart.length?cart.map((x,i)=>`<div class="cart-item">${x.image?`<img src="${esc(x.image)}" alt="${esc(x.name)}">`:''}<div><b>${esc(x.name)}</b><small>${esc(x.strength)} · ${esc(x.format)} · ${money(x.price)}</small><div class="qty"><button onclick="cartQty(${i},-1)">−</button><b>${x.qty}</b><button onclick="cartQty(${i},1)">+</button></div></div><button class="close-btn" aria-label="Remove item" onclick="removeCart(${i})">×</button></div>`).join(''):'<div class="empty">Your staging cart is empty.</div>';$('#cartTotal').textContent=money(cart.reduce((s,x)=>s+x.price*x.qty,0))}
+function renderCart(){const host=$('#cartItems');if(!host)return;host.innerHTML=cart.length?cart.map((x,i)=>{const image=visualFor({format:x.format}).url||x.image;return `<div class="cart-item">${image?`<img src="${esc(image)}" alt="${esc(x.name)}">`:''}<div><b>${esc(x.name)}</b><small>${esc(x.strength)} · ${esc(x.format)} · ${money(x.price)}</small><div class="qty"><button onclick="cartQty(${i},-1)">−</button><b>${x.qty}</b><button onclick="cartQty(${i},1)">+</button></div></div><button class="close-btn" aria-label="Remove item" onclick="removeCart(${i})">×</button></div>`}).join(''):'<div class="empty">Your staging cart is empty.</div>';$('#cartTotal').textContent=money(cart.reduce((s,x)=>s+x.price*x.qty,0))}
 window.cartQty=(i,d)=>{const x=cart[i];if(!x)return;x.qty=Math.max(1,Math.min(x.max||99,x.qty+d));saveCart()};window.removeCart=i=>{cart.splice(i,1);saveCart()};
 window.openCart=()=>{$('#cartOverlay').classList.add('show');renderCart();document.body.style.overflow='hidden'};window.closeCart=()=>{$('#cartOverlay').classList.remove('show');document.body.style.overflow=''};
-function modal(title,body){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;$('#modalWrap').classList.add('show');document.body.style.overflow='hidden'}window.closeModal=()=>{$('#modalWrap').classList.remove('show');document.body.style.overflow=''};
-window.openProductInfo=id=>{const p=products.find(x=>x.id===id),v=p&&selectedVariant(p);if(!p||!v)return;const visual=visualFor(v),src=visual.url;modal(p.name,`<div class="info-layout" data-visual-source="${esc(visual.source)}">${src?`<img src="${esc(src)}" alt="${esc(p.name)}">`:''}<div><span class="category-badge" style="position:static;display:inline-block;background:${categoryColor(p)}">${esc(p.categories?.name||'Research')}</span><h3>${esc(v.strength_label)} · ${esc(v.format)}</h3><p>${esc(p.short_description||'Product information is being prepared in the staging content workflow.')}</p><p>${esc(p.long_description||'This staging preview preserves the live catalog while the AI-assisted product content module is being added. All generated content will remain manually editable and approval-controlled.')}</p><div class="info-meta"><div class="meta-box"><small>SKU</small><b>${esc(v.sku)}</b></div><div class="meta-box"><small>Price</small><b>${money(v.price)}</b></div><div class="meta-box"><small>Stock</small><b>${Math.max(0,Number(v.stock_quantity||0)-Number(v.reserved_quantity||0))}</b></div><div class="meta-box"><small>Environment</small><b>Staging</b></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn blue" onclick="addToCart('${esc(p.id)}');closeModal()">Add to Cart</button><button class="btn" onclick="openResearch('${esc(p.id)}')">Research Insight</button></div></div></div>`)};
+function modal(title,body){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;$('#modalWrap').classList.add('show');document.body.style.overflow='hidden';scheduleVisualFit($('#modalBody'))}
+window.closeModal=()=>{$('#modalWrap').classList.remove('show');document.body.style.overflow=''};
+window.openProductInfo=id=>{const p=products.find(x=>x.id===id),v=p&&selectedVariant(p);if(!p||!v)return;const visual=visualFor(v);modal(p.name,`<div class="info-layout" data-visual-source="${esc(visual.source)}">${productVisualStage(p,v,visual,'modal')}<div><span class="category-badge" style="position:static;display:inline-block;background:${categoryColor(p)}">${esc(p.categories?.name||'Research')}</span><h3>${esc(v.strength_label)} · ${esc(v.format)}</h3><p>${esc(p.short_description||'Product information is being prepared in the staging content workflow.')}</p><p>${esc(p.long_description||'This staging preview preserves the live catalog while the AI-assisted product content module is being added. All generated content will remain manually editable and approval-controlled.')}</p><div class="info-meta"><div class="meta-box"><small>SKU</small><b>${esc(v.sku)}</b></div><div class="meta-box"><small>Price</small><b>${money(v.price)}</b></div><div class="meta-box"><small>Stock</small><b>${Math.max(0,Number(v.stock_quantity||0)-Number(v.reserved_quantity||0))}</b></div><div class="meta-box"><small>Environment</small><b>Staging</b></div></div><div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn blue" onclick="addToCart('${esc(p.id)}');closeModal()">Add to Cart</button><button class="btn" onclick="openResearch('${esc(p.id)}')">Research Insight</button></div></div></div>`)};
 window.openResearch=id=>{const p=products.find(x=>x.id===id),r=research.find(x=>x.product_id===id);if(!p)return;modal(`Research Insight — ${p.name}`,`<span class="category-badge" style="position:static;display:inline-block;background:${categoryColor(p)}">${esc(r?.category||p.categories?.name||'Research')}</span><h3>${esc(r?.title||p.name)}</h3><p>${esc(r?.short_summary||'Research summary is being prepared.')}</p><p>${esc(r?.full_content||'No additional published research content is available in the current source dataset.')}</p><div class="meta-box"><small>Source visibility</small><b>Public staging Research Insight · provenance remains managed separately</b></div><p style="font-size:12px;color:#6b7a90;margin-top:14px">Research information only. Public citations will be shown only when approved in the Source Visibility workflow.</p>`)};
 function renderResearch(){const host=$('#researchGrid');if(!host)return;host.innerHTML=research.slice(0,9).map(r=>{const p=products.find(x=>x.id===r.product_id);return `<article class="research-card" style="--cat:${p?categoryColor(p):'#1477ff'}"><h3>${esc(r.title)}</h3><p>${esc(r.short_summary)}</p><button class="btn" onclick="openResearch('${esc(r.product_id)}')">Open Research Insight</button></article>`}).join('')}
 window.openStageAccount=()=>location.href='/member.html';
@@ -132,7 +150,7 @@ window.toggleMobileMenu=()=>$('#mobileMenu').classList.toggle('show');function c
 function bind(){
  $('#searchInput')?.addEventListener('input',searchCatalog);$('#categoryFilter')?.addEventListener('change',applyFilters);$('#formatFilter')?.addEventListener('change',applyFilters);$('#stockFilter')?.addEventListener('change',applyFilters);$('#sortFilter')?.addEventListener('change',applyFilters);
  $('#cartOverlay')?.addEventListener('click',e=>{if(e.target.id==='cartOverlay')closeCart()});$('#modalWrap')?.addEventListener('click',e=>{if(e.target.id==='modalWrap')closeModal()});$('#mobileMenu')?.addEventListener('click',e=>{if(e.target.id==='mobileMenu')closeMobileMenu()});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeModal();closeMobileMenu()}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCart();closeModal();closeMobileMenu()}});window.addEventListener('resize',()=>scheduleVisualFit(document));
 }
 document.addEventListener('DOMContentLoaded',()=>{bind();renderCartCount();loadData()});
 })();
