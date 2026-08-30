@@ -3,6 +3,8 @@
 
 const KNOWN_FORMATS=Object.freeze(['Vial','Pen','Cartridge']);
 const IMAGE_DATA_PATTERN=/^data:image\/(?:png|jpeg|jpg|webp|gif|svg\+xml);/i;
+const HTTPS_PATTERN=/^https:\/\/[^\s]+$/i;
+const LOCAL_HTTP_PATTERN=/^http:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(?:\/|$)/i;
 
 function normalizeFormat(value){
   const raw=String(value||'').trim().toLowerCase();
@@ -17,13 +19,7 @@ function isSafeAssetUrl(value){
   if(!url||/[\u0000-\u001f\u007f]/.test(url))return false;
   if(IMAGE_DATA_PATTERN.test(url))return true;
   if(url.startsWith('/')&&!url.startsWith('//'))return true;
-  try{
-    const parsed=new URL(url);
-    return parsed.protocol==='https:'||(
-      parsed.protocol==='http:'&&
-      ['localhost','127.0.0.1','::1'].includes(parsed.hostname)
-    );
-  }catch{return false}
+  return HTTPS_PATTERN.test(url)||LOCAL_HTTP_PATTERN.test(url);
 }
 
 function versionAssetUrl(value,version){
