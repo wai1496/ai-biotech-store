@@ -4,7 +4,7 @@ const failures=[];
 const read=file=>fs.readFileSync(file,'utf8');
 
 const storefront=read('supabase-storefront.js');
-if(!/location\.pathname/.test(storefront)||!/\/product\//.test(storefront))failures.push('supabase-storefront.js must resolve clean /product/<slug> permalinks from location.pathname');
+if(!/location\.pathname/.test(storefront)||!storefront.includes('pathMatch')||!storefront.includes('pathRequested'))failures.push('supabase-storefront.js must resolve clean /product/<slug> permalinks from location.pathname');
 
 const finalHardening=read('site-final-hardening.js');
 if(/visual\s*=\s*renderCleanVisual/.test(finalHardening))failures.push('site-final-hardening.js must not override the canvas master renderer with flat HTML label overlays');
