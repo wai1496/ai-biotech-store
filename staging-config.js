@@ -5,7 +5,17 @@ window.AIBT_CONFIG = Object.freeze({
   supabaseUrl: 'https://rpnwssqvurpdennpzplx.supabase.co',
   supabaseKey: 'sb_publishable_x4udjzTcG-t9NW6qusKvZA_Efk2QoXh',
   checkoutEnabled: true,
-  memberEnabled: true
+  memberEnabled: true,
+  operationsPath: '/ops.html',
+  masterAssets: Object.freeze({
+    Vial: '/assets/vial-master-pending.svg?masterv=wp02',
+    Pen: '/assets/pen-master-pending.svg?masterv=wp02',
+    Cartridge: '/assets/cartridge-master-v5.svg?masterv=5'
+  }),
+  mediaPolicy: Object.freeze({
+    allowLegacyVariantImages: false,
+    missingVisualBehavior: 'neutral-placeholder'
+  })
 });
 
 window.getAIBTSupabase = window.getAIBTSupabase || function(){
