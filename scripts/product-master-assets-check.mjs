@@ -37,7 +37,7 @@ for (const file of ['assets/vial-master-v4.svg', 'assets/pen-master-v4.svg', 'as
 
 for (const file of ['assets/vial-cap-mask.svg', 'assets/vial-stopper-mask.svg', 'assets/vial-strength-mask.svg']) {
   const svg = read(file);
-  assert.match(svg, /viewBox=['"]0 0 384 384['"]/i, `${file} must align to the 384×384 Vial master coordinate system`);
+  assert.match(svg, /viewBox=['"]0 0 512 512['"]/i, `${file} must align to the 512×512 Vial master coordinate system`);
   assert.match(svg, /data:image\/png;base64,/i, `${file} must contain an exact alpha mask derived from the approved Vial master`);
 }
 
