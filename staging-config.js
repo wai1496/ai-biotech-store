@@ -8,8 +8,8 @@ window.AIBT_CONFIG = Object.freeze({
   memberEnabled: true,
   operationsPath: '/ops.html',
   masterAssets: Object.freeze({
-    Vial: '/assets/vial-master-pending.svg?masterv=wp02',
-    Pen: '/assets/pen-master-pending.svg?masterv=wp02',
+    Vial: '/assets/vial-master-v4.svg?masterv=4',
+    Pen: '/assets/pen-master-v4.svg?masterv=4',
     Cartridge: '/assets/cartridge-master-v5.svg?masterv=5'
   }),
   mediaPolicy: Object.freeze({
