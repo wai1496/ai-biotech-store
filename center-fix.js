@@ -2,10 +2,22 @@
    Shared Vial/Pen master assets are composited to canvas so the product name and
    strength read as part of the printed artwork instead of floating HTML text. */
 (function(){
+  const PEN_FIELDS={
+    name:{x:720,y:674,w:362,h:122,pad:18,max:44,min:16,weight:900},
+    strength:{x:1128,y:680,w:126,h:118,pad:12,max:28,min:14,weight:900}
+  };
   function fitOptical(ctx,text,cx,cy,maxW,start,weight,fill,minSize=18){
     text=String(text||'');ctx.textBaseline='middle';ctx.fillStyle=fill;let size=start,m;
     for(;size>minSize;size-=2){ctx.font=`${weight} ${size}px Arial`;m=ctx.measureText(text);const ink=(m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0);if(ink<=maxW)break}
     m=ctx.measureText(text);const left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left;ctx.textAlign='left';ctx.fillText(text,cx-(ink/2)-left,cy);
+  }
+  function printField(ctx,text,field,fill){
+    text=String(text||'').trim();if(!text)return;
+    const maxW=Math.max(1,field.w-field.pad*2),maxH=Math.max(1,field.h-field.pad*2);
+    let size=Math.min(field.max,maxH),m;
+    ctx.save();ctx.beginPath();ctx.rect(field.x,field.y,field.w,field.h);ctx.clip();ctx.textBaseline='middle';ctx.fillStyle=fill;
+    for(;size>field.min;size--){ctx.font=`${field.weight} ${size}px Arial`;m=ctx.measureText(text);const ink=(m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0);const asc=m.actualBoundingBoxAscent||size*.75,desc=m.actualBoundingBoxDescent||size*.25;if(ink<=maxW&&asc+desc<=maxH)break}
+    m=ctx.measureText(text);const left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left;const cx=field.x+field.w/2,cy=field.y+field.h/2;ctx.textAlign='left';ctx.fillText(text,cx-(ink/2)-left,cy);ctx.restore();
   }
   function isSharedMasterImage(url,form){const s=String(url||'').toLowerCase();if(!s||!s.includes('/catalog-media/masters/'))return false;if(form==='Vial')return s.includes('vial-master');if(form==='Pen')return s.includes('pen-master');return false}
   function masterImageSource(p,v,form){const rr=real(p,v);if(isSharedMasterImage(rr,form))return rr;return masters?.[form]||rr||''}
@@ -18,7 +30,7 @@
       const c=document.createElement('canvas'),x=c.getContext('2d');c.width=1536;c.height=1536;x.clearRect(0,0,1536,1536);const sc=Math.min(1536/im.width,1536/im.height),w=im.width*sc,h=im.height*sc,ox=(1536-w)/2,oy=(1536-h)/2;x.drawImage(im,ox,oy,w,h);try{recolorOrange(x,color(p))}catch(_){ }
       const nm=String(p.name||'').replace(/\s+\d+(?:\.\d+)?\s*(MG|ML)$/i,'').trim();
       if(form==='Vial'){try{tintNeutral(x,459,49,616,150,color(p),.94)}catch(_){ }fitOptical(x,nm,768,820,430,66,900,color(p),20);fitOptical(x,main(v?.strength||v?.strength_label||''),768,977,230,58,900,'#111',20)}
-      else{fitOptical(x,nm,901,735,330,48,900,color(p),18);fitOptical(x,main(v?.strength||v?.strength_label||''),1191,741,84,32,900,'#111',16)}
+      else{printField(x,nm,PEN_FIELDS.name,color(p));printField(x,main(v?.strength||v?.strength_label||''),PEN_FIELDS.strength,'#111')}
       el.innerHTML='';el.appendChild(c)
     };im.onerror=()=>{el.innerHTML=`<img src="${src}" alt="${p.name}">`};im.src=src;
   };
