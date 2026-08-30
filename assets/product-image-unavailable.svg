@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Product visual unavailable</title>
+  <desc id="desc">Neutral AI BioTech staging placeholder.</desc>
+  <rect width="512" height="512" rx="28" fill="#f7f9fc"/>
+  <g fill="none" stroke="#b7c4d3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="116" y="128" width="280" height="236" rx="28"/>
+    <circle cx="196" cy="212" r="30"/>
+    <path d="M144 330l84-82 58 55 38-36 44 63"/>
+  </g>
+  <text x="256" y="414" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#17365f">Visual unavailable</text>
+  <text x="256" y="443" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#66768a">Staging safety placeholder</text>
+</svg>
