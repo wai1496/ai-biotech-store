@@ -21,7 +21,18 @@ if(/catch\(e\)\{res\.status\(500\)/.test(insightApi))failures.push('AI insight q
 const centerFix=read('center-fix.js');
 if(!centerFix.includes('/assets/cartridge-master-approved.webp'))failures.push('center-fix.js must use the user-approved Cartridge master asset');
 if(!/form\s*===\s*['"]Cartridge['"]/.test(centerFix))failures.push('center-fix.js must have Cartridge-specific rendering logic');
-if(!fs.existsSync('assets/cartridge-master-approved.webp'))failures.push('approved Cartridge master asset is missing');
+const cartridgePath='assets/cartridge-master-approved.webp';
+if(!fs.existsSync(cartridgePath)){
+  failures.push('approved Cartridge master asset is missing');
+}else{
+  const cartridge=fs.readFileSync(cartridgePath);
+  const riff=cartridge.subarray(0,4).toString('ascii');
+  const webp=cartridge.subarray(8,12).toString('ascii');
+  const declared=cartridge.length>=8?cartridge.readUInt32LE(4)+8:0;
+  if(riff!=='RIFF'||webp!=='WEBP')failures.push('approved Cartridge master must be a valid WebP RIFF file');
+  if(declared!==cartridge.length)failures.push(`approved Cartridge master is truncated: WebP declares ${declared} bytes but file has ${cartridge.length}`);
+  if(cartridge.length<4000)failures.push('approved Cartridge master is unexpectedly small');
+}
 
 if(failures.length){
   console.error('Storefront live-issues check FAILED:\n- '+failures.join('\n- '));
