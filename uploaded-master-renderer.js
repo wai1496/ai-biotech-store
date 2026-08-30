@@ -1,0 +1,13 @@
+(()=>{'use strict';
+const SB_URL='https://yjauxyvtrmdriwtmckkl.supabase.co';
+const SB_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
+let masters={};
+function color(el){return getComputedStyle(el).getPropertyValue('--cat').trim()||'#1477ff'}
+function txt(el,sel){return (el.querySelector(sel)?.textContent||'').trim()}
+async function loadMasters(){try{const client=window.supabase?.createClient(SB_URL,SB_KEY);if(!client)return;const {data,error}=await client.from('media_templates').select('format,master_image_url,version');if(error)throw error;(data||[]).forEach(x=>{if(x.master_image_url)masters[x.format]=x.master_image_url});apply()}catch(e){console.warn('Uploaded masters unavailable',e)}}
+function decorate(box,format,name,strength,cat){let layer=box.querySelector('.master-dynamic-layer');if(!layer){layer=document.createElement('div');layer.className='master-dynamic-layer';box.appendChild(layer)}layer.style.setProperty('--master-cat',cat);layer.dataset.format=format;layer.innerHTML=`<span class="master-name"></span><span class="master-strength"></span>`;layer.querySelector('.master-name').textContent=name;layer.querySelector('.master-strength').textContent=strength}
+function applyCard(card){const format=card.dataset.format;if(!masters[format])return;const box=card.querySelector('.product-media'),img=box?.querySelector('img');if(!box||!img)return;const name=txt(card,'.product-name')||txt(card,'.dynamic-label .name'),strength=txt(card,'.dynamic-label .strength')||card.querySelector('select')?.value||'';img.src=masters[format];decorate(box,format,name,strength,color(card))}
+function applyInfo(box){const format=box.dataset.format;if(!masters[format])return;const img=box.querySelector('img');if(!img)return;const name=txt(box,'.info-dynamic-label .name')||document.getElementById('modalTitle')?.textContent||'',strength=txt(box,'.info-dynamic-label .strength')||'';img.src=masters[format];decorate(box,format,name,strength,color(box.closest('[style*="--cat"]')||box))}
+function apply(){document.querySelectorAll('.product-card[data-format]').forEach(applyCard);document.querySelectorAll('.info-visual[data-format]').forEach(applyInfo)}
+window.AIBT_UPLOADED_MASTERS={apply,get:()=>({...masters})};let pending=false;new MutationObserver(()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;apply()})}).observe(document.documentElement,{subtree:true,childList:true});document.addEventListener('change',e=>{if(e.target.closest('.product-card'))setTimeout(apply,0)});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadMasters);else loadMasters();
+})();
