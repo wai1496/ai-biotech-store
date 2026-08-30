@@ -56,7 +56,8 @@ function renderCleanVisual(product,variant,host){
   host.appendChild(frame);
 }
 
-try{visual=renderCleanVisual;window.visual=renderCleanVisual}catch(_){ }
+// Keep the canvas renderer installed by center-fix.js authoritative. It composites
+// product name/strength into the visual instead of floating flat HTML text over it.
 
 function finalizeNavigation(){
   document.querySelectorAll('.shell-menu').forEach(el=>el.remove());
@@ -68,6 +69,11 @@ function finalizeNavigation(){
   }
   const member=document.getElementById('memberNavBtn');if(member)member.onclick=()=>location.href='/member.html';
   const checkout=document.getElementById('checkoutCartBtn');if(checkout)checkout.onclick=()=>location.href='/checkout.html';
+}
+
+function openRequestedView(){
+  const view=new URLSearchParams(location.search).get('view');
+  if(view==='guides'&&typeof window.openGuides==='function')setTimeout(()=>window.openGuides('home'),0);
 }
 
 const style=document.createElement('style');
@@ -86,7 +92,7 @@ body.catalog-loading #grid,body.catalog-loading #cats{visibility:hidden}body.cat
 `;
 document.head.appendChild(style);
 
-window.addEventListener('aibt:catalog-loaded',()=>{document.body.classList.remove('catalog-loading');try{renderProducts();renderCart()}catch(_){ }finalizeNavigation()});
-window.addEventListener('aibt:catalog-error',event=>{document.body.classList.remove('catalog-loading');const grid=document.getElementById('grid');if(grid&&!grid.children.length)grid.innerHTML='<p>Catalog is temporarily unavailable. Please refresh in a moment.</p>';console.error('AI BioTech catalog error',event.detail||event)});
-document.addEventListener('DOMContentLoaded',()=>{finalizeNavigation();setTimeout(finalizeNavigation,0);setTimeout(()=>document.body.classList.remove('catalog-loading'),12000)},{once:true});
+window.addEventListener('aibt:catalog-loaded',()=>{document.body.classList.remove('catalog-loading');try{renderProducts();renderCart()}catch(_){ }finalizeNavigation();openRequestedView()});
+window.addEventListener('aibt:catalog-error',event=>{document.body.classList.remove('catalog-loading');const grid=document.getElementById('grid');if(grid)grid.innerHTML='<p>Catalog is temporarily unavailable. Please refresh in a moment.</p>';console.error('AI BioTech catalog error',event.detail||event)});
+document.addEventListener('DOMContentLoaded',()=>{finalizeNavigation();openRequestedView();setTimeout(finalizeNavigation,0);setTimeout(()=>document.body.classList.remove('catalog-loading'),12000)},{once:true});
 })();
