@@ -1,11 +1,21 @@
 window.AIBT_CONFIG = Object.freeze({
   environment: 'staging',
   label: 'STAGING PREVIEW — NO PRODUCTION WRITES',
+  supabaseProjectRef: 'rpnwssqvurpdennpzplx',
   supabaseUrl: 'https://rpnwssqvurpdennpzplx.supabase.co',
   supabaseKey: 'sb_publishable_x4udjzTcG-t9NW6qusKvZA_Efk2QoXh',
   checkoutEnabled: true,
   memberEnabled: true
 });
+
+window.getAIBTSupabase = window.getAIBTSupabase || function(){
+  const cfg=window.AIBT_CONFIG;
+  if(!cfg||cfg.environment!=='staging') throw new Error('AI BioTech staging configuration is unavailable.');
+  if(!String(cfg.supabaseUrl||'').includes(cfg.supabaseProjectRef)) throw new Error('AI BioTech staging Supabase project mismatch.');
+  if(!window.supabase?.createClient) throw new Error('Supabase client library is unavailable.');
+  if(!window.AIBT_SUPABASE) window.AIBT_SUPABASE=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+  return window.AIBT_SUPABASE;
+};
 
 window.toast = window.toast || function(message){
   let el = document.getElementById('toast');
