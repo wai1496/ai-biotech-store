@@ -26,6 +26,8 @@ jobs:
         run: node scripts/product-visual-resolver-check.mjs
       - name: Validate approved staging product master assets
         run: node scripts/master-asset-contract-check.mjs
+      - name: Validate final product master overlays
+        run: node scripts/product-master-assets-check.mjs
       - name: Validate single storefront visual writer
         run: node scripts/visual-writer-contract-check.mjs
       - name: Validate routes and linked assets
