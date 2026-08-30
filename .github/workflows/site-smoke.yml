@@ -22,6 +22,8 @@ jobs:
           node-version: '22'
       - name: Validate staging environment contract
         run: node scripts/environment-contract-check.mjs
+      - name: Validate single storefront visual writer
+        run: node scripts/visual-writer-contract-check.mjs
       - name: Validate routes and linked assets
         run: node scripts/smoke-check.mjs
       - name: Validate staging controls and AI isolation
