@@ -30,8 +30,12 @@ function versionAssetUrl(value,version){
   const hashIndex=url.indexOf('#');
   const hash=hashIndex>=0?url.slice(hashIndex):'';
   const base=hashIndex>=0?url.slice(0,hashIndex):url;
-  const separator=base.includes('?')?'&':'?';
-  return `${base}${separator}masterv=${encodeURIComponent(v)}${hash}`;
+  const queryIndex=base.indexOf('?');
+  const pathname=queryIndex>=0?base.slice(0,queryIndex):base;
+  const query=queryIndex>=0?base.slice(queryIndex+1):'';
+  const params=query.split('&').filter(Boolean).filter(param=>!/^masterv=/i.test(param));
+  params.push(`masterv=${encodeURIComponent(v)}`);
+  return `${pathname}?${params.join('&')}${hash}`;
 }
 
 function buildMasterMap(rows=[],options={}){
