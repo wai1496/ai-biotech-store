@@ -2,7 +2,7 @@ name: AI BioTech site smoke check
 
 on:
   push:
-    branches: [main, staging/master-build]
+    branches: [main, staging/master-build, review/master-build-20260829]
   pull_request:
   workflow_dispatch:
 
@@ -12,7 +12,7 @@ permissions:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -20,6 +20,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Validate staging environment contract
+        run: node scripts/environment-contract-check.mjs
       - name: Validate routes and linked assets
         run: node scripts/smoke-check.mjs
       - name: Validate staging controls and AI isolation
