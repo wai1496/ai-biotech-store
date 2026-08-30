@@ -19,7 +19,8 @@ const insightApi=read('api/ai-product-insight.js');
 if(/catch\(e\)\{res\.status\(500\)/.test(insightApi))failures.push('AI insight quota/upstream failures must not be collapsed into a generic HTTP 500');
 
 const centerFix=read('center-fix.js');
-if(!centerFix.includes('/assets/cartridge-master-approved.webp'))failures.push('center-fix.js must use the user-approved Cartridge master asset');
+if(!centerFix.includes('/assets/cartridge-master-approved.webp'))failures.push('center-fix.js must keep the bundled Cartridge fallback asset');
+if(!centerFix.includes('catalog-media/masters/cartridge-master-admin.webp'))failures.push('center-fix.js must prefer the admin-managed Cartridge master from Supabase Storage');
 if(!/form\s*===\s*['"]Cartridge['"]/.test(centerFix))failures.push('center-fix.js must have Cartridge-specific rendering logic');
 const cartridgePath='assets/cartridge-master-approved.webp';
 if(!fs.existsSync(cartridgePath)){
@@ -32,6 +33,19 @@ if(!fs.existsSync(cartridgePath)){
   if(riff!=='RIFF'||webp!=='WEBP')failures.push('approved Cartridge master must be a valid WebP RIFF file');
   if(declared!==cartridge.length)failures.push(`approved Cartridge master is truncated: WebP declares ${declared} bytes but file has ${cartridge.length}`);
   if(cartridge.length<4000)failures.push('approved Cartridge master is unexpectedly small');
+}
+
+const adminHtml=read('admin.html');
+if(!adminHtml.includes('/admin-cartridge-master.js'))failures.push('admin.html must load the Cartridge master management UI');
+if(!fs.existsSync('admin-cartridge-master.js')){
+  failures.push('admin Cartridge master management script is missing');
+}else{
+  const adminCartridge=read('admin-cartridge-master.js');
+  for(const marker of ['Cartridge Master Image','Choose Image','Replace Cartridge Image','Save Changes','Restore Previous Cartridge Image']){
+    if(!adminCartridge.includes(marker))failures.push(`admin Cartridge UI missing: ${marker}`);
+  }
+  if(!adminCartridge.includes('masters/cartridge-master-admin.webp'))failures.push('admin Cartridge Save must persist to the live master storage path');
+  if(!adminCartridge.includes('masters/archive/cartridge-master-previous.webp'))failures.push('admin Cartridge Save must preserve a previous master for restore');
 }
 
 if(failures.length){
