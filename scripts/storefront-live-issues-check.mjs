@@ -24,6 +24,8 @@ if(!centerFix.includes('catalog-media/masters/cartridge-master-admin.webp'))fail
 if(!/form\s*===\s*['"]Cartridge['"]/.test(centerFix))failures.push('center-fix.js must have Cartridge-specific rendering logic');
 if(!centerFix.includes('isSharedMasterImage'))failures.push('center-fix.js must detect shared Vial/Pen master image URLs');
 if(!centerFix.includes('masterImageSource'))failures.push('center-fix.js must composite shared Vial/Pen master images through canvas instead of returning the blank image directly');
+if(!centerFix.includes('PEN_FIELDS'))failures.push('center-fix.js must define fixed Pen name/strength print fields');
+if(!centerFix.includes('printField'))failures.push('center-fix.js must shrink and center Pen text inside its fixed print fields');
 const cartridgePath='assets/cartridge-master-approved.webp';
 if(!fs.existsSync(cartridgePath)){
   failures.push('approved Cartridge master asset is missing');
