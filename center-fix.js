@@ -23,7 +23,8 @@
   window.visual=function(p,v,el){
     const form=v?.form||'Vial';
     if(form==='Cartridge'){
-      el.innerHTML=`<img src="/assets/cartridge-master-approved.webp" alt="AI BioTech peptide cartridge">`;
+      const live='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/cartridge-master-admin.webp?v='+Date.now();
+      el.innerHTML=`<img src="${live}" alt="AI BioTech peptide cartridge" onerror="this.onerror=null;this.src='/assets/cartridge-master-approved.webp'">`;
       return;
     }
     const rr=real(p,v);
