@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI BioTech Build Progress</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#0b2d5c;background:#f4f8fc}*{box-sizing:border-box}body{margin:0}.top{background:#082b5d;color:white;padding:18px 20px}.wrap{max-width:900px;margin:auto;padding:22px}.card{background:white;border:1px solid #dbe5ef;border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px #1232 0}.bar{height:16px;background:#e8eef5;border-radius:99px;overflow:hidden}.fill{height:100%;width:46%;background:linear-gradient(90deg,#1685ff,#725cff)}.row{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #edf1f5}.row:last-child{border:0}.ok{color:#14844a}.work{color:#b36b00}.wait{color:#66778a}.fail{color:#c0392b}.pill{display:inline-block;padding:6px 10px;border-radius:99px;background:#eaf3ff;font-weight:700;font-size:12px}.note{color:#65778a;line-height:1.5}.big{font-size:34px;font-weight:800;margin:8px 0}a{color:#0877e8}@media(max-width:600px){.wrap{padding:14px}.row{align-items:flex-start}.big{font-size:28px}}
+</style></head>
+<body><div class="top"><strong>AI BioTech</strong> · MASTER BUILD PROGRESS <span class="pill">STAGING ONLY</span></div>
+<main class="wrap">
+<div class="card"><div class="note">Express Production Mode · Production writes remain locked</div><div class="big">46% Overall</div><div class="bar"><div class="fill"></div></div><p class="note">Current priority: repair the product visual source-of-truth before deeper commerce work.</p></div>
+<div class="card"><h2>Current Work Packages</h2>
+<div class="row"><b>Architecture / rollback / staging isolation</b><span class="ok">PASS</span></div>
+<div class="row"><b>WP-03 Product visuals</b><span class="fail">REOPENED</span></div>
+<div class="row"><b>Catalog & price audit</b><span class="work">IN PROGRESS</span></div>
+<div class="row"><b>Storefront & mobile UX</b><span class="work">IN PROGRESS</span></div>
+<div class="row"><b>Admin / inventory / customers / orders</b><span class="wait">QUEUED</span></div>
+<div class="row"><b>Member / wallet / invoice / protocols</b><span class="wait">QUEUED</span></div>
+<div class="row"><b>EasyParcel / SPX shipping</b><span class="wait">QUEUED</span></div>
+<div class="row"><b>Security / accessibility / performance</b><span class="wait">QUEUED</span></div>
+<div class="row"><b>Final regression + production gate</b><span class="wait">QUEUED</span></div>
+</div>
+<div class="card"><h2>WP-03 Visual Corrections</h2><div class="row"><span>Vial: preserve approved white cap; no recolouring</span><span class="work">FIXING</span></div><div class="row"><span>Vial/Pen: bold UV-printed label appearance</span><span class="work">FIXING</span></div><div class="row"><span>Cartridge: realistic approved master only; no cartoon/fallback</span><span class="fail">BLOCKER</span></div><div class="row"><span>Category colour mapping locked to approved codes</span><span class="work">RETEST</span></div></div>
+<div class="card"><h2>Release Rule</h2><p class="note">A green deployment is not enough. Production stays locked until functional QA, visual QA, mobile/desktop regression, security checks and rollback verification all pass.</p><p><a href="/">Open staging storefront</a></p></div>
+</main></body></html>
