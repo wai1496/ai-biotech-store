@@ -1,8 +1,10 @@
 (()=>{
 'use strict';
-const VIAL='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/vial-master?v=1787940592891';
-const PEN='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/pen-master?v=1787940669584';
-const CART='/assets/cartridge-master-v2.svg';
+const cfg=window.AIBT_CONFIG||{};
+const assets=cfg.masterAssets||{};
+const VIAL=assets.Vial||'/assets/vial-master-v4.svg?masterv=4';
+const PEN=assets.Pen||'/assets/pen-master-v4.svg?masterv=4';
+const CART=assets.Cartridge||'/assets/cartridge-master-v5.svg?masterv=5';
 function fill(){
   const b=document.querySelector('.aibt-hero-banner');
   if(!b||b.dataset.built==='1')return false;
@@ -16,9 +18,9 @@ function fill(){
     </div>
     <div class="aibt-hero-science" aria-hidden="true"></div>
     <div class="aibt-hero-products" aria-label="AI BioTech product formats">
-      <div class="aibt-hero-vial aibt-hero-product"><img src="${VIAL}" alt="AI BioTech vial"><div class="aibt-hero-vial-name">Retatrutide</div><div class="aibt-hero-vial-strength">10mg</div></div>
-      <div class="aibt-hero-cartridge aibt-hero-product"><img src="${CART}" alt="AI BioTech cartridge"></div>
-      <div class="aibt-hero-pen aibt-hero-product"><img src="${PEN}" alt="AI BioTech peptide pen"><div class="aibt-hero-pen-name">RETATRUTIDE</div><div class="aibt-hero-pen-strength">10mg</div></div>
+      <div class="aibt-hero-vial aibt-hero-product"><img id="heroVial" data-visual-format="Vial" src="${VIAL}" alt="AI BioTech vial"><div class="aibt-hero-vial-name">Retatrutide</div><div class="aibt-hero-vial-strength">10mg</div></div>
+      <div class="aibt-hero-cartridge aibt-hero-product"><img id="heroCartridge" data-visual-format="Cartridge" src="${CART}" alt="AI BioTech cartridge"></div>
+      <div class="aibt-hero-pen aibt-hero-product"><img id="heroPen" data-visual-format="Pen" src="${PEN}" alt="AI BioTech peptide pen"><div class="aibt-hero-pen-name">RETATRUTIDE</div><div class="aibt-hero-pen-strength">10mg</div></div>
       <div class="aibt-hero-platform"></div>
     </div>
     <div class="aibt-hero-trust">
