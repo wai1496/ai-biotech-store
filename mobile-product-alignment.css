@@ -23,11 +23,14 @@
   .pd-description{order:5;margin:0 0 12px;padding:16px;border:1px solid #dce4ec;border-radius:14px;background:#f7fafc;color:#607286;line-height:1.55}
   .plain-research-link{order:6;color:#1675d1!important;margin:0 0 16px!important}
   .pd-badges{order:7}
-  .pd-label{order:8;color:#6c7d90!important}
-  .pd-options{order:9}
-  #vinfo{order:10}
-  .pd-buy{order:11}
-  .pd-perks{order:12;color:#65788b}
+  .pd-label{color:#6c7d90!important}
+  .pd-info>.pd-label:nth-of-type(2){order:8}
+  #pdStrengths{order:9}
+  .pd-info>.pd-label:nth-of-type(3){order:10}
+  #pdForms{order:11}
+  #vinfo{order:12}
+  .pd-buy{order:13}
+  .pd-perks{order:14;color:#65788b}
   .pd-info:after{content:attr(data-variant-summary);order:4}
   .pd-choice{background:#fff;color:#10294c;border-color:#d4dee8}
   .pd-choice.active{color:#10294c;background:#f7fafc}
