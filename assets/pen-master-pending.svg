@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">AI BioTech Pen master pending staging migration</title>
+  <desc id="desc">Neutral staging placeholder shown instead of a legacy or cartoon product image.</desc>
+  <rect width="512" height="512" fill="#f7f9fc"/>
+  <g fill="none" stroke="#b7c4d3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="72" y="214" width="368" height="84" rx="42"/>
+    <path d="M120 214v84M170 232h176M170 258h136"/>
+    <path d="M440 230h20v52h-20"/>
+  </g>
+  <text x="256" y="360" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#17365f">Pen master migration in progress</text>
+  <text x="256" y="388" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" fill="#66768a">Staging safety placeholder</text>
+</svg>
