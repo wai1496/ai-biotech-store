@@ -18,6 +18,11 @@ if(!calculator.includes('<a href="/?view=guides">GUIDES</a>'))failures.push('cal
 const insightApi=read('api/ai-product-insight.js');
 if(/catch\(e\)\{res\.status\(500\)/.test(insightApi))failures.push('AI insight quota/upstream failures must not be collapsed into a generic HTTP 500');
 
+const centerFix=read('center-fix.js');
+if(!centerFix.includes('/assets/cartridge-master-approved.webp'))failures.push('center-fix.js must use the user-approved Cartridge master asset');
+if(!/form\s*===\s*['"]Cartridge['"]/.test(centerFix))failures.push('center-fix.js must have Cartridge-specific rendering logic');
+if(!fs.existsSync('assets/cartridge-master-approved.webp'))failures.push('approved Cartridge master asset is missing');
+
 if(failures.length){
   console.error('Storefront live-issues check FAILED:\n- '+failures.join('\n- '));
   process.exit(1);
