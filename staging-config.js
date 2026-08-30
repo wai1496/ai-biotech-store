@@ -38,6 +38,15 @@ window.toast = window.toast || function(message){
 
 (function loadStorefrontLayers(){
   const path=String(location.pathname||'').toLowerCase();
+  if(path.endsWith('/progress.html')){
+    if(!document.querySelector('script[data-aibt-progress-credentials]')){
+      const script=document.createElement('script');
+      script.src='/progress-credentials.js?v=20260831a';
+      script.dataset.aibtProgressCredentials='1';
+      document.head.appendChild(script);
+    }
+    return;
+  }
   if(path.includes('/ops')||path.includes('/admin')) return;
   if(!document.querySelector('link[data-aibt-mobile-final]')){
     const link=document.createElement('link');link.rel='stylesheet';link.href='/storefront-mobile-final-20260830.css?v=20260830k';link.dataset.aibtMobileFinal='1';document.head.appendChild(link);
