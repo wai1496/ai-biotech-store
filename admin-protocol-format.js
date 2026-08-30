@@ -51,18 +51,21 @@ function ensureCalcBox(){
   if(scheduleLabel?.parentNode)scheduleLabel.parentNode.insertBefore(box,scheduleLabel.nextSibling);
   return box;
 }
+function setCalcHtml(box,html){
+  if(box&&box.innerHTML!==html)box.innerHTML=html;
+}
 function recalcProtocol(){
   const f=window.editForm?.elements,v=exactVariantFromForm();
   if(!f||!v)return;
   const total=numericStrength(v),volume=Number(f.fill_volume?.value),box=ensureCalcBox();
   if(!box)return;
   if(!(total>0)&&f.concentration?.value){
-    box.innerHTML='<b>Dosage remains locked.</b><br>Unable to determine total peptide strength for automatic concentration calculation.';
+    setCalcHtml(box,'<b>Dosage remains locked.</b><br>Unable to determine total peptide strength for automatic concentration calculation.');
     return;
   }
   if(!(volume>0)){
     if(f.concentration)f.concentration.value='';
-    box.innerHTML='<b>Dosage remains locked.</b><br>Enter Final volume (mL) to recalculate concentration and U-100 units.';
+    setCalcHtml(box,'<b>Dosage remains locked.</b><br>Enter Final volume (mL) to recalculate concentration and U-100 units.');
     return;
   }
   const concentration=total/volume;
@@ -73,7 +76,7 @@ function recalcProtocol(){
     const units=r.amount/concentration*100;
     return `<tr><td>${esc(r.stage)}</td><td><b>${r.amount} mg</b></td><td><b>${Number(units.toFixed(2))} units</b></td><td>${esc(r.frequency||'—')}</td></tr>`;
   }).join('');
-  box.innerHTML=`<b>Live calculation — verified dosage is locked</b><br>Total peptide: ${total} mg · Final volume: ${volume} mL · Concentration: ${Number(concentration.toFixed(4))} mg/mL${rows.length?`<div class="wrap" style="margin-top:8px"><table><thead><tr><th>Stage</th><th>Verified dose</th><th>Calculated U-100</th><th>Frequency</th></tr></thead><tbody>${body}</tbody></table></div>`:'<br>No dosage rows available yet.'}`;
+  setCalcHtml(box,`<b>Live calculation — verified dosage is locked</b><br>Total peptide: ${total} mg · Final volume: ${volume} mL · Concentration: ${Number(concentration.toFixed(4))} mg/mL${rows.length?`<div class="wrap" style="margin-top:8px"><table><thead><tr><th>Stage</th><th>Verified dose</th><th>Calculated U-100</th><th>Frequency</th></tr></thead><tbody>${body}</tbody></table></div>`:'<br>No dosage rows available yet.'}`);
 }
 function installLiveCalculation(){
   const f=window.editForm?.elements;
@@ -93,13 +96,19 @@ function installLiveCalculation(){
   recalcProtocol();
 }
 
-const observer=new MutationObserver(()=>{
+const observer=new MutationObserver(mutations=>{
+  const previewOnly=mutations.length&&mutations.every(m=>{
+    const t=m.target;
+    return t?.nodeType===1&&(t.id==='aibtDoseCalculationPreview'||t.closest?.('#aibtDoseCalculationPreview'));
+  });
+  if(previewOnly)return;
   const title=window.editTitle?.textContent||'';
   if(/protocol/i.test(title)&&window.editForm?.elements?.protocol_variant){
     applyFormatAwareness();
     installLiveCalculation();
   }
 });
-observer.observe(document.documentElement,{childList:true,subtree:true});
+const observerTarget=window.editor||document.getElementById('editor');
+if(observerTarget)observer.observe(observerTarget,{childList:true,subtree:true});
 window.addEventListener('load',()=>{applyFormatAwareness();installLiveCalculation();});
 })();
