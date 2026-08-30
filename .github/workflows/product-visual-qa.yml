@@ -29,6 +29,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   visual-contract:
@@ -42,7 +43,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install test dependencies
         run: npm install --no-audit --no-fund
@@ -63,3 +63,37 @@ jobs:
             test-results
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Report outcome to WP-03
+        if: always() && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then
+            ICON="✅"
+            STATUS="PASS"
+            DETAIL="Six-viewport Playwright product-visual QA passed. The workflow artifact contains screenshots and the HTML report."
+          else
+            ICON="❌"
+            STATUS="FAIL / FIXING"
+            DETAIL="Independent Playwright product-visual QA failed. WP-03 remains open and must be repaired and retested."
+          fi
+
+          BODY=$(cat <<EOF
+          ## Automated visual QA — ${ICON} ${STATUS}
+
+          - Commit: \`${SHA}\`
+          - Workflow status: **${JOB_STATUS}**
+          - Evidence: ${RUN_URL}
+
+          ${DETAIL}
+
+          A successful deployment alone is not treated as QA approval.
+          EOF
+          )
+
+          gh api "repos/${REPOSITORY}/issues/8/comments" -f body="$BODY"
