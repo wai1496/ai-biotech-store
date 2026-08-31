@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { test, expect } from '@playwright/test';
 
+// Visual gate: fail only on product-visual/catalog requests; local optional API noise is non-blocking.
 const expectedAssets = Object.freeze({
   Vial: '/assets/vial-master-v4.svg',
   Pen: '/assets/pen-master-v4.svg',
