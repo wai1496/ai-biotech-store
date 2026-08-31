@@ -1,18 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="aibt-mfa-pending">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <title>AI BioTech Project Control Center</title>
   <link rel="stylesheet" href="/progress.css">
+  <link rel="stylesheet" href="/mfa-auth.css">
 </head>
 <body>
   <section id="loginView" class="auth-shell">
     <form id="loginForm" class="auth-card">
       <div class="eyebrow">AI BioTech · Engineering</div>
       <h1>Project Control Center</h1>
-      <p>Protected owner/admin access.</p>
+      <p>Protected owner/admin access · 2FA required.</p>
       <label>Email<input id="adminEmail" type="email" autocomplete="username" required></label>
       <label>Password<input id="adminPassword" type="password" autocomplete="current-password" required></label>
       <button class="btn primary" type="submit">Sign in</button>
@@ -23,79 +24,22 @@
 
   <div id="appView" class="app" hidden>
     <header class="topbar">
-      <div>
-        <div class="eyebrow">AI BioTech · Project Brain</div>
-        <h1>Progress Control Center</h1>
-        <p id="refreshStamp" class="muted">Loading project state…</p>
-      </div>
-      <div class="top-actions">
-        <button id="refreshBtn" class="btn" type="button">Refresh</button>
-        <button id="notificationBtn" class="btn notification-btn" type="button" aria-haspopup="dialog">Notifications <span id="notificationCount" class="badge">0</span></button>
-        <a class="btn" href="/admin.html">Admin</a>
-        <button id="signOutBtn" class="btn ghost" type="button">Sign out</button>
-      </div>
+      <div><div class="eyebrow">AI BioTech · Project Brain</div><h1>Progress Control Center</h1><p id="refreshStamp" class="muted">Loading project state…</p></div>
+      <div class="top-actions"><button id="refreshBtn" class="btn" type="button">Refresh</button><button id="notificationBtn" class="btn notification-btn" type="button" aria-haspopup="dialog">Notifications <span id="notificationCount" class="badge">0</span></button><a class="btn" href="/admin.html">Admin</a><button id="signOutBtn" class="btn ghost" type="button">Sign out</button></div>
     </header>
-
     <main>
-      <section class="health-grid" aria-label="Project health">
-        <article class="metric major"><span>Overall progress</span><strong id="overallPercent">—</strong><div class="progress-track"><div id="overallBar"></div></div></article>
-        <article class="metric"><span>Current phase</span><strong id="currentPhase">—</strong></article>
-        <article class="metric"><span>Release state</span><strong id="releaseState">—</strong></article>
-        <article class="metric"><span>Production data</span><strong id="productionData">—</strong></article>
-      </section>
-
-      <section class="panel">
-        <div class="section-head"><div><span class="eyebrow">Roadmap</span><h2>System dependency path</h2></div><p class="muted">Measured status where available; unknowns stay explicitly unknown.</p></div>
-        <div id="roadmap" class="roadmap" aria-label="Project roadmap"></div>
-      </section>
-
-      <section class="two-col">
-        <section class="panel">
-          <div class="section-head"><div><span class="eyebrow">Issues</span><h2>Pending & resolved</h2></div><select id="issueFilter" aria-label="Issue status filter"><option value="all">All</option><option value="pending">Pending</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="resolved">Resolved</option></select></div>
-          <div id="issues" class="stack"></div>
-        </section>
-        <section class="panel">
-          <div class="section-head"><div><span class="eyebrow">Credentials</span><h2>Readiness vault</h2></div><p class="muted">Status only. Secret values are never returned.</p></div>
-          <div id="credentials" class="stack"></div>
-        </section>
-      </section>
-
-      <section class="panel">
-        <div class="section-head"><div><span class="eyebrow">Builds</span><h2>Branches & deployments</h2></div><div id="sourceChips" class="chips"></div></div>
-        <div class="branch-layout">
-          <div><h3>GitHub branches</h3><div id="branches" class="data-list"></div></div>
-          <div><h3>Vercel deployments</h3><div id="deployments" class="data-list"></div></div>
-        </div>
-      </section>
-
-      <section class="two-col chat-grid">
-        <section class="panel chat-panel">
-          <div class="section-head"><div><span class="eyebrow">Project Chat</span><h2>Ask the engineering brain</h2></div><span id="chatMode" class="status-chip">Status mode</span></div>
-          <div id="chatLog" class="chat-log" aria-live="polite">
-            <div class="message assistant">Ask things like “What is blocking production?”, “What is pending?”, “Which branch is active?” or “Which credentials are missing?”</div>
-          </div>
-          <form id="chatForm" class="chat-form">
-            <label class="sr-only" for="chatInput">Project question</label>
-            <textarea id="chatInput" rows="2" maxlength="1200" placeholder="Ask about current project status…" required></textarea>
-            <button id="chatSend" class="btn primary" type="submit">Send</button>
-          </form>
-        </section>
-        <section class="panel">
-          <div class="section-head"><div><span class="eyebrow">Live Sources</span><h2>System connectivity</h2></div></div>
-          <div id="sources" class="stack"></div>
-          <div class="counts-wrap"><h3>Production record counts</h3><div id="counts" class="mini-grid"></div></div>
-        </section>
-      </section>
+      <section class="health-grid" aria-label="Project health"><article class="metric major"><span>Overall progress</span><strong id="overallPercent">—</strong><div class="progress-track"><div id="overallBar"></div></div></article><article class="metric"><span>Current phase</span><strong id="currentPhase">—</strong></article><article class="metric"><span>Release state</span><strong id="releaseState">—</strong></article><article class="metric"><span>Production data</span><strong id="productionData">—</strong></article></section>
+      <section class="panel"><div class="section-head"><div><span class="eyebrow">Roadmap</span><h2>System dependency path</h2></div><p class="muted">Measured status where available; unknowns stay explicitly unknown.</p></div><div id="roadmap" class="roadmap" aria-label="Project roadmap"></div></section>
+      <section class="two-col"><section class="panel"><div class="section-head"><div><span class="eyebrow">Issues</span><h2>Pending & resolved</h2></div><select id="issueFilter" aria-label="Issue status filter"><option value="all">All</option><option value="pending">Pending</option><option value="in_progress">In progress</option><option value="blocked">Blocked</option><option value="resolved">Resolved</option></select></div><div id="issues" class="stack"></div></section><section class="panel"><div class="section-head"><div><span class="eyebrow">Credentials</span><h2>Readiness vault</h2></div><p class="muted">Status only. Secret values are never returned.</p></div><div id="credentials" class="stack"></div></section></section>
+      <section class="panel"><div class="section-head"><div><span class="eyebrow">Builds</span><h2>Branches & deployments</h2></div><div id="sourceChips" class="chips"></div></div><div class="branch-layout"><div><h3>GitHub branches</h3><div id="branches" class="data-list"></div></div><div><h3>Vercel deployments</h3><div id="deployments" class="data-list"></div></div></div></section>
+      <section class="two-col chat-grid"><section class="panel chat-panel"><div class="section-head"><div><span class="eyebrow">Project Chat</span><h2>Ask the engineering brain</h2></div><span id="chatMode" class="status-chip">Status mode</span></div><div id="chatLog" class="chat-log" aria-live="polite"><div class="message assistant">Ask things like “What is blocking production?”, “What is pending?”, “Which branch is active?” or “Which credentials are missing?”</div></div><form id="chatForm" class="chat-form"><label class="sr-only" for="chatInput">Project question</label><textarea id="chatInput" rows="2" maxlength="1200" placeholder="Ask about current project status…" required></textarea><button id="chatSend" class="btn primary" type="submit">Send</button></form></section><section class="panel"><div class="section-head"><div><span class="eyebrow">Live Sources</span><h2>System connectivity</h2></div></div><div id="sources" class="stack"></div><div class="counts-wrap"><h3>Production record counts</h3><div id="counts" class="mini-grid"></div></div></section></section>
     </main>
   </div>
-
-  <dialog id="notificationDialog">
-    <div class="dialog-head"><div><span class="eyebrow">Project updates</span><h2>Notifications</h2></div><button id="closeNotifications" class="icon-btn" type="button" aria-label="Close notifications">×</button></div>
-    <div id="notificationList" class="stack"></div>
-  </dialog>
-
+  <dialog id="notificationDialog"><div class="dialog-head"><div><span class="eyebrow">Project updates</span><h2>Notifications</h2></div><button id="closeNotifications" class="icon-btn" type="button" aria-label="Close notifications">×</button></div><div id="notificationList" class="stack"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/mfa-auth.js"></script>
+  <script src="/mfa-admin-bootstrap.js"></script>
   <script src="/progress.js"></script>
 </body>
 </html>
