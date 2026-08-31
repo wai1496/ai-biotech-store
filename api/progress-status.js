@@ -1,4 +1,5 @@
 const {authorizeAdmin,getProgressStatus}=require('./_progress-lib');
+const {requireAal2}=require('./_mfa-api');
 
 module.exports=async function handler(req,res){
   res.setHeader('Cache-Control','no-store');
@@ -9,6 +10,8 @@ module.exports=async function handler(req,res){
   }
   const auth=await authorizeAdmin(req);
   if(!auth.ok){res.status(auth.status).json({error:auth.error});return;}
+  const mfa=requireAal2(req);
+  if(!mfa.ok){res.status(mfa.status).json({error:mfa.error,code:mfa.code});return;}
   try{
     const status=await getProgressStatus(req,auth);
     res.status(200).json(status);
