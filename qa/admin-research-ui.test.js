@@ -1,7 +1,7 @@
 const assert=require('assert'),fs=require('fs'),path=require('path');
 const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
 for(const f of ['admin-research.js','admin-research.css'])assert.ok(fs.existsSync(path.join(root,f)),`${f} missing`);
-const js=read('admin-research.js'),html=read('admin.html');
+const js=read('admin-research.js'),html=read('admin.html'),css=read('admin-research.css');
 for(const text of ['Fetch New Research','Review Draft','Version History','Manual Draft','Published','Draft','Evidence Gate','High-quality sources','Warnings','verification_note','admin_publish_research_version','admin_reject_research_version','Approve & Publish','Reject'])assert.match(js,new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),`missing admin research contract: ${text}`);
 assert.match(js,/research_entry_versions/);
 assert.match(js,/Authorization/);
@@ -9,4 +9,6 @@ assert.match(js,/window\.view/,'research module must safely wrap the existing ad
 assert.doesNotMatch(js,/\.from\(['"]research_entries['"]\)\.update\(/i,'admin UI must publish through RPC only');
 assert.match(html,/admin-research\.css/);
 assert.match(html,/admin-research\.js/);
+assert.match(css,/\.ar-modal-card\{[^}]*color:\s*#(?:1e293b|0f172a|243447)/i,'research modal must set an explicit readable dark text color');
+assert.match(css,/\.ar-field\{[^}]*line-height:\s*(?:1\.5|1\.6|1\.65|1\.7)/i,'research review fields must use readable line height');
 console.log('admin research UI contract passed');
