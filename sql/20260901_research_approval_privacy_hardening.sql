@@ -135,5 +135,10 @@ set approved_by=null,
 where approved_by is not null
    or verification_note<>'';
 
+-- Defense in depth: anonymous users must not be able to invoke approval RPCs at all.
 revoke all on function public.admin_publish_research_version(uuid,text) from public;
+revoke all on function public.admin_reject_research_version(uuid,text) from public;
+revoke execute on function public.admin_publish_research_version(uuid,text) from anon;
+revoke execute on function public.admin_reject_research_version(uuid,text) from anon;
 grant execute on function public.admin_publish_research_version(uuid,text) to authenticated;
+grant execute on function public.admin_reject_research_version(uuid,text) to authenticated;
