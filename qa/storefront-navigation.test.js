@@ -18,4 +18,9 @@ assert.match(css, /padding\s*:\s*(?:1[2468]|20)px/, 'direct product images need 
 assert.match(css, /\.aibt-peptide-menu/, 'Peptides must have its own menu styling');
 assert.match(css, /#aboutUs/, 'About Us must target a dedicated section');
 
+const runtime = fs.readFileSync(path.join(root, 'storefront-navigation.js'), 'utf8');
+assert.doesNotMatch(runtime, /window\.category\s*=/, 'runtime must update the existing global lexical category binding, not create window.category');
+assert.doesNotMatch(runtime, /window\.showAll\s*=/, 'runtime must update the existing global lexical showAll binding, not create window.showAll');
+assert.doesNotMatch(runtime, /window\.CAT\?\./, 'runtime must read the existing CAT lexical binding');
+
 console.log('storefront navigation/media QA contracts passed');
