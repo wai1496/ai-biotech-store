@@ -120,10 +120,14 @@ async function generateWithGemini(product){
   for(const chunk of candidate?.groundingMetadata?.groundingChunks||[]){const w=chunk?.web;if(w?.uri)rawSources.push({title:w.title,url:w.uri});}
   return {profile,assessment,rawSources,provider:'gemini',model,provider_metadata:{usage:raw?.usageMetadata||null}};
 }
+function logProviderFailure(error){
+  if(!(error instanceof ResearchProviderError))return;
+  console.error('Research provider attempt failed',{provider:error.provider,code:error.code,status:error.status});
+}
 async function generateResearchDraft({product,currentPublished}){
   let generated,lastError;
-  try{generated=await generateWithOpenAI(product);}catch(error){lastError=error;if(!(error instanceof ResearchProviderError))throw error;}
-  if(!generated){try{generated=await generateWithGemini(product);}catch(error){lastError=error;if(!(error instanceof ResearchProviderError))throw error;}}
+  try{generated=await generateWithOpenAI(product);}catch(error){lastError=error;if(!(error instanceof ResearchProviderError))throw error;logProviderFailure(error);}
+  if(!generated){try{generated=await generateWithGemini(product);}catch(error){lastError=error;if(!(error instanceof ResearchProviderError))throw error;logProviderFailure(error);}}
   if(!generated)throw new ResearchProviderError('all','AI_RESEARCH_UNAVAILABLE',lastError?.message||'AI research unavailable',503);
   const sources=normalizeSources(generated.rawSources),evidence_gate=buildEvidenceGate(sources,generated.assessment),change_summary=buildChangeSummary(currentPublished,generated.profile,sources);
   return {profile:generated.profile,sources,evidence_gate,change_summary,provider:generated.provider,model:generated.model,generated_at:new Date().toISOString(),provider_metadata:generated.provider_metadata};
