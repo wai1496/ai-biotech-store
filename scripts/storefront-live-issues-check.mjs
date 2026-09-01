@@ -15,8 +15,21 @@ const calculator=read('peptide-calculator.html');
 if(!calculator.includes('<a href="/#catalog">PEPTIDES</a>'))failures.push('calculator PEPTIDES nav must link to /#catalog');
 if(!calculator.includes('<a href="/?view=guides">GUIDES</a>'))failures.push('calculator GUIDES nav must link to /?view=guides');
 
-const insightApi=read('api/ai-product-insight.js');
-if(/catch\(e\)\{res\.status\(500\)/.test(insightApi))failures.push('AI insight quota/upstream failures must not be collapsed into a generic HTTP 500');
+const publicInsight=read('research-insight.js');
+if(publicInsight.includes('/api/ai-product-insight')||publicInsight.includes('/api/admin-research-refresh'))failures.push('public Research Insight must never call an AI research endpoint');
+if(publicInsight.includes('localStorage'))failures.push('public Research Insight must not use browser-local AI draft caching');
+if(!publicInsight.includes('research_entries')||!publicInsight.includes('profile_json')||!publicInsight.includes('published_version_id'))failures.push('public Research Insight must read the approved Supabase research projection');
+for(const marker of ['OPENAI_API_KEY','GEMINI_API_KEY','AI_QUOTA_EXHAUSTED','Vercel environment'])if(publicInsight.includes(marker))failures.push(`public Research Insight exposes technical provider detail: ${marker}`);
+
+const researchCatalog=read('research-approved-catalog.js');
+if(researchCatalog.includes('research_entry_versions'))failures.push('public Research Catalog must not read private research drafts/history');
+if(!researchCatalog.includes('research_entries')||!researchCatalog.includes('short_summary')||!researchCatalog.includes('published_version_id'))failures.push('public Research Catalog must use the approved Supabase projection');
+if(!researchCatalog.includes('Research profile is being prepared.'))failures.push('public Research Catalog must have an unapproved/prepared state');
+
+const adminResearch=read('admin-research.js');
+if(!adminResearch.includes('/api/admin-research-refresh'))failures.push('Admin Research workspace must own the authenticated AI refresh flow');
+if(!adminResearch.includes('admin_publish_research_version')||!adminResearch.includes('admin_reject_research_version'))failures.push('Admin Research workspace must publish/reject through protected RPCs');
+if(/\.from\(['"]research_entries['"]\)\.update\(/i.test(adminResearch))failures.push('Admin Research workspace must not update the public projection directly');
 
 const centerFix=read('center-fix.js');
 if(!centerFix.includes('/assets/cartridge-master-approved.webp'))failures.push('center-fix.js must keep the bundled Cartridge fallback asset');
@@ -41,6 +54,7 @@ if(!fs.existsSync(cartridgePath)){
 
 const adminHtml=read('admin.html');
 if(!adminHtml.includes('/admin-cartridge-master.js'))failures.push('admin.html must load the Cartridge master management UI');
+if(!adminHtml.includes('/admin-research.js')||!adminHtml.includes('/admin-research.css'))failures.push('admin.html must load the Research approval workspace');
 if(!fs.existsSync('admin-cartridge-master.js')){
   failures.push('admin Cartridge master management script is missing');
 }else{
