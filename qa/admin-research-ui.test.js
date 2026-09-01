@@ -11,4 +11,5 @@ assert.match(html,/admin-research\.css/);
 assert.match(html,/admin-research\.js/);
 assert.match(css,/\.ar-modal-card\{[^}]*color:\s*#(?:1e293b|0f172a|243447)/i,'research modal must set an explicit readable dark text color');
 assert.match(css,/\.ar-field\{[^}]*line-height:\s*(?:1\.5|1\.6|1\.65|1\.7)/i,'research review fields must use readable line height');
+assert.match(css,/\.ar-product-card h3\{[^}]*color:\s*#(?:0f172a|1e293b|243447)/i,'research product names must set an explicit readable dark text color');
 console.log('admin research UI contract passed');
