@@ -26,4 +26,6 @@ for(const token of ['add column if not exists verification_note text','admin_pub
   assert.match(privacy,new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),`missing privacy contract: ${token}`);
 assert.match(privacy,/research_entry_versions[\s\S]*verification_note=coalesce\(p_verification_note,''\)/i,'private version history must store the verification note');
 assert.match(privacy,/research_entries[\s\S]*approved_by=null[\s\S]*verification_note=''[\s\S]*updated_at=now\(\)/i,'public projection must not store private approval identity or verification note');
+assert.match(privacy,/revoke execute on function public\.admin_publish_research_version\(uuid,text\) from anon/i,'anonymous publish RPC execute must be revoked explicitly');
+assert.match(privacy,/revoke execute on function public\.admin_reject_research_version\(uuid,text\) from anon/i,'anonymous reject RPC execute must be revoked explicitly');
 console.log('research approval schema contract passed');
