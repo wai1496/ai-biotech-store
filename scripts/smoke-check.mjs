@@ -8,9 +8,14 @@ const required=[
   'index.html','admin.html','member.html','checkout.html','peptide-calculator.html',
   'product.html','research-insight.html','vercel.json'
 ];
+const researchRequired=[
+  'admin-research.js','admin-research.css','research-approved-catalog.js',
+  'api/_research-auth.js','api/_research-providers.js','api/admin-research-refresh.js',
+  'sql/20260901_research_approval_workflow.sql'
+];
 
-for(const file of required){
-  if(!fs.existsSync(path.join(root,file)))failures.push(`Missing required route file: ${file}`);
+for(const file of [...required,...researchRequired]){
+  if(!fs.existsSync(path.join(root,file)))failures.push(`Missing required route/feature file: ${file}`);
 }
 
 function walk(dir){
@@ -73,6 +78,24 @@ for(const file of webTextFiles){
 for(const file of ['index.html','admin.html','member.html','checkout.html','research-insight.html']){
   const full=path.join(root,file);
   if(fs.existsSync(full)&&fs.readFileSync(full,'utf8').includes('/plain.html'))failures.push(`${file}: customer/admin navigation still points to legacy /plain.html`);
+}
+
+if(fs.existsSync(path.join(root,'research-insight.js'))){
+  const insight=fs.readFileSync(path.join(root,'research-insight.js'),'utf8');
+  for(const marker of ['/api/ai-product-insight','/api/admin-research-refresh','localStorage','OPENAI_API_KEY','GEMINI_API_KEY','AI_QUOTA_EXHAUSTED']){
+    if(insight.includes(marker))failures.push(`research-insight.js: public research must not contain ${marker}`);
+  }
+  for(const marker of ['research_entries','profile_json','published_version_id'])if(!insight.includes(marker))failures.push(`research-insight.js: approved Supabase read missing ${marker}`);
+}
+if(fs.existsSync(path.join(root,'research-approved-catalog.js'))){
+  const catalog=fs.readFileSync(path.join(root,'research-approved-catalog.js'),'utf8');
+  if(catalog.includes('research_entry_versions'))failures.push('research-approved-catalog.js: public catalog must not read private research versions');
+  if(!catalog.includes('published_version_id'))failures.push('research-approved-catalog.js: approved-version gate missing');
+}
+if(fs.existsSync(path.join(root,'index.html'))&&!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('/research-approved-catalog.js'))failures.push('index.html: approved Research Catalog adapter is not loaded');
+if(fs.existsSync(path.join(root,'admin.html'))){
+  const admin=fs.readFileSync(path.join(root,'admin.html'),'utf8');
+  for(const asset of ['/admin-research.js','/admin-research.css'])if(!admin.includes(asset))failures.push(`admin.html: missing research approval asset ${asset}`);
 }
 
 const vercelPath=path.join(root,'vercel.json');
