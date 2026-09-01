@@ -9,9 +9,9 @@
   const catalogBtn=byPurpose('catalog'), peptideBtn=byPurpose('peptides-menu'), aboutBtn=byPurpose('about');
 
   function showCatalog(categoryKey='All'){
-    window.showAll=true;
-    window.category=categoryKey;
-    if(typeof window.renderProducts==='function')window.renderProducts();
+    showAll=true;
+    category=categoryKey;
+    if(typeof renderProducts==='function')renderProducts();
     document.getElementById('catalog')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
 
@@ -21,7 +21,7 @@
     menu=document.createElement('div');
     menu.id='aibtPeptideMenu';menu.className='aibt-peptide-menu';menu.setAttribute('role','menu');
     const entries=core.categoryKeys().map(key=>{
-      const meta=window.CAT?.[key]||{};
+      const meta=(typeof CAT!=='undefined'&&CAT[key])||{};
       return `<button type="button" role="menuitem" data-category="${key.replace(/"/g,'&quot;')}" style="--cat:${meta.color||'#18c9ff'}"><b>${key}</b><small>${meta.label||'View category'}</small></button>`;
     }).join('');
     menu.innerHTML=`<div class="menu-head"><strong>Browse Peptides by Research Category</strong><button type="button" class="menu-close" aria-label="Close peptide menu">×</button></div><div class="aibt-peptide-menu-grid">${entries}</div>`;
