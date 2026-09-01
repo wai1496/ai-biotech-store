@@ -17,6 +17,8 @@ assert.match(css, /object-fit\s*:\s*contain/, 'product images must use object-fi
 assert.match(css, /padding\s*:\s*(?:1[2468]|20)px/, 'direct product images need internal mobile padding');
 assert.match(css, /\.aibt-peptide-menu/, 'Peptides must have its own menu styling');
 assert.match(css, /#aboutUs/, 'About Us must target a dedicated section');
+assert.match(css, /:has\(>img\[src\*=["']pen-master["']\]\)/, 'Pen master images need a form-aware wide mobile frame');
+assert.match(css, /aspect-ratio\s*:\s*(?:3(?:\.\d+)?|4)\s*\/\s*1/, 'Pen mobile frame should use a wide aspect ratio');
 
 const runtime = fs.readFileSync(path.join(root, 'storefront-navigation.js'), 'utf8');
 assert.doesNotMatch(runtime, /window\.category\s*=/, 'runtime must update the existing global lexical category binding, not create window.category');
