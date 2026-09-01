@@ -23,7 +23,7 @@ const profileSchema={
   }
 };
 
-const RESEARCH_SYSTEM_PROMPT=`You are the evidence-research assistant for AI BioTech's administrator. Research only the named compound or blend. Prefer high-authority primary/official sources first: pubmed.ncbi.nlm.nih.gov, ncbi.nlm.nih.gov, clinicaltrials.gov, fda.gov, ema.europa.eu, and who.int. Follow primary studies and trial registry records when useful, resolve contradictions where possible, and clearly report uncertainty. For blends, never present component-level evidence as proof of the exact combination; classify exact-product evidence accurately. Distinguish direct human evidence, indirect human evidence, preclinical evidence, mechanistic evidence, and absence of evidence. Do not provide dosing, dosage schedules, administration instructions, injection technique, reconstitution instructions, treatment recommendations, diagnosis, individualized medical advice, or unsupported equivalence between research material and an approved medicine. Keep claims neutral and source-backed. Return only the requested structured object.`;
+const RESEARCH_SYSTEM_PROMPT=`You are the evidence-research assistant for AI BioTech's administrator. Research only the named compound or blend. Prefer high-authority primary/official sources first: pubmed.ncbi.nlm.nih.gov, ncbi.nlm.nih.gov, clinicaltrials.gov, fda.gov, ema.europa.eu, and who.int. Follow primary studies and trial registry records when useful, resolve contradictions where possible, and clearly report uncertainty. For blends, never present component-level evidence as proof of the exact combination; classify exact-product evidence accurately. Distinguish direct human evidence, indirect human evidence, preclinical evidence, mechanistic evidence, and absence of evidence. Do not provide dosing, dosage schedules, administration instructions, injection technique, reconstitution instructions, treatment recommendations, diagnosis, individualized medical advice, or unsupported equivalence between research material and an approved medicine. Keep claims neutral and source-backed. Do not place URLs or markdown citations inside profile fields; references are captured separately. Return only the requested structured object.`;
 
 class ResearchProviderError extends Error{
   constructor(provider,code,message,status){super(message);this.name='ResearchProviderError';this.provider=provider;this.code=code;this.status=status||503;}
@@ -32,6 +32,14 @@ class ResearchProviderError extends Error{
 function safeJsonParse(text){try{return JSON.parse(text)}catch{return null}}
 function hostnameOf(url){try{return new URL(url).hostname.toLowerCase()}catch{return ''}}
 function isHighDomain(host){if(HIGH_DOMAINS.has(host))return true;return [...HIGH_DOMAINS].some(d=>host.endsWith(`.${d}`));}
+function stripResearchCitations(value){
+  return String(value??'')
+    .replace(/\s*\(\s*\[[^\]]*\]\(https?:\/\/[^)]+\)\s*\)/gi,'')
+    .replace(/\s*\[[^\]]*\]\(https?:\/\/[^)]+\)/gi,'')
+    .replace(/\s{2,}/g,' ')
+    .replace(/\s+([.,;:!?])/g,'$1')
+    .trim();
+}
 function normalizeSources(rawSources){
   const now=new Date().toISOString(),out=[],seen=new Set();
   for(const source of rawSources||[]){
@@ -54,8 +62,8 @@ function cleanAssessment(value){
 function cleanProfile(raw){
   const v=raw&&typeof raw==='object'?raw:{};const profile={};
   for(const key of PUBLIC_PROFILE_KEYS){
-    if(key==='research_areas')profile[key]=Array.isArray(v[key])?v[key].map(String).filter(Boolean).slice(0,10):[];
-    else profile[key]=String(v[key]??'').trim();
+    if(key==='research_areas')profile[key]=Array.isArray(v[key])?v[key].map(stripResearchCitations).filter(Boolean).slice(0,10):[];
+    else profile[key]=stripResearchCitations(v[key]);
   }
   if(!profile.short_description||!profile.overview)throw new ResearchProviderError('validation','INVALID_PROFILE','Research provider returned incomplete profile',502);
   return {profile,assessment:cleanAssessment(v.evidence_assessment)};
@@ -132,4 +140,4 @@ async function generateResearchDraft({product,currentPublished}){
   const sources=normalizeSources(generated.rawSources),evidence_gate=buildEvidenceGate(sources,generated.assessment),change_summary=buildChangeSummary(currentPublished,generated.profile,sources);
   return {profile:generated.profile,sources,evidence_gate,change_summary,provider:generated.provider,model:generated.model,generated_at:new Date().toISOString(),provider_metadata:generated.provider_metadata};
 }
-module.exports={generateResearchDraft,normalizeSources,buildEvidenceGate,buildChangeSummary,ResearchProviderError,profileSchema,HIGH_DOMAINS};
+module.exports={generateResearchDraft,normalizeSources,buildEvidenceGate,buildChangeSummary,stripResearchCitations,ResearchProviderError,profileSchema,HIGH_DOMAINS};
