@@ -1,0 +1,12 @@
+const assert=require('assert'),fs=require('fs'),path=require('path');
+const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
+for(const f of ['admin-research.js','admin-research.css'])assert.ok(fs.existsSync(path.join(root,f)),`${f} missing`);
+const js=read('admin-research.js'),html=read('admin.html');
+for(const text of ['Fetch New Research','Review Draft','Version History','Manual Draft','Published','Draft','Evidence Gate','High-quality sources','Warnings','verification_note','admin_publish_research_version','admin_reject_research_version','Approve & Publish','Reject'])assert.match(js,new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),`missing admin research contract: ${text}`);
+assert.match(js,/research_entry_versions/);
+assert.match(js,/Authorization/);
+assert.match(js,/window\.view/,'research module must safely wrap the existing admin navigation');
+assert.doesNotMatch(js,/\.from\(['"]research_entries['"]\)\.update\(/i,'admin UI must publish through RPC only');
+assert.match(html,/admin-research\.css/);
+assert.match(html,/admin-research\.js/);
+console.log('admin research UI contract passed');
