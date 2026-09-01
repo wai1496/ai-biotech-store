@@ -21,6 +21,8 @@ assert.match(providers,/clinicaltrials\.gov/);
 assert.match(providers,/fda\.gov/);
 assert.match(providers,/no dosing|dosing/i);
 assert.match(providers,/store['"]?\s*:\s*false/);
+assert.match(providers,/Research provider attempt failed/,'provider failures must emit safe server-side diagnostic logs');
+assert.match(providers,/provider:error\.provider/,'diagnostic logging must identify the failed provider without logging credentials');
 assert.match(auth,/authorization/i);
 assert.match(auth,/admin_users/);
 console.log('admin research refresh contract passed');
