@@ -17,4 +17,13 @@ assert.match(html,/admin-research\.js/);
 assert.match(css,/\.ar-modal-card\{[^}]*color:\s*#(?:1e293b|0f172a|243447)/i,'research modal must set an explicit readable dark text color');
 assert.match(css,/\.ar-field\{[^}]*line-height:\s*(?:1\.5|1\.6|1\.65|1\.7)/i,'research review fields must use readable line height');
 assert.match(css,/\.ar-product-card h3\{[^}]*color:\s*#(?:0f172a|1e293b|243447)/i,'research product names must set an explicit readable dark text color');
+
+// Mobile Review Draft UX contract: compact evidence, collapsible long sections, and safe sticky actions.
+for(const marker of ['ar-review-section','ar-review-summary','ar-review-content','ar-approval-actions'])assert.match(js,new RegExp(marker),`missing mobile review structure: ${marker}`);
+assert.match(js,/<details[^>]*class=\"ar-review-section/i,'long review sections must use native collapsible details blocks');
+assert.ok(js.indexOf('verification_note')<js.indexOf('data-ar-publish'),'verification note must stay before publish controls');
+assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-approval\{[^}]*position:\s*sticky/i,'mobile approval panel must remain sticky');
+assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-approval-actions[^}]*gap:\s*(?:10px|12px|14px|16px)/i,'mobile action buttons must have safe spacing');
+assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-approval-actions\s+\.btn[^}]*min-height:\s*(?:44px|46px|48px|50px|52px)/i,'mobile action buttons must have Android-safe touch height');
+assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-modal-card\{[^}]*max-height:\s*(?:96dvh|97dvh|98dvh|100dvh)/i,'mobile review modal must use more of the viewport');
 console.log('admin research UI contract passed');
