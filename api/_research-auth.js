@@ -1,5 +1,12 @@
-const SUPABASE_URL=process.env.SUPABASE_URL||'https://yjauxyvtrmdriwtmckkl.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY=process.env.SUPABASE_PUBLISHABLE_KEY||'sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
+const PROD_SUPABASE_URL='https://yjauxyvtrmdriwtmckkl.supabase.co';
+const PROD_SUPABASE_PUBLISHABLE_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
+const STAGING_SUPABASE_URL='https://rpnwssqvurpdennpzplx.supabase.co';
+const STAGING_SUPABASE_PUBLISHABLE_KEY='sb_publishable_x4udjzTcG-t9NW6qusKvZA_Efk2QoXh';
+const gitRef=String(process.env.VERCEL_GIT_COMMIT_REF||'');
+const previewRef=/^(?:feature\/|review\/|staging\/)/i.test(gitRef)||/research-approval-workflow/i.test(gitRef);
+const useStaging=process.env.VERCEL_ENV!=='production'||previewRef;
+const SUPABASE_URL=useStaging?STAGING_SUPABASE_URL:(process.env.SUPABASE_URL||PROD_SUPABASE_URL);
+const SUPABASE_PUBLISHABLE_KEY=useStaging?STAGING_SUPABASE_PUBLISHABLE_KEY:(process.env.SUPABASE_PUBLISHABLE_KEY||PROD_SUPABASE_PUBLISHABLE_KEY);
 
 class ResearchAuthError extends Error{
   constructor(code,message,status){super(message);this.name='ResearchAuthError';this.code=code;this.status=status;}
