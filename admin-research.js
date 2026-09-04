@@ -59,17 +59,29 @@
   }
 
   async function fetchNewResearch(productId,button){
+    const tools=window.AIBTResearchFetch;
     button.disabled=true;button.textContent='Fetching…';
     try{
-      const {data:{session}}=await C.sb.auth.getSession();if(!session?.access_token)throw new Error('Admin session required');
-      const response=await fetch('/api/admin-research-refresh',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},body:JSON.stringify({product_id:productId})});
-      let body={};try{body=await response.json()}catch{}
-      if(!response.ok)throw new Error(body?.message||'AI research is temporarily unavailable. Existing published research is unchanged.');
+      if(!tools?.withTimeout||!tools?.classifyResearchRefresh)throw new Error('Research fetch helper unavailable');
+      const sessionResult=await tools.withTimeout(C.sb.auth.getSession(),15000,'RESEARCH_SESSION_TIMEOUT');
+      const session=sessionResult?.data?.session;if(!session?.access_token)throw new Error('Admin session required');
+      const response=await tools.withTimeout(fetch('/api/admin-research-refresh',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},body:JSON.stringify({product_id:productId})}),90000,'RESEARCH_API_TIMEOUT');
+      let body=null,jsonValid=true;
+      try{body=await tools.withTimeout(response.json(),5000,'RESEARCH_JSON_TIMEOUT')}catch{jsonValid=false}
+      const outcome=tools.classifyResearchRefresh({ok:response.ok,jsonValid,body});
+      if(outcome.kind==='api_error'||outcome.kind==='malformed_response'){notify(outcome.message);return;}
       const entry=state.entryByProduct.get(productId);if(!entry?.id)throw new Error('Research entry is missing for this product.');
-      const version=await insertVersion({research_entry_id:entry.id,product_id:productId,status:body.evidence_gate?.passed?'pending_admin_approval':'draft',provider:body.provider||'unknown',model:body.model||'',profile_json:body.profile||{},sources_json:body.sources||[],evidence_gate_json:body.evidence_gate||{},change_summary_json:body.change_summary||{},provider_metadata_json:body.provider_metadata||{},generated_at:body.generated_at||new Date().toISOString(),submitted_at:new Date().toISOString()});
-      notify('Research draft created');await load();reviewVersion(version.id);
-    }catch(error){notify(error?.message==='Research entry is missing for this product.'?error.message:'AI research is temporarily unavailable. Existing published research is unchanged.');}
-    finally{button.disabled=false;button.textContent='Fetch New Research';}
+      const version=await tools.withTimeout(insertVersion({research_entry_id:entry.id,product_id:productId,status:outcome.status,provider:body.provider||'unknown',model:body.model||'',profile_json:body.profile,sources_json:body.sources,evidence_gate_json:body.evidence_gate,change_summary_json:body.change_summary||{},provider_metadata_json:body.provider_metadata||{},generated_at:body.generated_at||new Date().toISOString(),submitted_at:new Date().toISOString()}),20000,'RESEARCH_INSERT_TIMEOUT');
+      notify(outcome.message);
+      await tools.withTimeout(load(),20000,'RESEARCH_RELOAD_TIMEOUT');
+      reviewVersion(version.id);
+    }catch(error){
+      if(String(error?.code||'').endsWith('_TIMEOUT'))notify('Research request timed out. Please try again. Existing published research is unchanged.');
+      else if(error?.message==='Research entry is missing for this product.')notify(error.message);
+      else notify('AI research is temporarily unavailable. Existing published research is unchanged.');
+    }finally{
+      button.disabled=false;button.textContent='Fetch New Research';
+    }
   }
 
   function modal(html){
