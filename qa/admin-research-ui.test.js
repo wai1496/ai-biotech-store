@@ -8,7 +8,7 @@ assert.match(js,/Authorization/);
 assert.match(js,/window\.view/,'research module must safely wrap the existing admin navigation');
 assert.doesNotMatch(js,/\.from\(['"]research_entries['"]\)\.update\(/i,'admin UI must publish through RPC only');
 assert.match(target,/rpnwssqvurpdennpzplx/,'preview target must use AI BioTech Staging Supabase');
-assert.match(target,/git-(?:feature|review|staging)-/i,'preview/staging host detection must be explicit');
+assert.ok(target.includes('git-(?:feature|review|staging)-'),'preview/staging host detection must be explicit');
 assert.match(target,/createClient/,'preview target must intercept Supabase client creation');
 assert.match(html,/research-staging-target\.js/,'admin must load staging Supabase target shim');
 assert.ok(html.indexOf('research-staging-target.js')<html.indexOf('/admin.js'),'staging target shim must load before admin.js');
