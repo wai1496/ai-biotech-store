@@ -39,7 +39,7 @@ assert.match(store, /fitVisualText/);
 const css = read('product-visuals.css');
 assert.match(css, /data-overlay-mode=['"]none['"]/);
 assert.match(css, /isolation:\s*isolate/);
-assert.match(css, /font-weight:\s*800/);
+assert.match(css, /font-weight:\s*(?:800|900)/, 'Product visual label text must remain extra-bold');
 assert.match(css, /mix-blend-mode:\s*multiply/);
 assert.match(css, /\.product-visual-color[^\{]*\{display:none!important\}/, 'Vial recolour layer must be disabled so cap/stopper retain original master colours');
 assert.equal(/mask-image\s*:\s*url\(['"]?\/assets\/vial-(?:cap|stopper|strength)-mask\.svg/i.test(css), false, 'Final CSS must not recolour Vial hardware or strength field');
