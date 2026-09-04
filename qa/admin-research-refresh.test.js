@@ -35,4 +35,8 @@ assert.strictEqual(
 );
 assert.match(auth,/authorization/i);
 assert.match(auth,/admin_users/);
+assert.match(auth,/VERCEL_ENV/,'server target selection must distinguish production from preview');
+assert.match(auth,/VERCEL_GIT_COMMIT_REF/,'server target selection must inspect branch ref');
+assert.match(auth,/rpnwssqvurpdennpzplx/,'preview Research API must target staging Supabase');
+assert.match(auth,/yjauxyvtrmdriwtmckkl/,'production Research API default must remain production Supabase');
 console.log('admin research refresh contract passed');
