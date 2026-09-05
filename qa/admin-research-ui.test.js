@@ -26,4 +26,14 @@ assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-approval\{[^}]*position:\
 assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-approval-actions[^}]*gap:\s*(?:10px|12px|14px|16px)/i,'mobile action buttons must have safe spacing');
 assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-approval-actions\s+\.btn[^}]*min-height:\s*(?:44px|46px|48px|50px|52px)/i,'mobile action buttons must have Android-safe touch height');
 assert.match(css,/@media\(max-width:720px\)[\s\S]*\.ar-modal-card\{[^}]*max-height:\s*(?:96dvh|97dvh|98dvh|100dvh)/i,'mobile review modal must use more of the viewport');
+
+// Research Catalog list UX: searchable, filterable, paginated, with secondary actions tucked away.
+assert.match(html,/admin-research-catalog-ux\.js/,'admin must load the Research Catalog UX enhancer');
+const uxPath=path.join(root,'admin-research-catalog-ux.js');
+assert.ok(fs.existsSync(uxPath),'Research Catalog UX enhancer missing');
+const ux=read('admin-research-catalog-ux.js');
+for(const marker of ['Search research','All','Needs Review','Published','Not Checked','Load More','ar-more-actions'])assert.match(ux,new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i'),`missing catalog UX marker: ${marker}`);
+assert.match(ux,/PAGE_SIZE\s*=\s*(?:15|20)/,'catalog must limit the initial visible product count');
+assert.match(ux,/data-ar=\"review\"/,'review action must be recognized as a primary action');
+assert.match(ux,/MutationObserver/,'catalog enhancer must survive Research Catalog rerenders');
 console.log('admin research UI contract passed');
