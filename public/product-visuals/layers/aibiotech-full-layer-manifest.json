@@ -1,0 +1,275 @@
+{
+  "package": "AI BioTech full reusable 4-layer asset system",
+  "canvas": "1536x1536",
+  "ratio": "1:1",
+  "format": "transparent WebP RGBA",
+  "base_masters": [
+    "aibiotech-vial-base-master.webp",
+    "aibiotech-pen-base-master.webp"
+  ],
+  "categories": {
+    "metabolism": {
+      "color_slug": "orange",
+      "hex": "#F57C00"
+    },
+    "regeneration": {
+      "color_slug": "green",
+      "hex": "#2EAA61"
+    },
+    "healing": {
+      "color_slug": "red",
+      "hex": "#E63C3C"
+    },
+    "brain-sleep": {
+      "color_slug": "purple",
+      "hex": "#7E57C2"
+    },
+    "bonding": {
+      "color_slug": "pink",
+      "hex": "#FF4FA0"
+    },
+    "longevity": {
+      "color_slug": "gold",
+      "hex": "#D4AF37"
+    },
+    "hormone": {
+      "color_slug": "yellow",
+      "hex": "#E0B300"
+    },
+    "special-blend": {
+      "color_slug": "light-blue",
+      "hex": "#38BDF8"
+    },
+    "solvent": {
+      "color_slug": "blue",
+      "hex": "#2563EB"
+    }
+  },
+  "products": [
+    {
+      "slug": "tirzepatide",
+      "display": "TIRZEPATIDE",
+      "category": "metabolism"
+    },
+    {
+      "slug": "retatrutide",
+      "display": "RETATRUTIDE",
+      "category": "metabolism"
+    },
+    {
+      "slug": "cagrilintide",
+      "display": "CAGRILINTIDE",
+      "category": "metabolism"
+    },
+    {
+      "slug": "aod-9604",
+      "display": "AOD-9604",
+      "category": "metabolism"
+    },
+    {
+      "slug": "mots-c",
+      "display": "MOTS-C",
+      "category": "metabolism"
+    },
+    {
+      "slug": "5-amino-1mq",
+      "display": "5-AMINO-1MQ",
+      "category": "metabolism"
+    },
+    {
+      "slug": "slu-pp-332",
+      "display": "SLU-PP-332",
+      "category": "metabolism"
+    },
+    {
+      "slug": "ghk-cu",
+      "display": "GHK-CU",
+      "category": "regeneration"
+    },
+    {
+      "slug": "ahk-cu",
+      "display": "AHK-CU",
+      "category": "regeneration"
+    },
+    {
+      "slug": "l-glutathione",
+      "display": "L-GLUTATHIONE",
+      "category": "regeneration"
+    },
+    {
+      "slug": "bpc-157",
+      "display": "BPC-157",
+      "category": "healing"
+    },
+    {
+      "slug": "tb-500",
+      "display": "TB-500",
+      "category": "healing"
+    },
+    {
+      "slug": "kpv",
+      "display": "KPV",
+      "category": "healing"
+    },
+    {
+      "slug": "ll-37",
+      "display": "LL-37",
+      "category": "healing"
+    },
+    {
+      "slug": "ara-290",
+      "display": "ARA-290",
+      "category": "healing"
+    },
+    {
+      "slug": "semax",
+      "display": "SEMAX",
+      "category": "brain-sleep"
+    },
+    {
+      "slug": "selank",
+      "display": "SELANK",
+      "category": "brain-sleep"
+    },
+    {
+      "slug": "dsip",
+      "display": "DSIP",
+      "category": "brain-sleep"
+    },
+    {
+      "slug": "pinealon",
+      "display": "PINEALON",
+      "category": "brain-sleep"
+    },
+    {
+      "slug": "snap-8",
+      "display": "SNAP-8",
+      "category": "brain-sleep"
+    },
+    {
+      "slug": "pt-141",
+      "display": "PT-141",
+      "category": "bonding"
+    },
+    {
+      "slug": "oxytocin",
+      "display": "OXYTOCIN",
+      "category": "bonding"
+    },
+    {
+      "slug": "kisspeptin-10",
+      "display": "KISSPEPTIN-10",
+      "category": "bonding"
+    },
+    {
+      "slug": "nad-plus",
+      "display": "NAD+",
+      "category": "longevity"
+    },
+    {
+      "slug": "epithalon",
+      "display": "EPITHALON",
+      "category": "longevity"
+    },
+    {
+      "slug": "ss-31",
+      "display": "SS-31",
+      "category": "longevity"
+    },
+    {
+      "slug": "tesamorelin",
+      "display": "TESAMORELIN",
+      "category": "hormone"
+    },
+    {
+      "slug": "cjc-1295",
+      "display": "CJC-1295",
+      "category": "hormone"
+    },
+    {
+      "slug": "ipamorelin",
+      "display": "IPAMORELIN",
+      "category": "hormone"
+    },
+    {
+      "slug": "cjc-1295-ipamorelin",
+      "display": "CJC-1295 + IPAMORELIN",
+      "category": "hormone"
+    },
+    {
+      "slug": "glow",
+      "display": "GLOW",
+      "category": "special-blend"
+    },
+    {
+      "slug": "klow",
+      "display": "KLOW",
+      "category": "special-blend"
+    },
+    {
+      "slug": "bpc-157-tb-500",
+      "display": "BPC-157 + TB-500",
+      "category": "special-blend"
+    },
+    {
+      "slug": "retatrutide-cagrilintide",
+      "display": "RETATRUTIDE + CAGRILINTIDE",
+      "category": "special-blend"
+    }
+  ],
+  "shared_strengths": {
+    "metabolism": [
+      "5mg",
+      "10mg",
+      "15mg",
+      "20mg",
+      "30mg",
+      "40mg",
+      "50mg",
+      "60mg",
+      "100mg"
+    ],
+    "regeneration": [
+      "50mg",
+      "100mg",
+      "600mg",
+      "1500mg"
+    ],
+    "healing": [
+      "5mg",
+      "10mg"
+    ],
+    "brain-sleep": [
+      "5mg",
+      "10mg",
+      "20mg"
+    ],
+    "bonding": [
+      "5mg",
+      "10mg"
+    ],
+    "longevity": [
+      "10mg",
+      "50mg",
+      "100mg",
+      "500mg",
+      "1000mg"
+    ],
+    "hormone": [
+      "10mg",
+      "20mg"
+    ],
+    "special-blend": [
+      "10mg",
+      "20mg",
+      "70mg",
+      "80mg"
+    ]
+  },
+  "stacking_order": [
+    "base-master",
+    "category-template",
+    "product-name-layer",
+    "strength-layer"
+  ]
+}
