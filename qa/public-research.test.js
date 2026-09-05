@@ -10,6 +10,9 @@ assert.match(insight,/published_version_id/);
 for(const raw of ['GEMINI_API_KEY','OPENAI_API_KEY','AI_QUOTA_EXHAUSTED','Vercel environment'])assert.ok(!insight.includes(raw)&&!html.includes(raw),`public UI must not expose ${raw}`);
 assert.match(insight,/Research profile is being prepared/);
 assert.match(insight,/temporarily unavailable/i);
+// Public sources must render as one clean underlined clickable label, not duplicate title + raw domain lines.
+assert.match(html,/\.ri-sources a\{[^}]*text-decoration:\s*underline/i,'public source links must be visibly underlined');
+assert.match(html,/\.ri-sources a small\{[^}]*display:\s*none/i,'duplicate raw source-domain line must be hidden');
 const catalogPath=path.join(root,'research-approved-catalog.js');
 assert.ok(fs.existsSync(catalogPath),'approved research catalog adapter must exist');
 const catalog=read('research-approved-catalog.js');
