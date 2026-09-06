@@ -8,7 +8,14 @@ assert.match(center,/real\(p,v\)/,'real uploaded variant image priority must rem
 assert.match(center,/cartridgeVisualMode/,'storefront must use shared Cartridge classifier');
 assert.match(center,/cartridge-master-admin\.webp/,'storefront must retain approved standard Cartridge reference');
 assert.match(center,/cartridge-master-approved\.webp/,'storefront must retain bundled Cartridge fallback');
+assert.match(center,/cartridge-master-blank-approved\.webp/,'storefront must retain approved blank Cartridge master');
+assert.match(center,/onerror|catch/,'storefront adapter must retain non-blocking fallback handling');
+assert.match(center,/MASTER NOT UPLOADED|missing/i,'missing compatible master must degrade visibly and non-destructively');
 assert.match(renderer,/function cartridgeVisualMode/,'renderer must own Cartridge short-name classification');
+
+const realIndex=center.indexOf('real(p,v)');
+const renderIndex=center.indexOf('AIBTVisualRenderer.renderPreview');
+assert.ok(realIndex>=0&&renderIndex>realIndex,'real image resolution must occur before dynamic composition');
 
 const sandbox={window:{}};
 vm.runInNewContext(renderer,sandbox,{filename:'visual-renderer.js'});
