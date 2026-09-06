@@ -25,6 +25,10 @@
     if(rr){el.innerHTML=`<img src="${rr}" alt="${p.name}">`;return}
     const form=v?.form||'Vial',src=masters[form];
     if(!src){el.innerHTML=`<div class="missing"><b>${form} MASTER NOT UPLOADED</b><br><small>Admin → Master Placeholders</small></div>`;return}
+    if(form==='Cartridge'){
+      el.innerHTML=`<img src="${src}" alt="${p.name}">`;
+      return;
+    }
     const im=new Image();
     im.onload=()=>{
       const c=document.createElement('canvas'),x=c.getContext('2d');
