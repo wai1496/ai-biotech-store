@@ -12,10 +12,16 @@
   };
   function normalizeLabel(v){return String(v??'').replace(/\s+\d+(?:\.\d+)?\s*(?:MG|ML)$/i,'').trim()}
   function normalizeStrength(v){return String(v??'').trim().replace(/\s+/g,'')}
+  function fieldMaxWidth(field){const span=field.w||field.maxW||1;return Math.max(1,span-((field.pad||0)*2))}
   function fitFontSize(measure,text,field){
-    const span=field.w||field.maxW||1,maxW=Math.max(1,span-((field.pad||0)*2));
+    const maxW=fieldMaxWidth(field);
     for(let size=field.max;size>field.min;size--){if(measure(String(text||''),size)<=maxW)return size}
     return field.min;
+  }
+  function fitTextLayout(measure,text,field){
+    const value=String(text||''),size=fitFontSize(measure,value,field),maxW=fieldMaxWidth(field),measured=Math.max(0,Number(measure(value,size))||0);
+    const scaleX=measured>maxW&&measured>0?Math.max(.55,maxW/measured):1;
+    return {size,scaleX,maxW,measured};
   }
   function cssRgb(hex){
     const s=String(hex||'#18c9ff').trim();
@@ -40,17 +46,15 @@
   function measureWidth(ctx,text,size,weight){ctx.font=`${weight} ${size}px Arial`;const m=ctx.measureText(String(text||''));return (m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0)}
   function printField(ctx,text,field,fill){
     text=String(text||'').trim();if(!text)return;
-    const size=fitFontSize((t,s)=>measureWidth(ctx,t,s,field.weight),text,field);
-    ctx.save();ctx.beginPath();ctx.rect(field.x,field.y,field.w,field.h);ctx.clip();ctx.font=`${field.weight} ${size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;
-    const m=ctx.measureText(text),left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left,cx=field.x+field.w/2,cy=field.y+field.h/2;
-    ctx.textAlign='left';ctx.fillText(text,cx-(ink/2)-left,cy);ctx.restore();
+    const layout=fitTextLayout((t,s)=>measureWidth(ctx,t,s,field.weight),text,field),cx=field.x+field.w/2,cy=field.y+field.h/2;
+    ctx.save();ctx.beginPath();ctx.rect(field.x,field.y,field.w,field.h);ctx.clip();ctx.font=`${field.weight} ${layout.size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;ctx.textAlign='center';
+    ctx.translate(cx,cy);ctx.scale(layout.scaleX,1);ctx.fillText(text,0,0);ctx.restore();
   }
   function printCenteredField(ctx,text,field,fill){
     text=String(text||'').trim();if(!text)return;
-    const size=fitFontSize((t,s)=>measureWidth(ctx,t,s,field.weight),text,field);
-    ctx.save();ctx.font=`${field.weight} ${size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;
-    const m=ctx.measureText(text),left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left;
-    ctx.textAlign='left';ctx.fillText(text,field.cx-(ink/2)-left,field.cy);ctx.restore();
+    const layout=fitTextLayout((t,s)=>measureWidth(ctx,t,s,field.weight),text,field);
+    ctx.save();ctx.font=`${field.weight} ${layout.size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;ctx.textAlign='center';
+    ctx.translate(field.cx,field.cy);ctx.scale(layout.scaleX,1);ctx.fillText(text,0,0);ctx.restore();
   }
   function loadImage(url){return new Promise((resolve,reject)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('Could not load master image'));im.src=url})}
   function drawContained(ctx,img){const sc=Math.min(SIZE/img.width,SIZE/img.height),w=img.width*sc,h=img.height*sc;ctx.drawImage(img,(SIZE-w)/2,(SIZE-h)/2,w,h)}
@@ -69,5 +73,5 @@
     if(form==='Cartridge'&&cartridgeBlank)return {mode:'blank-master-awaiting-field-map',format:form};
     throw new Error(`Unsupported format: ${form}`);
   }
-  global.AIBTVisualRenderer={SIZE,PEN_FIELDS,VIAL_FIELDS,normalizeLabel,normalizeStrength,fitFontSize,renderPreview};
+  global.AIBTVisualRenderer={SIZE,PEN_FIELDS,VIAL_FIELDS,normalizeLabel,normalizeStrength,fitFontSize,fitTextLayout,renderPreview};
 })(typeof window!=='undefined'?window:globalThis);
