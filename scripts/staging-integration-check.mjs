@@ -10,7 +10,7 @@ const walletEndpoints=['api/staging-wallet/start.js','api/staging-wallet/callbac
 const shipEndpoints=['api/staging-shipping/rates.js','api/staging-shipping/book.js','api/staging-shipping/pay.js','api/staging-shipping/status.js'];
 const walletFiles=['api/staging-wallet/_shared.js',...walletEndpoints];
 const shipFiles=['api/staging-shipping/_shared.js',...shipEndpoints];
-const walletText=walletFiles.map(read).join('\n'),shipText=shipFiles.map(read).join('\n'),pay=read('api/staging-shipping/pay.js'),callback=read('api/staging-wallet/callback.js'),walletShared=read('api/staging-wallet/_shared.js'),shipShared=read('api/staging-shipping/_shared.js'),opsEp=read('ops-easyparcel.js');
+const walletText=walletFiles.map(read).join('\n'),shipText=shipFiles.map(read).join('\n'),pay=read('api/staging-shipping/pay.js'),book=read('api/staging-shipping/book.js'),rates=read('api/staging-shipping/rates.js'),shipStatus=read('api/staging-shipping/status.js'),callback=read('api/staging-wallet/callback.js'),walletShared=read('api/staging-wallet/_shared.js'),shipShared=read('api/staging-shipping/_shared.js'),opsEp=read('ops-easyparcel.js');
 if(!agent.includes('member_get_agent_dashboard'))fail.push('Agent member dashboard is not wired to member_get_agent_dashboard');
 if(!memberHtml.includes('/staging-member-agent.js'))fail.push('Member Area is not loading Agent dashboard module');
 if(!referralUI.includes('ops_assign_agent_referral')||!referralUI.includes('Confirm Referral Attribution'))fail.push('Agent referral workspace is not wired to audited preview/confirm assignment');
@@ -32,17 +32,21 @@ if(walletText.includes('https://toyyibpay.com')&&!walletText.includes('https://d
 for(const token of ['TOYYIBPAY_SANDBOX_SECRET_KEY','STAGING_SUPABASE_SERVICE_ROLE_KEY'])if(!walletShared.includes(token))fail.push(`ToyyibPay adapter missing server env token ${token}`);
 if(!callback.includes('expectedHash')||!callback.includes('getBillTransactions')||!callback.includes('service_capture_wallet_topup'))fail.push('ToyyibPay callback must verify hash, verify transaction and use service-role wallet capture');
 if(walletUI.includes('service_capture_wallet_topup')||walletUI.includes('service_fail_wallet_topup'))fail.push('Member browser code must never call wallet capture/failure service functions');
-if(!shipShared.includes("https://demo.connect.easyparcel.my/?ac="))fail.push('EasyParcel staging adapter must use demo endpoint');
-if(shipText.includes("const EP='https://connect.easyparcel.my")||shipText.includes('https://connect.easyparcel.my/?ac='))fail.push('EasyParcel staging adapter references live endpoint');
-for(const token of ['EASYPARCEL_DEMO_API_KEY','STAGING_SUPABASE_SERVICE_ROLE_KEY'])if(!shipShared.includes(token))fail.push(`EasyParcel adapter missing server env token ${token}`);
-if(!pay.includes('confirm_payment')||!pay.includes("String(b.confirm_payment)!=='true'"))fail.push('EasyParcel payment endpoint must require explicit confirm_payment=true');
-if(!opsEp.includes('I Understand — Pay EasyParcel Credit'))fail.push('Operations EasyParcel financial confirmation UI is missing');
+if(!shipShared.includes('https://api.easyparcel.com/open_api/2026-06'))fail.push('EasyParcel staging adapter must use OAuth OpenAPI 2026-06');
+if(shipShared.includes('demo.connect.easyparcel.my')||shipShared.includes('EASYPARCEL_DEMO_API_KEY'))fail.push('EasyParcel staging adapter still references the legacy demo API-key integration');
+for(const token of ['EASYPARCEL_CLIENT_ID','EASYPARCEL_CLIENT_SECRET','STAGING_SUPABASE_SERVICE_ROLE_KEY','easyparcel_get_oauth_tokens','refresh_token'])if(!shipShared.includes(token))fail.push(`EasyParcel OAuth adapter missing server contract token ${token}`);
+if(!rates.includes('/shipment/quotations'))fail.push('EasyParcel rates endpoint must use OpenAPI shipment quotations');
+if(!book.includes('/shipment/submit_orders')||!book.includes('confirm_payment')||!book.includes("String(b.confirm_payment)!=='true'"))fail.push('EasyParcel shipment submission must use OpenAPI submit_orders and require explicit confirm_payment=true');
+if(!shipStatus.includes('/shipment/tracking_status'))fail.push('EasyParcel status sync must use OpenAPI tracking_status');
+if(!pay.includes('410')||!pay.includes('confirm_payment'))fail.push('Legacy EasyParcel pay endpoint must be retired safely and retain explicit financial-action protection');
+if(!opsEp.includes('I Understand — Submit & Pay EasyParcel'))fail.push('Operations EasyParcel submit/payment confirmation UI is missing');
+if(opsEp.includes("api('pay'"))fail.push('Operations must not call the retired EasyParcel separate payment endpoint');
 for(const rpc of ['service_store_shipping_quotes','service_record_easyparcel_booking','service_record_easyparcel_payment','service_record_easyparcel_status'])if(!shipText.includes(rpc))fail.push(`EasyParcel adapter missing service RPC ${rpc}`);
 if(!opsHtml.includes('/ops-easyparcel.js')||!opsHtml.includes('/ops-adapter-settings.js'))fail.push('Operations is not loading EasyParcel/configuration workspaces');
-if(!statusApi.includes("VERCEL_ENV==='production'")||!statusApi.includes('TOYYIBPAY_SANDBOX_SECRET_KEY')||!statusApi.includes('EASYPARCEL_DEMO_API_KEY'))fail.push('Integration readiness endpoint is not production-blocked or does not check required server credentials');
+if(!statusApi.includes("VERCEL_ENV==='production'")||!statusApi.includes('TOYYIBPAY_SANDBOX_SECRET_KEY')||!statusApi.includes('EASYPARCEL_CLIENT_ID')||!statusApi.includes('EASYPARCEL_CLIENT_SECRET')||!statusApi.includes("legacy_demo_key_required:false"))fail.push('Integration readiness endpoint is not production-blocked or does not report OAuth OpenAPI requirements');
 for(const token of ['wallet_topup_enabled','wallet_topup_min','wallet_topup_max','shipping_mode:\'flat\'','secrets_stored_client_side:false'])if(!adapterUI.includes(token))fail.push(`Safe adapter settings UI missing contract token: ${token}`);
-if(adapterUI.includes("status:'ready'")||shipText.includes("status!=='ready'")||opsEp.includes("status==='ready'"))fail.push('Integration code must use canonical healthy state, not unsupported ready state');
+if(adapterUI.includes("status:'ready'")||shipText.includes("status!=='ready'")||opsEp.includes("status==='ready'"))fail.push('Integration code must not use unsupported ready state');
 const obviousSecrets=[/sb_secret_[A-Za-z0-9_-]{10,}/,/sk-proj-[A-Za-z0-9_-]{10,}/,/userSecretKey\s*[:=]\s*['"][^'"]{8,}['"]/];
 for(const [name,text] of [...walletFiles.map(f=>[f,read(f)]),...shipFiles.map(f=>[f,read(f)]),['ops-adapter-settings.js',adapterUI],['api/staging-integrations/status.js',statusApi]])for(const re of obviousSecrets)if(re.test(text))fail.push(`${name}: possible embedded secret detected`);
 if(fail.length){console.error('Staging integration check FAILED:\n- '+[...new Set(fail)].join('\n- '));process.exit(1)}
-console.log('Staging integration check passed: Agent dashboard/referrals/dropship, readiness-gated configuration, ToyyibPay sandbox wallet verification and explicitly confirmed EasyParcel demo payment are enforced.');
+console.log('Staging integration check passed: Agent dashboard/referrals/dropship, ToyyibPay sandbox verification and EasyParcel OAuth OpenAPI 2026-06 with explicit wallet-charge confirmation are enforced.');
