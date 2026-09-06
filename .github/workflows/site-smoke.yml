@@ -37,6 +37,8 @@ jobs:
         run: node qa/mobile-member-nav.test.js
       - name: Validate continue-shopping cart flow
         run: node qa/cart-continue-shopping.test.js
+      - name: Validate ToyyibPay sandbox flow
+        run: node qa/toyyibpay-sandbox.test.js
       - name: Validate JavaScript syntax
         shell: bash
         run: |
