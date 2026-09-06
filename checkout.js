@@ -21,6 +21,24 @@ async function ensureOwnProfile(){
   const {error}=await csb.rpc('ensure_my_customer_profile');
   if(error)throw new Error('We could not prepare your member profile. Please sign out and sign in again.');
 }
+async function paymentSession(){
+  const {data:{session}}=await csb.auth.getSession();
+  if(!session?.access_token)throw new Error('Please sign in again before payment.');
+  return session;
+}
+async function ensureSandboxPaymentReady(){
+  const session=await paymentSession();
+  const r=await fetch('/api/toyyibpay-create',{method:'GET',headers:{Authorization:`Bearer ${session.access_token}`}});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok||data.mode!=='sandbox')throw new Error(data.error||'Main-store sandbox payment is not configured yet.');
+  return session;
+}
+async function startSandboxPayment(orderId,session){
+  const r=await fetch('/api/toyyibpay-create',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${session.access_token}`},body:JSON.stringify({orderId})});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok||data.mode!=='sandbox'||!data.paymentUrl)throw new Error(data.error||'Could not start ToyyibPay sandbox payment.');
+  return data;
+}
 async function syncCart(){
   cartIssues=[];
   const ids=[...new Set(cart.map(x=>x.variantId).filter(Boolean))];
@@ -74,13 +92,16 @@ async function placeOrder(){
   if(!cart.length)return msg('Your cart is empty.');if(cart.some(x=>x.unavailable))return msg('Remove unavailable items before checkout.');
   let address=checkoutAddress.value==='new'?newAddress:addresses[Number(checkoutAddress.value)]||null;if(!address)return msg('Choose or enter a shipping address.');
   const t=totals();if(t.walletUse>wallet)return msg('Wallet amount is higher than your available balance.');if(t.walletUse>t.sub+t.shipping)return msg('Wallet amount cannot exceed the order total.');
-  placeOrderBtn.disabled=true;placeOrderBtn.textContent='Creating order…';msg('');
+  placeOrderBtn.disabled=true;placeOrderBtn.textContent='Preparing sandbox payment…';msg('');
   try{
     await ensureOwnProfile();
+    const session=await ensureSandboxPaymentReady();
     const items=cart.map(x=>({variant_id:x.variantId,quantity:Number(x.qty)})),key='web-'+crypto.randomUUID(),voucher=voucherCode.value.trim()||null;
     const {data,error}=await csb.rpc('create_order',{p_items:items,p_checkout_key:key,p_voucher_code:voucher,p_shipping_fee:t.shipping,p_wallet_amount:t.walletUse,p_shipping_address:address,p_billing_address:address,p_notes:checkoutNote.value.trim()});
     if(error)throw error;
-    localStorage.removeItem('aibt_cart');cart=[];renderCart();msg('Order created successfully. Order ID: '+data);setTimeout(()=>location.href='/member.html',1200);
+    const payment=await startSandboxPayment(data,session);
+    msg('Redirecting to ToyyibPay sandbox…');
+    location.href=payment.paymentUrl;
   }catch(e){msg(e.message||String(e))}finally{placeOrderBtn.disabled=false;placeOrderBtn.textContent='PLACE ORDER'}
 }
 walletAmount.addEventListener('input',renderTotals);
