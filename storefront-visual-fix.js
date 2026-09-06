@@ -16,6 +16,16 @@ const CATEGORY_BY_HEX=Object.freeze({
  '#38BDF8':{template:'special-blend-light-blue',strength:'light-blue'},
  '#2563EB':{template:'solvent-blue',strength:'blue'}
 });
+const PRODUCT_CATEGORY_HEX=Object.freeze({
+ 'retatrutide':'#F57C00','cagrilintide':'#F57C00','semaglutide':'#F57C00','tirzepatide':'#F57C00','aod-9604':'#F57C00','mots-c':'#F57C00','slu-pp-332':'#F57C00','retatrutide-cagrilintide':'#F57C00','semaglutide-cagrilintide':'#F57C00','5-amino-1mq':'#F57C00',
+ 'ghk-cu':'#2EAA61','ahk-cu':'#2EAA61','snap-8':'#2EAA61','l-glutathione':'#2EAA61',
+ 'bpc-157':'#E63C3C','tb-500':'#E63C3C','kpv':'#E63C3C','ll-37':'#E63C3C','ara-290':'#E63C3C','bpc-157-tb-500':'#E63C3C',
+ 'semax':'#8052B5','selank':'#8052B5','dsip':'#8052B5','pinealon':'#8052B5',
+ 'pt-141':'#FF4FA0','oxytocin':'#FF4FA0','kisspeptin-10':'#FF4FA0',
+ 'nad-plus':'#D4AF37','epithalon':'#D4AF37','ss-31':'#D4AF37',
+ 'tesamorelin':'#E0B300','ipamorelin':'#E0B300','cjc-1295':'#E0B300','cjc-1295-ipamorelin':'#E0B300',
+ 'glow':'#38BDF8','klow':'#38BDF8','bacteriostatic-water':'#2563EB'
+});
 function normalHex(value){
  const v=String(value||'').trim().toUpperCase();
  if(/^#[0-9A-F]{6}$/.test(v))return v;
@@ -68,6 +78,67 @@ function applyVialLayers(root=document){applyLayeredFormat(root,'Vial',VIAL_BASE
 function applyPenLayers(root=document){applyLayeredFormat(root,'Pen',PEN_BASE,'pen')}
 function applyProductLayers(root=document){applyVialLayers(root);applyPenLayers(root)}
 function scheduleProductLayers(){requestAnimationFrame(()=>requestAnimationFrame(()=>applyProductLayers()))}
+
+function itemCategoryHex(item){
+ const explicit=normalHex(item?.categoryHex||item?.categoryColor||'');
+ if(CATEGORY_BY_HEX[explicit])return explicit;
+ return PRODUCT_CATEGORY_HEX[slugName(item?.name)]||'#2563EB';
+}
+function buildLayeredItemVisual(item,className='aibt-cart-product-visual',size=68){
+ const format=String(item?.format||'').trim();
+ const box=document.createElement('div');
+ box.className=className;
+ box.dataset.format=format;
+ box.dataset.name=String(item?.name||'');
+ box.dataset.strength=String(item?.strength||'');
+ Object.assign(box.style,{position:'relative',width:`${size}px`,height:`${size}px`,minWidth:`${size}px`,overflow:'hidden',borderRadius:'10px',background:'#f6f8fb'});
+ if(format==='Cartridge'){
+  if(item?.image)box.appendChild(layerImage(item.image,'aibt-cartridge-direct',String(item?.name||'Cartridge')));
+  return box;
+ }
+ const prefix=format==='Vial'?'vial':format==='Pen'?'pen':'';
+ if(!prefix){if(item?.image)box.appendChild(layerImage(item.image,'aibt-direct-fallback',String(item?.name||'')));return box}
+ const hex=itemCategoryHex(item),spec=CATEGORY_BY_HEX[hex];
+ if(!spec){if(item?.image)box.appendChild(layerImage(item.image,'aibt-direct-fallback',String(item?.name||'')));return box}
+ const base=prefix==='vial'?VIAL_BASE:PEN_BASE;
+ box.dataset.categoryHex=hex;
+ box.appendChild(layerImage(base,`aibt-${prefix}-base`,`${item?.name||''} ${item?.strength||''} ${format}`));
+ box.appendChild(layerImage(`${VIAL_LAYER_ROOT}/templates/aibiotech-${prefix}-template-${spec.template}.webp`,`aibt-${prefix}-category`));
+ box.appendChild(layerImage(`${VIAL_LAYER_ROOT}/names/aibiotech-${prefix}-name-${slugName(item?.name)}.webp`,`aibt-${prefix}-name`));
+ box.appendChild(layerImage(`${VIAL_LAYER_ROOT}/strengths/aibiotech-${prefix}-strength-${slugStrength(item?.strength)}-${spec.strength}.webp`,`aibt-${prefix}-strength`));
+ return box;
+}
+function decorateItemRow(row,item,className,size){
+ if(!row||!item)return;
+ const signature=[item.variantId||'',item.name||'',item.strength||'',item.format||'',itemCategoryHex(item),item.image||''].join('|');
+ const existing=row.querySelector(`.${className}`);
+ if(existing?.dataset.signature===signature)return;
+ row.querySelectorAll(`:scope > img,:scope > .${className}`).forEach(el=>el.remove());
+ const node=buildLayeredItemVisual(item,className,size);node.dataset.signature=signature;
+ row.insertBefore(node,row.firstChild);
+}
+function readStagingCart(){try{return JSON.parse(localStorage.getItem('aibt_staging_cart')||'[]')}catch{return []}}
+function decorateCartVisuals(){
+ const items=readStagingCart();
+ document.querySelectorAll('#cartItems .cart-item').forEach((row,index)=>decorateItemRow(row,items[index],'aibt-cart-product-visual',68));
+}
+function scheduleCartVisuals(){requestAnimationFrame(()=>requestAnimationFrame(decorateCartVisuals));setTimeout(decorateCartVisuals,80)}
+function persistCartCategory(productId){
+ const card=document.getElementById(`card-${productId}`);
+ const hex=normalHex(card?getComputedStyle(card).getPropertyValue('--cat').trim():'');
+ if(!CATEGORY_BY_HEX[hex])return;
+ const rows=readStagingCart();let changed=false;
+ rows.forEach(item=>{if(item.productId===productId&&item.categoryHex!==hex){item.categoryHex=hex;changed=true}});
+ if(changed)localStorage.setItem('aibt_staging_cart',JSON.stringify(rows));
+}
+window.AIBT_LAYER_VISUALS=Object.freeze({
+  categoryByHex:CATEGORY_BY_HEX,
+  categoryHex:itemCategoryHex,
+  buildVisual:buildLayeredItemVisual,
+  decorateRow:decorateItemRow,
+  decorateCart:decorateCartVisuals
+});
+
 function wrapRenderAction(name){
  const original=window[name];if(typeof original!=='function'||original.__aibtLayerPatched)return;
  const wrapped=function(...args){const result=original.apply(this,args);scheduleProductLayers();setTimeout(scheduleProductLayers,80);return result};
@@ -77,6 +148,19 @@ function bindProductLayerActions(){
  ['changeStrength','changeFormat','showAllProducts','setCategory','applyFilters','searchCatalog'].forEach(wrapRenderAction);
  applyProductLayers();
  [120,350,800,1600].forEach(ms=>setTimeout(()=>{applyProductLayers();bindProductLayerActions()},ms));
+}
+function patchCartActions(){
+ const add=window.addToCart;
+ if(typeof add==='function'&&!add.__aibtCartLayerPatched){
+  const wrapped=function(id,...args){const result=add.call(this,id,...args);persistCartCategory(id);scheduleCartVisuals();return result};
+  wrapped.__aibtCartLayerPatched=true;window.addToCart=wrapped;
+ }
+ ['openCart','cartQty','removeCart'].forEach(name=>{
+  const original=window[name];if(typeof original!=='function'||original.__aibtCartLayerPatched)return;
+  const wrapped=function(...args){const result=original.apply(this,args);scheduleCartVisuals();return result};
+  wrapped.__aibtCartLayerPatched=true;window[name]=wrapped;
+ });
+ decorateCartVisuals();
 }
 
 function ensureFaq(){
@@ -121,6 +205,7 @@ function patchProductInfoVisual(){
    layout.insertBefore(visual,stage);
    visual.appendChild(stage);
    window.fitVisualText?.(visual);
+   scheduleProductLayers();
   }));
   return result;
  };
@@ -180,9 +265,11 @@ function init(){
  patchResearchNavigation();
  patchModalClose();
  bindProductLayerActions();
+ patchCartActions();
  setTimeout(patchProductInfoVisual,150);
  setTimeout(patchResearchNavigation,150);
  setTimeout(patchResearchNavigation,700);
+ [150,500,1200].forEach(ms=>setTimeout(patchCartActions,ms));
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
