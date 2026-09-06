@@ -41,8 +41,18 @@
           <button type="button" data-accent="#FF3EA5">Wellness</button>
           <button type="button" data-accent="#38BDF8">Blend</button>
         </div>
-        <label>Master source
+        <label>Master source URL
           <input id="vcMaster" type="url" placeholder="Master image URL">
+        </label>
+        <label>Local master image (browser only)
+          <input id="vcLocalMaster" type="file" accept="image/png,image/jpeg,image/webp">
+        </label>
+        <p class="vc-hint" id="vcLocalHint">Local files are previewed only in this browser tab and are never uploaded.</p>
+        <label>Vial cap
+          <select id="vcVialCapMode">
+            <option value="white" selected>Keep White</option>
+            <option value="category">Follow Category Colour</option>
+          </select>
         </label>
         <p class="vc-hint" id="vcMasterHint">Choose/load a blank Vial or Pen master. Cartridge remains reference-only until a verified blank master is available.</p>
         <div class="vc-actions"><button id="vcRender" type="button">Render Preview</button><button id="vcReset" type="button" class="secondary">Reset</button></div>
@@ -61,7 +71,7 @@
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/visual-renderer.js?v=20260907"></script>
-  <script src="/visual-composer.js?v=20260907"></script>
+  <script src="/visual-renderer.js?v=2026090702"></script>
+  <script src="/visual-composer.js?v=2026090702"></script>
 </body>
 </html>
