@@ -36,6 +36,8 @@ jobs:
         run: node scripts/staging-control-check.mjs
       - name: Validate staging integration safety
         run: node scripts/staging-integration-check.mjs
+      - name: Validate EasyParcel OAuth security contract
+        run: node tests/easyparcel-oauth-contract.test.js
       - name: Validate automation dry-run safety
         run: node scripts/staging-automation-check.mjs
       - name: Validate recovery safety
