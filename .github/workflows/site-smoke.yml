@@ -33,6 +33,8 @@ jobs:
         run: node qa/storefront-runtime-visuals.test.js
       - name: Validate Malaysia checkout address flow
         run: node qa/checkout-malaysia-address.test.js
+      - name: Validate mobile member navigation
+        run: node qa/mobile-member-nav.test.js
       - name: Validate JavaScript syntax
         shell: bash
         run: |
