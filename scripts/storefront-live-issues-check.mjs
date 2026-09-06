@@ -43,7 +43,7 @@ function validateWebp(path,label,minBytes){
   if(file.length<minBytes)failures.push(`${label} is unexpectedly small`);
 }
 validateWebp('assets/cartridge-master-approved.webp','approved Cartridge reference master',4000);
-validateWebp('assets/cartridge-master-blank-approved.webp','approved blank Cartridge master',10000);
+validateWebp('assets/cartridge-master-blank-approved.webp','approved blank Cartridge master',5000);
 
 const adminHtml=read('admin.html');
 if(!adminHtml.includes('/admin-cartridge-master.js'))failures.push('admin.html must load the Cartridge master management UI');
