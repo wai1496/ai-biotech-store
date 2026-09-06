@@ -1,0 +1,13 @@
+const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm');
+const root=path.join(__dirname,'..');
+const source=fs.readFileSync(path.join(root,'visual-renderer.js'),'utf8');
+const controller=fs.readFileSync(path.join(root,'visual-composer.js'),'utf8');
+const sandbox={window:{}};vm.runInNewContext(source,sandbox,{filename:'visual-renderer.js'});
+const R=sandbox.window.AIBTVisualRenderer;
+assert.equal(typeof R.canUseDynamicCartridge,'function','renderer must expose Cartridge eligibility rule');
+for(const name of ['GHK-CU','CAGRILINTIDE','RETATRUTIDE','BPC-157'])assert.equal(R.canUseDynamicCartridge(name),true,`${name} should use dynamic Cartridge`);
+for(const name of ['CJC-1295 WITHOUT DAC + IPAMORELIN','SEMAGLUTIDE + CAGRILINTIDE','OXYTOCIN ACETATE'])assert.equal(R.canUseDynamicCartridge(name),false,`${name} should fall back to standard Cartridge`);
+assert.match(controller,/canUseDynamicCartridge/,'controller must consult Cartridge eligibility rule');
+assert.match(controller,/CARTRIDGE_REFERENCE_URL/,'long-name fallback must use standard printed Cartridge reference');
+assert.match(controller,/standard printed Cartridge/i,'UI must explain the long-name fallback');
+console.log('visual composer Cartridge fallback contract passed');
