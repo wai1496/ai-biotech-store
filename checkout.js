@@ -17,6 +17,10 @@ function renderCart(){
 }
 function addressText(a){return `${a.label||'Address'} — ${a.recipient_name}, ${a.line1}${a.line2?' '+a.line2:''}, ${a.postcode} ${a.city}, ${a.state}`}
 function renderAddresses(){checkoutAddress.innerHTML=addresses.map((a,i)=>`<option value="${i}">${esc(addressText(a))}</option>`).join('')+(newAddress?`<option value="new" selected>${esc(addressText(newAddress))}</option>`:'');if(!addresses.length&&!newAddress)checkoutAddress.innerHTML='<option value="">No saved address</option>'}
+async function ensureOwnProfile(){
+  const {error}=await csb.rpc('ensure_my_customer_profile');
+  if(error)throw new Error('We could not prepare your member profile. Please sign out and sign in again.');
+}
 async function syncCart(){
   cartIssues=[];
   const ids=[...new Set(cart.map(x=>x.variantId).filter(Boolean))];
@@ -39,6 +43,7 @@ async function init(){
   if(settings)store=settings;
   if(!user){checkoutLogin.hidden=false;checkoutApp.hidden=true;return}
   me=user;checkoutLogin.hidden=true;checkoutApp.hidden=false;
+  try{await ensureOwnProfile()}catch(e){msg(e.message)}
   await syncCart();
   const [{data:a},{data:w}]=await Promise.all([csb.from('addresses').select('*').eq('user_id',user.id).order('is_default',{ascending:false}),csb.from('wallet_accounts').select('balance').eq('user_id',user.id).maybeSingle()]);
   addresses=a||[];wallet=Number(w?.balance||0);checkoutWallet.textContent=money(wallet);renderAddresses();renderCart();
@@ -59,9 +64,10 @@ async function applyNewAddress(){
   if(!a)return addressMsg('Please complete all required fields. Postcode must be 5 digits.');
   newAddress=a;renderAddresses();checkoutAddress.value='new';addressMsg('Address ready for this order.');
   if(!saveAddressBook.checked)return;
+  try{await ensureOwnProfile()}catch(e){addressMsg(e.message+' The address can still be used for this order.');return;}
   const row={...a,user_id:me.id,is_default:addresses.length===0};
   const {data,error}=await csb.from('addresses').insert(row).select('*').single();
-  if(error){addressMsg('Address will be used for this order, but could not be saved: '+error.message);return;}
+  if(error){addressMsg('Address is ready for this order, but saving failed. Please try again.');return;}
   addresses=[data,...addresses];newAddress=null;renderAddresses();checkoutAddress.value='0';newAddressForm.hidden=true;addressMsg('Address saved to your address book.');
 }
 async function placeOrder(){
@@ -70,6 +76,7 @@ async function placeOrder(){
   const t=totals();if(t.walletUse>wallet)return msg('Wallet amount is higher than your available balance.');if(t.walletUse>t.sub+t.shipping)return msg('Wallet amount cannot exceed the order total.');
   placeOrderBtn.disabled=true;placeOrderBtn.textContent='Creating order…';msg('');
   try{
+    await ensureOwnProfile();
     const items=cart.map(x=>({variant_id:x.variantId,quantity:Number(x.qty)})),key='web-'+crypto.randomUUID(),voucher=voucherCode.value.trim()||null;
     const {data,error}=await csb.rpc('create_order',{p_items:items,p_checkout_key:key,p_voucher_code:voucher,p_shipping_fee:t.shipping,p_wallet_amount:t.walletUse,p_shipping_address:address,p_billing_address:address,p_notes:checkoutNote.value.trim()});
     if(error)throw error;
