@@ -29,7 +29,8 @@
   }
   function updateFormatHint(){
     const isVial=els.format.value==='Vial';els.vialCapMode.disabled=!isVial;
-    els.hint.textContent=els.format.value==='Cartridge'?'Cartridge uses the approved public reference asset only. Dynamic name/strength injection stays disabled until a verified blank master and field map are available.':isVial?'Vial: White cap is the approved Vial default. Hardware stays fixed; only label accents, name and strength are dynamic. Category cap remains preview-only.':'Pen: blank master + fixed print fields. Long names shrink automatically; short names stay larger and centered.';
+    if(els.format.value==='Cartridge')els.hint.textContent=localMasterUrl?'Cartridge: approved blank local master active. Name, strength and orange accent areas are dynamic; silver cap, glass, blue liquid and black plunger stay fixed.':'Cartridge: choose the approved blank Cartridge master as a browser-local image to enable dynamic name/strength rendering. The public printed reference stays reference-only.';
+    else els.hint.textContent=isVial?'Vial: White cap is the approved Vial default. Hardware stays fixed; only label accents, name and strength are dynamic. Category cap remains preview-only.':'Pen: blank master + fixed print fields. Long names shrink automatically; short names stay larger and centered.';
   }
   async function loadPublishedProducts(){
     if(!db){els.catalogHint.textContent='Read-only catalog lookup unavailable; manual input remains available.';return}
@@ -49,17 +50,18 @@
       if(error)throw error;for(const row of data||[])if(row?.format&&row?.master_image_url&&row.format!=='Cartridge')masterTemplates.set(row.format,row);applyCatalogSelection();
     }catch(_){/* manual master input remains available */}
   }
-  function clearLocalMaster(){if(localMasterUrl){URL.revokeObjectURL(localMasterUrl);localMasterUrl=''}els.localMaster.value='';els.localHint.textContent='Local files are previewed only in this browser tab and are never uploaded.'}
+  function clearLocalMaster(){if(localMasterUrl){URL.revokeObjectURL(localMasterUrl);localMasterUrl=''}els.localMaster.value='';els.localHint.textContent='Local files are previewed only in this browser tab and are never uploaded.';updateFormatHint()}
   function useLocalMaster(file){
-    if(!file)return;clearLocalMaster();localMasterUrl=URL.createObjectURL(file);els.master.value='';delete els.master.dataset.auto;els.localHint.textContent=`Using local preview only: ${file.name}. Nothing was uploaded.`;setMessage('Local master loaded in this browser only.','ok');
+    if(!file)return;clearLocalMaster();localMasterUrl=URL.createObjectURL(file);els.master.value='';delete els.master.dataset.auto;els.localHint.textContent=`Using local preview only: ${file.name}. Nothing was uploaded.`;setMessage('Local master loaded in this browser only.','ok');updateFormatHint();
   }
   async function render(){
     const v=current(),problem=validate(v);if(problem){setMessage(problem,'error');return}
     els.render.disabled=true;setMessage('Rendering preview…');
     try{
-      const result=await window.AIBTVisualRenderer.renderPreview({canvas:els.canvas,...v,cartridgeBlank:false});
+      const result=await window.AIBTVisualRenderer.renderPreview({canvas:els.canvas,...v,cartridgeBlank:!!(localMasterUrl&&v.format==='Cartridge')});
       setMeta({product:v.productName,strength:v.strength,format:v.format,mode:result.mode});
-      if(result.mode==='reference-only')setMessage('Cartridge is reference-only in Phase 1 until a verified blank master and field map are available.','ok');
+      if(result.mode==='reference-only')setMessage('Cartridge public reference is read-only. Load the approved blank Cartridge master locally to enable dynamic rendering.','ok');
+      else if(v.format==='Cartridge')setMessage('Dynamic Cartridge preview rendered from the browser-local blank master. Review vertical name fit, strength, category colour and fixed hardware.','ok');
       else if(v.format==='Vial'&&v.vialCapMode==='white')setMessage('Preview rendered with approved white Vial cap. Review name, strength, label accent, scale and framing.','ok');
       else setMessage('Preview rendered. Review name fit, strength fit, category colour, cap choice, scale and framing.','ok');
     }catch(error){setMessage(error?.message||'Preview failed.','error')}
