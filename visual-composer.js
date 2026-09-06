@@ -58,7 +58,7 @@
     const v=current(),problem=validate(v);if(problem){setMessage(problem,'error');return}
     els.render.disabled=true;setMessage('Rendering preview…');
     try{
-      const result=await window.AIBTVisualRenderer.renderPreview({canvas:els.canvas,...v,cartridgeBlank:!!(localMasterUrl&&v.format==='Cartridge')});
+      const result=await window.AIBTVisualRenderer.renderPreview({canvas:els.canvas,...v,cartridgeBlank:localMasterUrl&&v.format==='Cartridge'});
       setMeta({product:v.productName,strength:v.strength,format:v.format,mode:result.mode});
       if(result.mode==='reference-only')setMessage('Cartridge public reference is read-only. Load the approved blank Cartridge master locally to enable dynamic rendering.','ok');
       else if(v.format==='Cartridge')setMessage('Dynamic Cartridge preview rendered from the browser-local blank master. Review vertical name fit, strength, category colour and fixed hardware.','ok');
