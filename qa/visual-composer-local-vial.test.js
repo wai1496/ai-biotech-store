@@ -1,0 +1,13 @@
+const assert=require('assert'),fs=require('fs'),path=require('path');
+const root=path.join(__dirname,'..');
+const html=fs.readFileSync(path.join(root,'visual-composer.html'),'utf8');
+const controller=fs.readFileSync(path.join(root,'visual-composer.js'),'utf8');
+const renderer=fs.readFileSync(path.join(root,'visual-renderer.js'),'utf8');
+assert.match(html,/id="vcLocalMaster"[^>]*type="file"/,'composer must support browser-local master selection');
+assert.match(html,/id="vcVialCapMode"/,'composer must expose Vial cap mode');
+assert.match(controller,/URL\.createObjectURL/,'local master must stay browser-local');
+assert.doesNotMatch(controller,/\.upload\(|\.insert\(|\.update\(|\.upsert\(|\.delete\(/,'local flow must be mutation-free');
+assert.match(renderer,/VIAL_CAP_REGION/,'renderer must define a fixed top-cap mask');
+assert.match(renderer,/recolorVialCap/,'renderer must recolor only the Vial cap when requested');
+assert.match(renderer,/capMode===['"]category['"]/,'Vial cap recolor must be opt-in');
+console.log('visual composer local Vial contract passed');
