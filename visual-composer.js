@@ -6,11 +6,11 @@
   const CARTRIDGE_REFERENCE_URL='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/cartridge-master-admin.webp';
   const db=window.supabase?.createClient(LIVE_URL,LIVE_KEY)||null;
   const $=id=>document.getElementById(id);
-  const els={product:$('vcProduct'),productList:$('vcProductList'),catalogHint:$('vcCatalogHint'),strength:$('vcStrength'),format:$('vcFormat'),accent:$('vcAccent'),accentText:$('vcAccentText'),master:$('vcMaster'),localMaster:$('vcLocalMaster'),localHint:$('vcLocalHint'),vialCapMode:$('vcVialCapMode'),canvas:$('vcCanvas'),status:$('vcStatus'),meta:$('vcMeta'),render:$('vcRender'),reset:$('vcReset'),message:$('vcMessage'),hint:$('vcMasterHint')};
+  const els={product:$('vcProduct'),productSelect:$('vcProductSelect'),catalogHint:$('vcCatalogHint'),strength:$('vcStrength'),format:$('vcFormat'),accent:$('vcAccent'),accentText:$('vcAccentText'),master:$('vcMaster'),localMaster:$('vcLocalMaster'),localHint:$('vcLocalHint'),vialCapMode:$('vcVialCapMode'),canvas:$('vcCanvas'),status:$('vcStatus'),meta:$('vcMeta'),render:$('vcRender'),reset:$('vcReset'),message:$('vcMessage'),hint:$('vcMasterHint')};
   const defaults={product:'CAGRILINTIDE',strength:'5mg',format:'Pen',accent:'#f57c00',master:'',status:'Draft',vialCapMode:'white'};
   let publishedProducts=[],masterTemplates=new Map(),localMasterUrl='';
   function setMessage(text,type=''){els.message.textContent=text||'';els.message.className='vc-message'+(type?' '+type:'')}
-  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]))}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
   function setMeta(values){const items=[['Product',values.product||'—'],['Strength',values.strength||'—'],['Format',values.format||'—'],['Mode',values.mode||'Not rendered']];els.meta.innerHTML=items.map(([k,v])=>`<span><b>${k}</b><i>${esc(v)}</i></span>`).join('')}
   function current(){return {productName:els.product.value.trim(),strength:els.strength.value.trim(),format:els.format.value,accent:els.accent.value,masterUrl:localMasterUrl||els.master.value.trim(),vialCapMode:els.vialCapMode.value}}
   function validate(v){if(!v.productName)return'Enter a product name.';if(!v.strength)return'Enter a strength.';if(!v.masterUrl)return'Choose a local master image or enter a master image URL.';return''}
@@ -18,6 +18,8 @@
   function variantsOf(p){return Array.isArray(p?.variants)?p.variants.filter(v=>v.active!==false&&!v.archived_at):[]}
   function chooseVariant(p){const vv=variantsOf(p),form=els.format.value,str=els.strength.value.trim().toLowerCase();return vv.find(v=>String(v.format||'')===form&&String(v.strength_label||'').toLowerCase()===str)||vv.find(v=>String(v.format||'')===form)||vv[0]||null}
   function suggestedMaster(format,variant){if(format==='Cartridge')return CARTRIDGE_REFERENCE_URL;const master=masterTemplates.get(format);return master?.master_image_url||variant?.image_url||''}
+  function syncDropdownToManual(){if(!els.productSelect)return;const selected=els.productSelect.value;if(selected){els.product.value=selected;applyCatalogSelection()}}
+  function syncManualToDropdown(){if(!els.productSelect)return;const q=els.product.value.trim().toLowerCase(),hit=publishedProducts.find(p=>String(p.name||'').toLowerCase()===q);els.productSelect.value=hit?.name||''}
   function applyCatalogSelection(){
     const p=findProduct();if(!p){updateFormatHint();return}
     const variant=chooseVariant(p);if(variant){els.strength.value=variant.strength_label||els.strength.value;if(variant.format)els.format.value=variant.format}
@@ -33,7 +35,11 @@
     if(!db){els.catalogHint.textContent='Read-only catalog lookup unavailable; manual input remains available.';return}
     try{
       const {data,error}=await db.from('products').select('id,name,slug,published,status,categories(name,color),variants(id,strength_label,format,image_url,active,archived_at)').eq('published',true).eq('status','active');
-      if(error)throw error;publishedProducts=data||[];els.productList.innerHTML=publishedProducts.map(p=>`<option value="${esc(p.name)}"></option>`).join('');els.catalogHint.textContent=`Read-only catalog suggestions loaded (${publishedProducts.length} products). Manual input remains available.`;applyCatalogSelection();
+      if(error)throw error;
+      publishedProducts=(data||[]).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+      els.productSelect.innerHTML='<option value="">Choose a product…</option>'+publishedProducts.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
+      els.catalogHint.textContent=`Read-only catalog dropdown loaded (${publishedProducts.length} products). Manual input remains available.`;
+      syncManualToDropdown();applyCatalogSelection();
     }catch(error){els.catalogHint.textContent='Read-only catalog lookup failed; manual input remains available.'}
   }
   async function loadMasters(){
@@ -59,10 +65,11 @@
     }catch(error){setMessage(error?.message||'Preview failed.','error')}
     finally{els.render.disabled=false}
   }
-  function reset(){clearLocalMaster();els.product.value=defaults.product;els.strength.value=defaults.strength;els.format.value=defaults.format;els.accent.value=defaults.accent;els.accentText.value=defaults.accent.toUpperCase();els.master.value=defaults.master;els.status.value=defaults.status;els.vialCapMode.value=defaults.vialCapMode;delete els.master.dataset.auto;const ctx=els.canvas.getContext('2d');ctx.clearRect(0,0,els.canvas.width,els.canvas.height);setMeta({});setMessage('Reset complete.');applyCatalogSelection()}
+  function reset(){clearLocalMaster();els.product.value=defaults.product;els.strength.value=defaults.strength;els.format.value=defaults.format;els.accent.value=defaults.accent;els.accentText.value=defaults.accent.toUpperCase();els.master.value=defaults.master;els.status.value=defaults.status;els.vialCapMode.value=defaults.vialCapMode;delete els.master.dataset.auto;syncManualToDropdown();const ctx=els.canvas.getContext('2d');ctx.clearRect(0,0,els.canvas.width,els.canvas.height);setMeta({});setMessage('Reset complete.');applyCatalogSelection()}
   els.accent.addEventListener('input',()=>{els.accentText.value=els.accent.value.toUpperCase()});
   document.querySelectorAll('[data-accent]').forEach(button=>button.addEventListener('click',()=>{els.accent.value=button.dataset.accent;els.accentText.value=button.dataset.accent.toUpperCase()}));
-  els.product.addEventListener('change',applyCatalogSelection);els.product.addEventListener('blur',applyCatalogSelection);els.strength.addEventListener('change',applyCatalogSelection);els.format.addEventListener('change',applyCatalogSelection);
+  els.productSelect.addEventListener('change',syncDropdownToManual);
+  els.product.addEventListener('change',()=>{syncManualToDropdown();applyCatalogSelection()});els.product.addEventListener('blur',()=>{syncManualToDropdown();applyCatalogSelection()});els.strength.addEventListener('change',applyCatalogSelection);els.format.addEventListener('change',applyCatalogSelection);
   els.master.addEventListener('input',()=>{if(els.master.value.trim())clearLocalMaster();delete els.master.dataset.auto});els.localMaster.addEventListener('change',()=>useLocalMaster(els.localMaster.files?.[0]));
   els.render.addEventListener('click',render);els.reset.addEventListener('click',reset);window.addEventListener('beforeunload',()=>{if(localMasterUrl)URL.revokeObjectURL(localMasterUrl)});
   setMeta({});updateFormatHint();loadPublishedProducts();loadMasters();
