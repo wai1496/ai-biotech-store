@@ -1,5 +1,6 @@
-const fs=require('fs');
-const assert=require('assert');
+import fs from 'node:fs';
+import assert from 'node:assert';
+
 const callback=fs.readFileSync('api/easyparcel/callback.js','utf8');
 const connect=fs.existsSync('api/easyparcel/connect.js')?fs.readFileSync('api/easyparcel/connect.js','utf8'):'';
 
