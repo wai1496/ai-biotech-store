@@ -1,0 +1,73 @@
+/* AI BioTech preview-only visual renderer. No persistence or production mutations. */
+(function(global){
+  'use strict';
+  const SIZE=1536;
+  const PEN_FIELDS={
+    name:{x:720,y:674,w:362,h:122,pad:18,max:44,min:16,weight:900},
+    strength:{x:1128,y:680,w:126,h:118,pad:12,max:28,min:14,weight:900}
+  };
+  const VIAL_FIELDS={
+    name:{cx:768,cy:820,maxW:430,max:66,min:20,weight:900},
+    strength:{cx:768,cy:977,maxW:230,max:58,min:20,weight:900}
+  };
+  function normalizeLabel(v){return String(v??'').replace(/\s+\d+(?:\.\d+)?\s*(?:MG|ML)$/i,'').trim()}
+  function normalizeStrength(v){return String(v??'').trim().replace(/\s+/g,'')}
+  function fitFontSize(measure,text,field){
+    const span=field.w||field.maxW||1,maxW=Math.max(1,span-((field.pad||0)*2));
+    for(let size=field.max;size>field.min;size--){if(measure(String(text||''),size)<=maxW)return size}
+    return field.min;
+  }
+  function cssRgb(hex){
+    const s=String(hex||'#18c9ff').trim();
+    if(/^#[0-9a-f]{6}$/i.test(s))return [parseInt(s.slice(1,3),16),parseInt(s.slice(3,5),16),parseInt(s.slice(5,7),16)];
+    if(/^#[0-9a-f]{3}$/i.test(s))return [1,2,3].map(i=>parseInt(s[i]+s[i],16));
+    return [24,201,255];
+  }
+  function recolorOrangePixels(ctx,accent){
+    try{
+      const img=ctx.getImageData(0,0,SIZE,SIZE),d=img.data,[ar,ag,ab]=cssRgb(accent);
+      for(let i=0;i<d.length;i+=4){
+        const r=d[i],g=d[i+1],b=d[i+2],a=d[i+3];
+        if(a<12)continue;
+        const isOrange=r>145&&g>45&&g<190&&b<95&&r>g*1.15;
+        if(!isOrange)continue;
+        const lum=Math.max(.36,Math.min(1.16,(r+g+b)/(255*2.1)));
+        d[i]=Math.min(255,ar*lum);d[i+1]=Math.min(255,ag*lum);d[i+2]=Math.min(255,ab*lum);
+      }
+      ctx.putImageData(img,0,0);
+    }catch(_){ }
+  }
+  function measureWidth(ctx,text,size,weight){ctx.font=`${weight} ${size}px Arial`;const m=ctx.measureText(String(text||''));return (m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0)}
+  function printField(ctx,text,field,fill){
+    text=String(text||'').trim();if(!text)return;
+    const size=fitFontSize((t,s)=>measureWidth(ctx,t,s,field.weight),text,field);
+    ctx.save();ctx.beginPath();ctx.rect(field.x,field.y,field.w,field.h);ctx.clip();ctx.font=`${field.weight} ${size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;
+    const m=ctx.measureText(text),left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left,cx=field.x+field.w/2,cy=field.y+field.h/2;
+    ctx.textAlign='left';ctx.fillText(text,cx-(ink/2)-left,cy);ctx.restore();
+  }
+  function printCenteredField(ctx,text,field,fill){
+    text=String(text||'').trim();if(!text)return;
+    const size=fitFontSize((t,s)=>measureWidth(ctx,t,s,field.weight),text,field);
+    ctx.save();ctx.font=`${field.weight} ${size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;
+    const m=ctx.measureText(text),left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left;
+    ctx.textAlign='left';ctx.fillText(text,field.cx-(ink/2)-left,field.cy);ctx.restore();
+  }
+  function loadImage(url){return new Promise((resolve,reject)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('Could not load master image'));im.src=url})}
+  function drawContained(ctx,img){const sc=Math.min(SIZE/img.width,SIZE/img.height),w=img.width*sc,h=img.height*sc;ctx.drawImage(img,(SIZE-w)/2,(SIZE-h)/2,w,h)}
+  async function renderPreview({canvas,masterUrl,productName,strength,format,accent='#18c9ff',cartridgeBlank=false}){
+    if(!canvas||typeof canvas.getContext!=='function')throw new Error('Preview canvas is required');
+    if(!masterUrl)throw new Error('Master image URL is required');
+    if(!String(productName||'').trim())throw new Error('Product name is required');
+    if(!String(strength||'').trim())throw new Error('Strength is required');
+    const form=String(format||'Vial');canvas.width=SIZE;canvas.height=SIZE;
+    const ctx=canvas.getContext('2d');ctx.clearRect(0,0,SIZE,SIZE);const im=await loadImage(masterUrl);drawContained(ctx,im);
+    if(form==='Cartridge'&&!cartridgeBlank)return {mode:'reference-only',format:form};
+    recolorOrangePixels(ctx,accent);
+    const name=normalizeLabel(productName),dose=normalizeStrength(strength);
+    if(form==='Pen'){printField(ctx,name,PEN_FIELDS.name,accent);printField(ctx,dose,PEN_FIELDS.strength,'#111');return {mode:'dynamic-preview',format:form}}
+    if(form==='Vial'){printCenteredField(ctx,name,VIAL_FIELDS.name,accent);printCenteredField(ctx,dose,VIAL_FIELDS.strength,'#111');return {mode:'dynamic-preview',format:form}}
+    if(form==='Cartridge'&&cartridgeBlank)return {mode:'blank-master-awaiting-field-map',format:form};
+    throw new Error(`Unsupported format: ${form}`);
+  }
+  global.AIBTVisualRenderer={SIZE,PEN_FIELDS,VIAL_FIELDS,normalizeLabel,normalizeStrength,fitFontSize,renderPreview};
+})(typeof window!=='undefined'?window:globalThis);
