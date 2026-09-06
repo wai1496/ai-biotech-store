@@ -10,11 +10,11 @@ export default async function handler(req,res){
   const {code,state,error,error_description}=req.query||{};
   if(error)return res.status(400).send(page('EasyParcel authorization was not completed',escapeHtml(error_description||error)));
 
-  const ready=Boolean(process.env.EASYPARCEL_CLIENT_ID&&process.env.EASYPARCEL_CLIENT_SECRET&&process.env.EASYPARCEL_OAUTH_STATE_SECRET&&process.env.STAGING_SUPABASE_URL&&process.env.STAGING_SUPABASE_SERVICE_ROLE_KEY);
+  const stateSecret=process.env.EASYPARCEL_OAUTH_STATE_SECRET||process.env.EASYPARCEL_CLIENT_SECRET;
+  const ready=Boolean(process.env.EASYPARCEL_CLIENT_ID&&process.env.EASYPARCEL_CLIENT_SECRET&&stateSecret&&process.env.STAGING_SUPABASE_URL&&process.env.STAGING_SUPABASE_SERVICE_ROLE_KEY);
   if(!code)return res.status(200).json({ok:true,service:'easyparcel-oauth-callback',environment:process.env.VERCEL_ENV||'unknown',ready_for_registration:true,token_exchange_enabled:ready});
   if(!ready)return res.status(503).send(page('EasyParcel callback received','Server-side OAuth or staging token-storage configuration is incomplete. No authorization code was exchanged.'));
 
-  const stateSecret=process.env.EASYPARCEL_OAUTH_STATE_SECRET;
   const cookie=parseCookie(req.headers.cookie||'').aibt_ep_state||'';
   const dot=cookie.lastIndexOf('.');
   const cookieState=dot>0?cookie.slice(0,dot):'';
@@ -58,11 +58,7 @@ export default async function handler(req,res){
   return res.status(200).send(page('EasyParcel connected to AI BioTech staging','Authorization succeeded. The OAuth token is stored server-side in Supabase Vault. You can close this page and return to Admin.'));
 }
 
-function safeEqual(a,b){
-  const aa=Buffer.from(String(a));
-  const bb=Buffer.from(String(b));
-  return aa.length===bb.length&&crypto.timingSafeEqual(aa,bb);
-}
+function safeEqual(a,b){const aa=Buffer.from(String(a)),bb=Buffer.from(String(b));return aa.length===bb.length&&crypto.timingSafeEqual(aa,bb);}
 function parseCookie(header){return Object.fromEntries(String(header).split(';').map(x=>x.trim()).filter(Boolean).map(x=>{const i=x.indexOf('=');return i<0?[x,'']:[x.slice(0,i),decodeURIComponent(x.slice(i+1))]}));}
 function clearStateCookie(res){res.setHeader('Set-Cookie','aibt_ep_state=; HttpOnly; Secure; SameSite=Lax; Path=/api/easyparcel; Max-Age=0');}
 function isoFromSeconds(seconds){const n=Number(seconds||0);return n>0?new Date(Date.now()+n*1000).toISOString():null;}
