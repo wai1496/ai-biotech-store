@@ -60,7 +60,7 @@
     }
 
     const canvas=document.createElement('canvas');canvas.width=1536;canvas.height=1536;
-    R.renderPreview({
+    window.AIBTVisualRenderer.renderPreview({
       canvas,
       masterUrl:src,
       productName:p.name,
