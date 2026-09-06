@@ -46,6 +46,8 @@ jobs:
         run: node tests/ops-navigation-contract.test.mjs
       - name: Validate Operations safe-switch contract
         run: node tests/ops-safe-switch-contract.test.mjs
+      - name: Validate Operations action-level contract
+        run: node tests/ops-action-contract.test.mjs
       - name: Validate automation dry-run safety
         run: node scripts/staging-automation-check.mjs
       - name: Validate recovery safety
