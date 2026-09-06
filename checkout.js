@@ -1,9 +1,10 @@
 const SB_URL='https://yjauxyvtrmdriwtmckkl.supabase.co',SB_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
 const csb=supabase.createClient(SB_URL,SB_KEY);
 let cart=JSON.parse(localStorage.getItem('aibt_cart')||'[]'),me=null,addresses=[],wallet=0,newAddress=null,store={flat_shipping_fee:0,free_shipping_threshold:null},cartIssues=[];
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
 const money=v=>'RM '+Number(v||0).toFixed(2);
 function msg(t){checkoutMessage.textContent=t||''}
+function addressMsg(t){if(window.addressMessage)addressMessage.textContent=t||''}
 function subtotal(){return cart.reduce((s,x)=>s+Number(x.price||0)*Number(x.qty||0),0)}
 function shippingFee(value=subtotal()){const threshold=Number(store.free_shipping_threshold);return threshold>0&&value>=threshold?0:Number(store.flat_shipping_fee||0)}
 function totals(){const sub=subtotal(),shipping=shippingFee(sub),walletUse=Math.max(0,Number(walletAmount?.value||0)),total=Math.max(0,sub+shipping-walletUse);return{sub,shipping,walletUse,total}}
@@ -41,8 +42,28 @@ async function init(){
   await syncCart();
   const [{data:a},{data:w}]=await Promise.all([csb.from('addresses').select('*').eq('user_id',user.id).order('is_default',{ascending:false}),csb.from('wallet_accounts').select('balance').eq('user_id',user.id).maybeSingle()]);
   addresses=a||[];wallet=Number(w?.balance||0);checkoutWallet.textContent=money(wallet);renderAddresses();renderCart();
+  if(!addresses.length)useNewAddress();
 }
-function useNewAddress(){const recipient_name=prompt('Recipient name','');if(recipient_name===null)return;const phone=prompt('Phone','');const line1=prompt('Address line 1','');const line2=prompt('Address line 2','');const city=prompt('City','');const state=prompt('State','');const postcode=prompt('Postcode','');if(!recipient_name||!phone||!line1||!city||!state||!postcode)return alert('Please complete the required address fields.');newAddress={label:'Checkout',recipient_name,phone,line1,line2,city,state,postcode,country:'MY'};renderAddresses()}
+function useNewAddress(){
+  newAddressForm.hidden=false;
+  addressMsg('');
+  shipRecipient.focus();
+}
+function collectNewAddress(){
+  const a={label:'Checkout',recipient_name:shipRecipient.value.trim(),phone:shipPhone.value.trim(),line1:shipLine1.value.trim(),line2:shipLine2.value.trim(),postcode:shipPostcode.value.trim(),city:shipCity.value.trim(),state:shipState.value,country:'MY'};
+  if(!a.recipient_name||!a.phone||!a.line1||!a.city||!a.state||!/^[0-9]{5}$/.test(a.postcode))return null;
+  return a;
+}
+async function applyNewAddress(){
+  const a=collectNewAddress();
+  if(!a)return addressMsg('Please complete all required fields. Postcode must be 5 digits.');
+  newAddress=a;renderAddresses();checkoutAddress.value='new';addressMsg('Address ready for this order.');
+  if(!saveAddressBook.checked)return;
+  const row={...a,user_id:me.id,is_default:addresses.length===0};
+  const {data,error}=await csb.from('addresses').insert(row).select('*').single();
+  if(error){addressMsg('Address will be used for this order, but could not be saved: '+error.message);return;}
+  addresses=[data,...addresses];newAddress=null;renderAddresses();checkoutAddress.value='0';newAddressForm.hidden=true;addressMsg('Address saved to your address book.');
+}
 async function placeOrder(){
   if(!cart.length)return msg('Your cart is empty.');if(cart.some(x=>x.unavailable))return msg('Remove unavailable items before checkout.');
   let address=checkoutAddress.value==='new'?newAddress:addresses[Number(checkoutAddress.value)]||null;if(!address)return msg('Choose or enter a shipping address.');
