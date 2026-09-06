@@ -14,21 +14,20 @@ module.exports=async function handler(req,res){
     const ir=await fetch(`${sbUrl}/rest/v1/integration_configs?integration_key=eq.easyparcel&select=enabled,mode,status,config`,{headers:{apikey:service,authorization:`Bearer ${service}`}}),rows=await ir.json();
     const epConfig=ir.ok&&Array.isArray(rows)?rows[0]:null;
     const oauthCreds=!!(process.env.EASYPARCEL_CLIENT_ID&&process.env.EASYPARCEL_CLIENT_SECRET);
-    const oauthConnected=!!epConfig?.config?.oauth_connected;
-    const legacyDemo=!!process.env.EASYPARCEL_DEMO_API_KEY;
-    const ep=oauthCreds&&(oauthConnected||legacyDemo);
+    const oauthConnected=!!epConfig?.enabled&&['healthy','connected'].includes(epConfig?.status)&&!!epConfig?.config?.oauth_connected;
+    const ep=oauthCreds&&oauthConnected;
     const tp=!!process.env.TOYYIBPAY_SANDBOX_SECRET_KEY;
     const epRequirements=[];
     if(!process.env.EASYPARCEL_CLIENT_ID)epRequirements.push('EASYPARCEL_CLIENT_ID');
     if(!process.env.EASYPARCEL_CLIENT_SECRET)epRequirements.push('EASYPARCEL_CLIENT_SECRET');
-    if(oauthCreds&&!oauthConnected)epRequirements.push('EasyParcel OAuth authorization');
+    if(oauthCreds&&!oauthConnected)epRequirements.push('Connect EasyParcel from Operations');
 
     res.setHeader('Cache-Control','no-store');
     return res.status(200).json({
       ok:true,environment:'staging',
       readiness:{staging_supabase:true,toyyibpay:tp,easyparcel:ep},
-      modes:{toyyibpay:'sandbox',easyparcel:oauthConnected?'oauth':'setup'},
-      easyparcel:{oauth_credentials_configured:oauthCreds,oauth_connected:oauthConnected,legacy_demo_key_present:legacyDemo,token_values_exposed:false},
+      modes:{toyyibpay:'sandbox',easyparcel:oauthConnected?'oauth-openapi-2026-06':'setup'},
+      easyparcel:{oauth_credentials_configured:oauthCreds,oauth_connected:oauthConnected,api_version:'2026-06',legacy_demo_key_required:false,token_values_exposed:false},
       requirements:{toyyibpay:tp?[]:['TOYYIBPAY_SANDBOX_SECRET_KEY'],easyparcel:epRequirements}
     });
   }catch(e){console.error(e);return res.status(500).json({ok:false,error:e.message||String(e)})}
