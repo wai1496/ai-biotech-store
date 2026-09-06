@@ -3,6 +3,7 @@
   'use strict';
   const LIVE_URL='https://yjauxyvtrmdriwtmckkl.supabase.co';
   const LIVE_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
+  const CARTRIDGE_REFERENCE_URL='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/cartridge-master-admin.webp';
   const db=window.supabase?.createClient(LIVE_URL,LIVE_KEY)||null;
   const $=id=>document.getElementById(id);
   const els={product:$('vcProduct'),productList:$('vcProductList'),catalogHint:$('vcCatalogHint'),strength:$('vcStrength'),format:$('vcFormat'),accent:$('vcAccent'),accentText:$('vcAccentText'),master:$('vcMaster'),canvas:$('vcCanvas'),status:$('vcStatus'),meta:$('vcMeta'),render:$('vcRender'),reset:$('vcReset'),message:$('vcMessage'),hint:$('vcMasterHint')};
@@ -16,15 +17,19 @@
   function findProduct(){const q=els.product.value.trim().toLowerCase();return publishedProducts.find(p=>String(p.name||'').toLowerCase()===q||String(p.id||'').toLowerCase()===q||String(p.slug||'').toLowerCase()===q)}
   function variantsOf(p){return Array.isArray(p?.variants)?p.variants.filter(v=>v.active!==false&&!v.archived_at):[]}
   function chooseVariant(p){const vv=variantsOf(p),form=els.format.value,str=els.strength.value.trim().toLowerCase();return vv.find(v=>String(v.format||'')===form&&String(v.strength_label||'').toLowerCase()===str)||vv.find(v=>String(v.format||'')===form)||vv[0]||null}
+  function suggestedMaster(format,variant){
+    if(format==='Cartridge')return CARTRIDGE_REFERENCE_URL;
+    const master=masterTemplates.get(format);return master?.master_image_url||variant?.image_url||'';
+  }
   function applyCatalogSelection(){
-    const p=findProduct();if(!p)return;
+    const p=findProduct();if(!p){updateFormatHint();return}
     const variant=chooseVariant(p);if(variant){els.strength.value=variant.strength_label||els.strength.value;if(variant.format)els.format.value=variant.format}
     const categoryColor=String(p.categories?.color||'').trim();if(/^#[0-9a-f]{6}$/i.test(categoryColor)){els.accent.value=categoryColor;els.accentText.value=categoryColor.toUpperCase()}
-    const master=masterTemplates.get(els.format.value);const suggested=master?.master_image_url||variant?.image_url||'';
+    const suggested=suggestedMaster(els.format.value,variant);
     if(suggested){els.master.value=suggested;els.master.dataset.auto='1'}
     updateFormatHint();
   }
-  function updateFormatHint(){els.hint.textContent=els.format.value==='Cartridge'?'Cartridge remains reference-only until a verified blank master and dynamic field map are available.':'Blank '+els.format.value+' master + fixed print field. Long names shrink automatically; short names stay larger and centered.'}
+  function updateFormatHint(){els.hint.textContent=els.format.value==='Cartridge'?'Cartridge uses the approved public reference asset only. Dynamic name/strength injection stays disabled until a verified blank master and field map are available.':'Blank '+els.format.value+' master + fixed print field. Long names shrink automatically; short names stay larger and centered.'}
   async function loadPublishedProducts(){
     if(!db){els.catalogHint.textContent='Read-only catalog lookup unavailable; manual input remains available.';return}
     try{
@@ -36,7 +41,7 @@
     if(!db)return;
     try{
       const {data,error}=await db.from('media_templates').select('format,master_image_url,version,label_config');
-      if(error)throw error;for(const row of data||[])if(row?.format&&row?.master_image_url)masterTemplates.set(row.format,row);applyCatalogSelection();
+      if(error)throw error;for(const row of data||[])if(row?.format&&row?.master_image_url&&row.format!=='Cartridge')masterTemplates.set(row.format,row);applyCatalogSelection();
     }catch(_){/* manual master input remains available */}
   }
   async function render(){
