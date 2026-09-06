@@ -1,38 +1,84 @@
-/* Fine alignment override for dynamic master templates.
-   Shared Vial/Pen master assets are composited to canvas so the product name and
-   strength read as part of the printed artwork instead of floating HTML text. */
+/* Shared storefront visual adapter.
+   Real uploaded variant images keep highest priority. Placeholder composition is
+   delegated to visual-renderer.js so Pen, Vial and Cartridge use one rule set. */
 (function(){
-  const PEN_FIELDS={
-    name:{x:720,y:674,w:362,h:122,pad:18,max:44,min:16,weight:900},
-    strength:{x:1128,y:680,w:126,h:118,pad:12,max:28,min:14,weight:900}
-  };
-  function fitOptical(ctx,text,cx,cy,maxW,start,weight,fill,minSize=18){
-    text=String(text||'');ctx.textBaseline='middle';ctx.fillStyle=fill;let size=start,m;
-    for(;size>minSize;size-=2){ctx.font=`${weight} ${size}px Arial`;m=ctx.measureText(text);const ink=(m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0);if(ink<=maxW)break}
-    m=ctx.measureText(text);const left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left;ctx.textAlign='left';ctx.fillText(text,cx-(ink/2)-left,cy);
+  const CARTRIDGE_REFERENCE_URL='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/cartridge-master-admin.webp';
+  const CARTRIDGE_BUNDLED_REFERENCE='/assets/cartridge-master-approved.webp';
+  const CARTRIDGE_BLANK_MASTER='/assets/cartridge-master-blank-approved.webp';
+
+  function isSharedMasterImage(url,form){
+    const s=String(url||'').toLowerCase();
+    if(!s)return false;
+    if(form==='Cartridge')return s.includes('/catalog-media/masters/cartridge-master-admin');
+    if(!s.includes('/catalog-media/masters/'))return false;
+    if(form==='Vial')return s.includes('vial-master');
+    if(form==='Pen')return s.includes('pen-master');
+    return false;
   }
-  function printField(ctx,text,field,fill){
-    text=String(text||'').trim();if(!text)return;
-    const maxW=Math.max(1,field.w-field.pad*2),maxH=Math.max(1,field.h-field.pad*2);
-    let size=Math.min(field.max,maxH),m;
-    ctx.save();ctx.beginPath();ctx.rect(field.x,field.y,field.w,field.h);ctx.clip();ctx.textBaseline='middle';ctx.fillStyle=fill;
-    for(;size>field.min;size--){ctx.font=`${field.weight} ${size}px Arial`;m=ctx.measureText(text);const ink=(m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0);const asc=m.actualBoundingBoxAscent||size*.75,desc=m.actualBoundingBoxDescent||size*.25;if(ink<=maxW&&asc+desc<=maxH)break}
-    m=ctx.measureText(text);const left=m.actualBoundingBoxLeft||0,right=m.actualBoundingBoxRight||m.width,ink=right-left;const cx=field.x+field.w/2,cy=field.y+field.h/2;ctx.textAlign='left';ctx.fillText(text,cx-(ink/2)-left,cy);ctx.restore();
+  function standardCartridgeSource(){return CARTRIDGE_REFERENCE_URL+'?v='+Date.now()}
+  function bundledCartridgeSource(){return CARTRIDGE_BUNDLED_REFERENCE}
+  function sharedMasterSource(p,v,form){
+    const rr=real(p,v);
+    if(form==='Cartridge')return CARTRIDGE_BLANK_MASTER;
+    if(isSharedMasterImage(rr,form))return rr;
+    return masters?.[form]||rr||'';
   }
-  function isSharedMasterImage(url,form){const s=String(url||'').toLowerCase();if(!s||!s.includes('/catalog-media/masters/'))return false;if(form==='Vial')return s.includes('vial-master');if(form==='Pen')return s.includes('pen-master');return false}
-  function masterImageSource(p,v,form){const rr=real(p,v);if(isSharedMasterImage(rr,form))return rr;return masters?.[form]||rr||''}
+  function renderImage(el,url,alt,fallback=''){
+    if(!url){renderMissing(el,'IMAGE');return}
+    const img=document.createElement('img');img.src=url;img.alt=alt||'AI BioTech product visual';
+    if(fallback)img.onerror=()=>{img.onerror=null;img.src=fallback};
+    el.innerHTML='';el.appendChild(img);
+  }
+  function renderMissing(el,form){el.innerHTML=`<div class="missing"><b>${form} MASTER NOT UPLOADED</b><br><small>Admin → Master Placeholders</small></div>`}
+  function renderStandardCartridge(el,name){renderImage(el,standardCartridgeSource(),name||'AI BioTech peptide cartridge',bundledCartridgeSource())}
+  function renderStaticFallback(el,p,v,form,src){
+    if(form==='Cartridge'){renderStandardCartridge(el,p?.name);return}
+    if(src){renderImage(el,src,p?.name||`${form} product visual`);return}
+    renderMissing(el,form);
+  }
+
   window.visual=function(p,v,el){
     const form=v?.form||v?.format||'Vial';
-    if(form==='Cartridge'){const live='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/cartridge-master-admin.webp?v='+Date.now();el.innerHTML=`<img src="${live}" alt="AI BioTech peptide cartridge" onerror="this.onerror=null;this.src='/assets/cartridge-master-approved.webp'">`;return}
-    const rr=real(p,v),shared=isSharedMasterImage(rr,form);if(rr&&!shared){el.innerHTML=`<img src="${rr}" alt="${p.name}">`;return}
-    const src=masterImageSource(p,v,form);if(!src){el.innerHTML=`<div class="missing"><b>${form} MASTER NOT UPLOADED</b><br><small>Admin → Master Placeholders</small></div>`;return}
-    const im=new Image();im.crossOrigin='anonymous';im.onload=()=>{
-      const c=document.createElement('canvas'),x=c.getContext('2d');c.width=1536;c.height=1536;x.clearRect(0,0,1536,1536);const sc=Math.min(1536/im.width,1536/im.height),w=im.width*sc,h=im.height*sc,ox=(1536-w)/2,oy=(1536-h)/2;x.drawImage(im,ox,oy,w,h);try{recolorOrange(x,color(p))}catch(_){ }
-      const nm=String(p.name||'').replace(/\s+\d+(?:\.\d+)?\s*(MG|ML)$/i,'').trim();
-      if(form==='Vial'){try{tintNeutral(x,459,49,616,150,color(p),.94)}catch(_){ }fitOptical(x,nm,768,820,430,66,900,color(p),20);fitOptical(x,main(v?.strength||v?.strength_label||''),768,977,230,58,900,'#111',20)}
-      else{printField(x,nm,PEN_FIELDS.name,color(p));printField(x,main(v?.strength||v?.strength_label||''),PEN_FIELDS.strength,'#111')}
-      el.innerHTML='';el.appendChild(c)
-    };im.onerror=()=>{el.innerHTML=`<img src="${src}" alt="${p.name}">`};im.src=src;
+    const token=(el.__aibtVisualToken||0)+1;el.__aibtVisualToken=token;
+    const rr=real(p,v),shared=isSharedMasterImage(rr,form);
+
+    /* A genuine uploaded variant image always wins over placeholder composition. */
+    if(rr&&!shared){renderImage(el,rr,p?.name||`${form} product visual`);return}
+
+    const R=window.AIBTVisualRenderer;
+    if(form==='Cartridge'){
+      if(!R||R.cartridgeVisualMode(p?.name)!=='dynamic'){renderStandardCartridge(el,p?.name);return}
+    }
+
+    const src=sharedMasterSource(p,v,form);
+    if(!R){renderStaticFallback(el,p,v,form,src);return}
+    if(!src){renderStaticFallback(el,p,v,form,src);return}
+
+    const strength=main(v?.strength||v?.strength_label||'');
+    if(!String(p?.name||'').trim()||!String(strength||'').trim()){
+      renderStaticFallback(el,p,v,form,src);return;
+    }
+
+    const canvas=document.createElement('canvas');canvas.width=1536;canvas.height=1536;
+    R.renderPreview({
+      canvas,
+      masterUrl:src,
+      productName:p.name,
+      strength,
+      format:form,
+      accent:color(p),
+      cartridgeBlank:form==='Cartridge',
+      vialCapMode:'white'
+    }).then(result=>{
+      if(el.__aibtVisualToken!==token)return;
+      if(form==='Cartridge'&&result?.mode==='reference-only'){
+        renderStandardCartridge(el,p.name);return;
+      }
+      el.innerHTML='';el.appendChild(canvas);
+    }).catch(()=>{
+      if(el.__aibtVisualToken!==token)return;
+      renderStaticFallback(el,p,v,form,src);
+    });
   };
 })();
 
