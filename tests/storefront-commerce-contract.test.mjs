@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const read=p=>fs.readFileSync(p,'utf8');
+const index=read('index.html');
+const store=read('clean-store.js');
+const checkout=read('checkout.html');
+const checkoutJs=read('staging-checkout.js');
+const member=read('member.html');
+
+assert(index.includes('onclick="addToCart(')||store.includes('onclick="addToCart('),'product cards must expose direct Add to Cart without requiring product detail');
+assert(store.includes('window.changeStrength=')&&store.includes('window.changeFormat='),'storefront must support live strength and format switching');
+assert(store.includes('variantId:v.id')&&store.includes('strength:v.strength_label')&&store.includes('format:v.format')&&store.includes('price:Number(v.price)'),'cart must persist exact selected variant identity and price');
+assert(store.includes("localStorage.setItem('aibt_staging_cart'")&&checkoutJs.includes("localStorage.getItem('aibt_staging_cart')"),'cart must survive navigation into checkout');
+assert(index.includes('onclick="stageCheckout()"')&&store.includes("window.stageCheckout=()=>location.href='/checkout.html'"),'cart must route to checkout');
+assert(checkoutJs.includes("$('#placeOrderBtn').disabled=!cart.length"),'empty cart must disable order creation');
+assert(checkoutJs.includes("if(!cart.length)throw new Error('Your cart is empty.')"),'server-side checkout path must fail closed on empty cart');
+assert(checkoutJs.includes("input[name=\"shipAddress\"]:checked")||checkoutJs.includes("input[name=\"shipAddress\"]"),'checkout must require an explicit shipping address selection');
+assert(checkoutJs.includes("db.rpc('commerce_quote'")&&checkoutJs.includes("db.rpc('commerce_create_order'"),'checkout must revalidate quote and create order through secure RPCs');
+assert(index.includes("onclick=\"openStageAccount()\"")&&store.includes("window.openStageAccount=()=>location.href='/member.html'"),'storefront must expose member area');
+assert(index.includes('mobile-menu-btn')&&index.includes('openStageAccount();closeMobileMenu()')&&index.includes('openCart();closeMobileMenu()'),'mobile navigation must expose Account and Cart');
+assert(index.includes('mobile-sticky-cart'),'mobile storefront must keep cart access visible');
+assert(member.includes('viewport-fit=cover'),'member area must include mobile viewport support');
+console.log('PASS: storefront variant → cart → checkout → member/mobile contracts');
