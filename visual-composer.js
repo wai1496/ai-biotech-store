@@ -27,7 +27,7 @@
   }
   function updateFormatHint(){
     const isVial=els.format.value==='Vial';els.vialCapMode.disabled=!isVial;
-    els.hint.textContent=els.format.value==='Cartridge'?'Cartridge uses the approved public reference asset only. Dynamic name/strength injection stays disabled until a verified blank master and field map are available.':isVial?'Vial: hardware stays fixed. Only label accents, name, strength and optional top-cap colour are dynamic.':'Pen: blank master + fixed print fields. Long names shrink automatically; short names stay larger and centered.';
+    els.hint.textContent=els.format.value==='Cartridge'?'Cartridge uses the approved public reference asset only. Dynamic name/strength injection stays disabled until a verified blank master and field map are available.':isVial?'Vial: White cap is the approved Vial default. Hardware stays fixed; only label accents, name and strength are dynamic. Category cap remains preview-only.':'Pen: blank master + fixed print fields. Long names shrink automatically; short names stay larger and centered.';
   }
   async function loadPublishedProducts(){
     if(!db){els.catalogHint.textContent='Read-only catalog lookup unavailable; manual input remains available.';return}
@@ -54,6 +54,7 @@
       const result=await window.AIBTVisualRenderer.renderPreview({canvas:els.canvas,...v,cartridgeBlank:false});
       setMeta({product:v.productName,strength:v.strength,format:v.format,mode:result.mode});
       if(result.mode==='reference-only')setMessage('Cartridge is reference-only in Phase 1 until a verified blank master and field map are available.','ok');
+      else if(v.format==='Vial'&&v.vialCapMode==='white')setMessage('Preview rendered with approved white Vial cap. Review name, strength, label accent, scale and framing.','ok');
       else setMessage('Preview rendered. Review name fit, strength fit, category colour, cap choice, scale and framing.','ok');
     }catch(error){setMessage(error?.message||'Preview failed.','error')}
     finally{els.render.disabled=false}
