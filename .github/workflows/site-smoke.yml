@@ -29,6 +29,8 @@ jobs:
         run: |
           set -euo pipefail
           for file in qa/visual-composer-*.test.js; do node "$file"; done
+      - name: Validate storefront runtime visuals
+        run: node qa/storefront-runtime-visuals.test.js
       - name: Validate JavaScript syntax
         shell: bash
         run: |
