@@ -3,6 +3,7 @@
 
 const VIAL_LAYER_ROOT='/product-visuals/layers';
 const VIAL_BASE=`${VIAL_LAYER_ROOT}/base/aibiotech-vial-base-master.webp`;
+const PEN_BASE=`${VIAL_LAYER_ROOT}/base/aibiotech-pen-base-master.webp`;
 const CATEGORY_BY_HEX=Object.freeze({
  '#F57C00':{template:'metabolism-orange',strength:'orange'},
  '#2EAA61':{template:'regeneration-green',strength:'green'},
@@ -28,40 +29,54 @@ function slugName(value){
 }
 function slugStrength(value){return String(value||'').trim().toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9.]/g,'')}
 function layerImage(src,cls,alt=''){
- const img=document.createElement('img');img.src=src;img.className=`aibt-vial-layer ${cls}`;img.alt=alt;img.setAttribute('aria-hidden',alt?'false':'true');
+ const img=document.createElement('img');img.src=src;img.className=`aibt-product-layer ${cls}`;img.alt=alt;img.setAttribute('aria-hidden',alt?'false':'true');
  Object.assign(img.style,{position:'absolute',inset:'0',width:'100%',height:'100%',objectFit:'contain',objectPosition:'center',display:'block',pointerEvents:'none'});
  return img;
 }
-function applyVialLayers(root=document){
+function selectedStrength(card){
+ const selects=[...card.querySelectorAll('.variant-row select')];
+ const explicit=card.querySelector('select[data-role="strength"],select[name="strength"],.strength-select');
+ if(explicit)return explicit.value?.trim()||'';
+ const candidate=selects.find(el=>!/vial|pen|cartridge/i.test(String(el.value||'')));
+ return candidate?.value?.trim()||selects[0]?.value?.trim()||'';
+}
+function layerSpec(card,stage){
+ const cssColor=getComputedStyle(card).getPropertyValue('--cat').trim()||getComputedStyle(stage).getPropertyValue('--visual-category').trim();
+ const hex=normalHex(cssColor);
+ return {hex,spec:CATEGORY_BY_HEX[hex]};
+}
+function applyLayeredFormat(root,format,base,prefix){
  root.querySelectorAll('.product-card').forEach(card=>{
-  const stage=card.querySelector('.product-visual-stage[data-format="Vial"]');
+  const stage=card.querySelector(`.product-visual-stage[data-format="${format}"]`);
   if(!stage)return;
   const name=card.querySelector('.product-name')?.textContent?.trim()||'';
-  const strength=card.querySelector('.variant-row select')?.value?.trim()||'';
-  const cssColor=getComputedStyle(card).getPropertyValue('--cat').trim()||getComputedStyle(stage).getPropertyValue('--visual-category').trim();
-  const hex=normalHex(cssColor),spec=CATEGORY_BY_HEX[hex];
+  const strength=selectedStrength(card);
+  const {hex,spec}=layerSpec(card,stage);
   if(!spec||!name||!strength)return;
-  const signature=`${slugName(name)}|${slugStrength(strength)}|${hex}`;
-  if(stage.dataset.aibtVialLayered===signature)return;
-  stage.dataset.aibtVialLayered=signature;
+  const signature=`${slugName(name)}|${slugStrength(strength)}|${hex}|${format}`;
+  if(stage.dataset.aibtLayered===signature)return;
+  stage.dataset.aibtLayered=signature;
   stage.dataset.overlayMode='none';
-  stage.querySelectorAll('.product-visual-image,.product-visual-overlay,.aibt-vial-layer').forEach(el=>el.remove());
-  stage.appendChild(layerImage(VIAL_BASE,'aibt-vial-base',`${name} ${strength} Vial`));
-  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/templates/aibiotech-vial-template-${spec.template}.webp`,'aibt-vial-category'));
-  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/names/aibiotech-vial-name-${slugName(name)}.webp`,'aibt-vial-name'));
-  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/strengths/aibiotech-vial-strength-${slugStrength(strength)}-${spec.strength}.webp`,'aibt-vial-strength'));
+  stage.querySelectorAll('.product-visual-image,.product-visual-overlay,.aibt-product-layer,.aibt-vial-layer,.aibt-pen-layer').forEach(el=>el.remove());
+  stage.appendChild(layerImage(base,`aibt-${prefix}-base`,`${name} ${strength} ${format}`));
+  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/templates/aibiotech-${prefix}-template-${spec.template}.webp`,`aibt-${prefix}-category`));
+  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/names/aibiotech-${prefix}-name-${slugName(name)}.webp`,`aibt-${prefix}-name`));
+  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/strengths/aibiotech-${prefix}-strength-${slugStrength(strength)}-${spec.strength}.webp`,`aibt-${prefix}-strength`));
  });
 }
-function scheduleVialLayers(){requestAnimationFrame(()=>requestAnimationFrame(()=>applyVialLayers()))}
+function applyVialLayers(root=document){applyLayeredFormat(root,'Vial',VIAL_BASE,'vial')}
+function applyPenLayers(root=document){applyLayeredFormat(root,'Pen',PEN_BASE,'pen')}
+function applyProductLayers(root=document){applyVialLayers(root);applyPenLayers(root)}
+function scheduleProductLayers(){requestAnimationFrame(()=>requestAnimationFrame(()=>applyProductLayers()))}
 function wrapRenderAction(name){
- const original=window[name];if(typeof original!=='function'||original.__aibtVialLayerPatched)return;
- const wrapped=function(...args){const result=original.apply(this,args);scheduleVialLayers();setTimeout(scheduleVialLayers,80);return result};
- wrapped.__aibtVialLayerPatched=true;window[name]=wrapped;
+ const original=window[name];if(typeof original!=='function'||original.__aibtLayerPatched)return;
+ const wrapped=function(...args){const result=original.apply(this,args);scheduleProductLayers();setTimeout(scheduleProductLayers,80);return result};
+ wrapped.__aibtLayerPatched=true;window[name]=wrapped;
 }
-function bindVialLayerActions(){
+function bindProductLayerActions(){
  ['changeStrength','changeFormat','showAllProducts','setCategory','applyFilters','searchCatalog'].forEach(wrapRenderAction);
- applyVialLayers();
- [120,350,800,1600].forEach(ms=>setTimeout(()=>{applyVialLayers();bindVialLayerActions()},ms));
+ applyProductLayers();
+ [120,350,800,1600].forEach(ms=>setTimeout(()=>{applyProductLayers();bindProductLayerActions()},ms));
 }
 
 function ensureFaq(){
@@ -164,7 +179,7 @@ function init(){
  patchProductInfoVisual();
  patchResearchNavigation();
  patchModalClose();
- bindVialLayerActions();
+ bindProductLayerActions();
  setTimeout(patchProductInfoVisual,150);
  setTimeout(patchResearchNavigation,150);
  setTimeout(patchResearchNavigation,700);
