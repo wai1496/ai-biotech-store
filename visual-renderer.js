@@ -12,7 +12,7 @@
   };
   /* Masks are deliberately separated from the stopper/metal/glass hardware. */
   const VIAL_LABEL_MASKS=[{x:390,y:600,w:760,h:520}];
-  const VIAL_CAP_MASK={x:390,y:35,w:760,h:175};
+  const VIAL_CAP_REGION={x:390,y:35,w:760,h:175};
   function normalizeLabel(v){return String(v??'').replace(/\s+\d+(?:\.\d+)?\s*(?:MG|ML)$/i,'').trim()}
   function normalizeStrength(v){return String(v??'').trim().replace(/\s+/g,'')}
   function fieldMaxWidth(field){const span=field.w||field.maxW||1;return Math.max(1,span-((field.pad||0)*2))}
@@ -47,19 +47,17 @@
   function isCapWhite(r,g,b){const hi=Math.max(r,g,b),lo=Math.min(r,g,b);return hi>170&&(hi-lo)<34}
   function recolorOrangePixels(ctx,accent){recolorRegion(ctx,accent,{x:0,y:0,w:SIZE,h:SIZE},isOrange)}
   function recolorLabelAccents(ctx,accent){for(const rect of VIAL_LABEL_MASKS)recolorRegion(ctx,accent,rect,isOrange)}
-  function recolorVialCap(ctx,accent){recolorRegion(ctx,accent,VIAL_CAP_MASK,isCapWhite)}
+  function recolorVialCap(ctx,accent){recolorRegion(ctx,accent,VIAL_CAP_REGION,isCapWhite)}
   function measureWidth(ctx,text,size,weight){ctx.font=`${weight} ${size}px Arial`;const m=ctx.measureText(String(text||''));return (m.actualBoundingBoxRight||m.width)-(m.actualBoundingBoxLeft||0)}
   function printField(ctx,text,field,fill){
     text=String(text||'').trim();if(!text)return;
     const layout=fitTextLayout((t,s)=>measureWidth(ctx,t,s,field.weight),text,field),cx=field.x+field.w/2,cy=field.y+field.h/2;
-    ctx.save();ctx.beginPath();ctx.rect(field.x,field.y,field.w,field.h);ctx.clip();ctx.font=`${field.weight} ${layout.size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;ctx.textAlign='center';
-    ctx.translate(cx,cy);ctx.scale(layout.scaleX,1);ctx.fillText(text,0,0);ctx.restore();
+    ctx.save();ctx.beginPath();ctx.rect(field.x,field.y,field.w,field.h);ctx.clip();ctx.font=`${field.weight} ${layout.size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;ctx.textAlign='center';ctx.translate(cx,cy);ctx.scale(layout.scaleX,1);ctx.fillText(text,0,0);ctx.restore();
   }
   function printCenteredField(ctx,text,field,fill){
     text=String(text||'').trim();if(!text)return;
     const layout=fitTextLayout((t,s)=>measureWidth(ctx,t,s,field.weight),text,field);
-    ctx.save();ctx.font=`${field.weight} ${layout.size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;ctx.textAlign='center';
-    ctx.translate(field.cx,field.cy);ctx.scale(layout.scaleX,1);ctx.fillText(text,0,0);ctx.restore();
+    ctx.save();ctx.font=`${field.weight} ${layout.size}px Arial`;ctx.textBaseline='middle';ctx.fillStyle=fill;ctx.textAlign='center';ctx.translate(field.cx,field.cy);ctx.scale(layout.scaleX,1);ctx.fillText(text,0,0);ctx.restore();
   }
   function loadImage(url){return new Promise((resolve,reject)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('Could not load master image'));im.src=url})}
   function drawContained(ctx,img){const sc=Math.min(SIZE/img.width,SIZE/img.height),w=img.width*sc,h=img.height*sc;ctx.drawImage(img,(SIZE-w)/2,(SIZE-h)/2,w,h)}
@@ -68,21 +66,14 @@
     if(!masterUrl)throw new Error('Master image URL is required');
     if(!String(productName||'').trim())throw new Error('Product name is required');
     if(!String(strength||'').trim())throw new Error('Strength is required');
-    const form=String(format||'Vial');canvas.width=SIZE;canvas.height=SIZE;
+    const form=String(format||'Vial'),capMode=vialCapMode;canvas.width=SIZE;canvas.height=SIZE;
     const ctx=canvas.getContext('2d');ctx.clearRect(0,0,SIZE,SIZE);const im=await loadImage(masterUrl);drawContained(ctx,im);
     if(form==='Cartridge'&&!cartridgeBlank)return {mode:'reference-only',format:form};
     const name=normalizeLabel(productName),dose=normalizeStrength(strength);
-    if(form==='Pen'){
-      recolorOrangePixels(ctx,accent);
-      printField(ctx,name,PEN_FIELDS.name,accent);printField(ctx,dose,PEN_FIELDS.strength,'#111');return {mode:'dynamic-preview',format:form};
-    }
-    if(form==='Vial'){
-      recolorLabelAccents(ctx,accent);
-      if(vialCapMode==='category')recolorVialCap(ctx,accent);
-      printCenteredField(ctx,name,VIAL_FIELDS.name,accent);printCenteredField(ctx,dose,VIAL_FIELDS.strength,'#111');return {mode:'dynamic-preview',format:form,capMode:vialCapMode};
-    }
+    if(form==='Pen'){recolorOrangePixels(ctx,accent);printField(ctx,name,PEN_FIELDS.name,accent);printField(ctx,dose,PEN_FIELDS.strength,'#111');return {mode:'dynamic-preview',format:form}}
+    if(form==='Vial'){recolorLabelAccents(ctx,accent);if(capMode==='category')recolorVialCap(ctx,accent);printCenteredField(ctx,name,VIAL_FIELDS.name,accent);printCenteredField(ctx,dose,VIAL_FIELDS.strength,'#111');return {mode:'dynamic-preview',format:form,capMode}}
     if(form==='Cartridge'&&cartridgeBlank)return {mode:'blank-master-awaiting-field-map',format:form};
     throw new Error(`Unsupported format: ${form}`);
   }
-  global.AIBTVisualRenderer={SIZE,PEN_FIELDS,VIAL_FIELDS,VIAL_LABEL_MASKS,VIAL_CAP_MASK,normalizeLabel,normalizeStrength,fitFontSize,fitTextLayout,recolorLabelAccents,recolorVialCap,renderPreview};
+  global.AIBTVisualRenderer={SIZE,PEN_FIELDS,VIAL_FIELDS,VIAL_LABEL_MASKS,VIAL_CAP_REGION,normalizeLabel,normalizeStrength,fitFontSize,fitTextLayout,recolorLabelAccents,recolorVialCap,renderPreview};
 })(typeof window!=='undefined'?window:globalThis);
