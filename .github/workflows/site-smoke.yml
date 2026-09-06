@@ -28,6 +28,8 @@ jobs:
         run: node scripts/master-asset-contract-check.mjs
       - name: Validate final product master overlays
         run: node scripts/product-master-assets-check.mjs
+      - name: Validate Cartridge master media contract
+        run: node tests/media-cartridge-master-contract.test.mjs
       - name: Validate single storefront visual writer
         run: node scripts/visual-writer-contract-check.mjs
       - name: Validate routes and linked assets
