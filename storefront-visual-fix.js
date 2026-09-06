@@ -1,6 +1,69 @@
 (()=>{
 'use strict';
 
+const VIAL_LAYER_ROOT='/product-visuals/layers';
+const VIAL_BASE=`${VIAL_LAYER_ROOT}/base/aibiotech-vial-base-master.webp`;
+const CATEGORY_BY_HEX=Object.freeze({
+ '#F57C00':{template:'metabolism-orange',strength:'orange'},
+ '#2EAA61':{template:'regeneration-green',strength:'green'},
+ '#E63C3C':{template:'healing-red',strength:'red'},
+ '#7E57C2':{template:'brain-sleep-purple',strength:'purple'},
+ '#8052B5':{template:'brain-sleep-purple',strength:'purple'},
+ '#FF4FA0':{template:'bonding-pink',strength:'pink'},
+ '#D4AF37':{template:'longevity-gold',strength:'gold'},
+ '#E0B300':{template:'hormone-yellow',strength:'yellow'},
+ '#38BDF8':{template:'special-blend-light-blue',strength:'light-blue'},
+ '#2563EB':{template:'solvent-blue',strength:'blue'}
+});
+function normalHex(value){
+ const v=String(value||'').trim().toUpperCase();
+ if(/^#[0-9A-F]{6}$/.test(v))return v;
+ const m=v.match(/RGB\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+ return m?'#'+[m[1],m[2],m[3]].map(n=>Number(n).toString(16).padStart(2,'0')).join('').toUpperCase():v;
+}
+function slugName(value){
+ const raw=String(value||'').trim().toLowerCase();
+ if(raw==='nad+')return 'nad-plus';
+ return raw.replace(/\+/g,'-').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').replace(/-+/g,'-');
+}
+function slugStrength(value){return String(value||'').trim().toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9.]/g,'')}
+function layerImage(src,cls,alt=''){
+ const img=document.createElement('img');img.src=src;img.className=`aibt-vial-layer ${cls}`;img.alt=alt;img.setAttribute('aria-hidden',alt?'false':'true');
+ Object.assign(img.style,{position:'absolute',inset:'0',width:'100%',height:'100%',objectFit:'contain',objectPosition:'center',display:'block',pointerEvents:'none'});
+ return img;
+}
+function applyVialLayers(root=document){
+ root.querySelectorAll('.product-card').forEach(card=>{
+  const stage=card.querySelector('.product-visual-stage[data-format="Vial"]');
+  if(!stage)return;
+  const name=card.querySelector('.product-name')?.textContent?.trim()||'';
+  const strength=card.querySelector('.variant-row select')?.value?.trim()||'';
+  const cssColor=getComputedStyle(card).getPropertyValue('--cat').trim()||getComputedStyle(stage).getPropertyValue('--visual-category').trim();
+  const hex=normalHex(cssColor),spec=CATEGORY_BY_HEX[hex];
+  if(!spec||!name||!strength)return;
+  const signature=`${slugName(name)}|${slugStrength(strength)}|${hex}`;
+  if(stage.dataset.aibtVialLayered===signature)return;
+  stage.dataset.aibtVialLayered=signature;
+  stage.dataset.overlayMode='none';
+  stage.querySelectorAll('.product-visual-image,.product-visual-overlay,.aibt-vial-layer').forEach(el=>el.remove());
+  stage.appendChild(layerImage(VIAL_BASE,'aibt-vial-base',`${name} ${strength} Vial`));
+  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/templates/aibiotech-vial-template-${spec.template}.webp`,'aibt-vial-category'));
+  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/names/aibiotech-vial-name-${slugName(name)}.webp`,'aibt-vial-name'));
+  stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/strengths/aibiotech-vial-strength-${slugStrength(strength)}-${spec.strength}.webp`,'aibt-vial-strength'));
+ });
+}
+function scheduleVialLayers(){requestAnimationFrame(()=>requestAnimationFrame(()=>applyVialLayers()))}
+function wrapRenderAction(name){
+ const original=window[name];if(typeof original!=='function'||original.__aibtVialLayerPatched)return;
+ const wrapped=function(...args){const result=original.apply(this,args);scheduleVialLayers();setTimeout(scheduleVialLayers,80);return result};
+ wrapped.__aibtVialLayerPatched=true;window[name]=wrapped;
+}
+function bindVialLayerActions(){
+ ['changeStrength','changeFormat','showAllProducts','setCategory','applyFilters','searchCatalog'].forEach(wrapRenderAction);
+ applyVialLayers();
+ [120,350,800,1600].forEach(ms=>setTimeout(()=>{applyVialLayers();bindVialLayerActions()},ms));
+}
+
 function ensureFaq(){
  if(!document.getElementById('aibtFullFaqScript')){
   const script=document.createElement('script');
@@ -101,6 +164,7 @@ function init(){
  patchProductInfoVisual();
  patchResearchNavigation();
  patchModalClose();
+ bindVialLayerActions();
  setTimeout(patchProductInfoVisual,150);
  setTimeout(patchResearchNavigation,150);
  setTimeout(patchResearchNavigation,700);
