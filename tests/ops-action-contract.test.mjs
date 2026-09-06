@@ -10,7 +10,8 @@ const recovery = read('ops-recovery.js');
 const checks = [
  ['product edit preview exists', ops, /previewProductSave/],
  ['product writes require reason', ops, /Reason for change/],
- ['inventory adjustment uses audited RPC', ops, /adjust_inventory/],
+ ['inventory adjustment uses audited RPC', ops, /ops_adjust_stock/],
+ ['inventory adjustment requires reason', ops, /Choose a stock-change reason/],
  ['order status uses controlled RPC', commerce, /ops_set_order_status/],
  ['wallet adjustment uses controlled RPC', commerce, /ops_adjust_wallet/],
  ['payment recording uses controlled RPC', commerce, /ops_record_payment/],
