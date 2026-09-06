@@ -55,6 +55,28 @@ function layerSpec(card,stage){
  const hex=normalHex(cssColor);
  return {hex,spec:CATEGORY_BY_HEX[hex]};
 }
+function composeStandaloneStage(stage,{name,strength,hex}){
+ if(!stage||!name||!strength)return;
+ const format=String(stage.dataset.format||'').trim();
+ if(format==='Cartridge'){
+  stage.dataset.overlayMode='none';
+  stage.querySelectorAll('.product-visual-overlay,.aibt-product-layer').forEach(el=>el.remove());
+  return;
+ }
+ const prefix=format==='Vial'?'vial':format==='Pen'?'pen':'';
+ const spec=CATEGORY_BY_HEX[normalHex(hex)];
+ if(!prefix||!spec)return;
+ const signature=`${slugName(name)}|${slugStrength(strength)}|${normalHex(hex)}|${format}|standalone`;
+ if(stage.dataset.aibtLayered===signature)return;
+ stage.dataset.aibtLayered=signature;
+ stage.dataset.overlayMode='none';
+ stage.querySelectorAll('.product-visual-image,.product-visual-overlay,.aibt-product-layer,.aibt-vial-layer,.aibt-pen-layer').forEach(el=>el.remove());
+ const base=prefix==='vial'?VIAL_BASE:PEN_BASE;
+ stage.appendChild(layerImage(base,`aibt-${prefix}-base`,`${name} ${strength} ${format}`));
+ stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/templates/aibiotech-${prefix}-template-${spec.template}.webp`,`aibt-${prefix}-category`));
+ stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/names/aibiotech-${prefix}-name-${slugName(name)}.webp`,`aibt-${prefix}-name`));
+ stage.appendChild(layerImage(`${VIAL_LAYER_ROOT}/strengths/aibiotech-${prefix}-strength-${slugStrength(strength)}-${spec.strength}.webp`,`aibt-${prefix}-strength`));
+}
 function applyLayeredFormat(root,format,base,prefix){
  root.querySelectorAll('.product-card').forEach(card=>{
   const stage=card.querySelector(`.product-visual-stage[data-format="${format}"]`);
@@ -136,7 +158,8 @@ window.AIBT_LAYER_VISUALS=Object.freeze({
   categoryHex:itemCategoryHex,
   buildVisual:buildLayeredItemVisual,
   decorateRow:decorateItemRow,
-  decorateCart:decorateCartVisuals
+  decorateCart:decorateCartVisuals,
+  composeStandaloneStage
 });
 
 function wrapRenderAction(name){
@@ -195,17 +218,23 @@ function patchProductInfoVisual(){
   const result=original(id);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
    const layout=document.querySelector('#modalWrap.show .info-layout');
-   if(!layout||layout.querySelector(':scope > .info-visual'))return;
-   const stage=layout.querySelector(':scope > .product-visual-stage');
+   if(!layout)return;
+   let stage=layout.querySelector('.product-visual-stage');
    if(!stage)return;
-   const visual=document.createElement('div');
-   visual.className='info-visual';
-   visual.dataset.format=stage.dataset.format||'';
-   visual.dataset.overlayMode=stage.dataset.overlayMode||'none';
-   layout.insertBefore(visual,stage);
-   visual.appendChild(stage);
-   window.fitVisualText?.(visual);
-   scheduleProductLayers();
+   if(!layout.querySelector(':scope > .info-visual')){
+    const visual=document.createElement('div');
+    visual.className='info-visual';
+    visual.dataset.format=stage.dataset.format||'';
+    visual.dataset.overlayMode=stage.dataset.overlayMode||'none';
+    layout.insertBefore(visual,stage);
+    visual.appendChild(stage);
+   }
+   stage=layout.querySelector('.product-visual-stage');
+   const name=document.querySelector('#modalWrap.show .modal-head h2')?.textContent?.trim()||'';
+   const strength=(layout.querySelector('.info-layout h3')||layout.querySelector('h3'))?.textContent?.split('·')[0]?.trim()||'';
+   const hex=normalHex(getComputedStyle(stage).getPropertyValue('--visual-category').trim())||PRODUCT_CATEGORY_HEX[slugName(name)]||'';
+   composeStandaloneStage(stage,{name,strength,hex});
+   window.fitVisualText?.(layout.querySelector('.info-visual'));
   }));
   return result;
  };
