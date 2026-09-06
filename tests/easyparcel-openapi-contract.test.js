@@ -1,5 +1,5 @@
-const fs=require('fs');
-const assert=require('assert');
+import fs from 'node:fs';
+import assert from 'node:assert';
 const read=p=>fs.readFileSync(p,'utf8');
 const shared=read('api/staging-shipping/_shared.js');
 const rates=read('api/staging-shipping/rates.js');
