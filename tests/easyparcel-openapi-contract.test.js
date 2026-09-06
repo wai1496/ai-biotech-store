@@ -1,0 +1,23 @@
+const fs=require('fs');
+const assert=require('assert');
+const read=p=>fs.readFileSync(p,'utf8');
+const shared=read('api/staging-shipping/_shared.js');
+const rates=read('api/staging-shipping/rates.js');
+const book=read('api/staging-shipping/book.js');
+const pay=read('api/staging-shipping/pay.js');
+const status=read('api/staging-shipping/status.js');
+const ops=read('ops-easyparcel.js');
+
+assert(shared.includes('https://api.easyparcel.com/open_api/2026-06'),'shipping adapter must use EasyParcel OpenAPI 2026-06');
+assert(shared.includes('easyparcel_get_oauth_tokens'),'shipping adapter must load OAuth tokens from Supabase Vault RPC');
+assert(shared.includes('refresh_token'),'shipping adapter must support OAuth refresh-token recovery');
+assert(!shared.includes('EASYPARCEL_DEMO_API_KEY'),'modern shipping adapter must not require legacy EasyParcel demo API key');
+assert(!shared.includes('demo.connect.easyparcel.my'),'modern shipping adapter must not use legacy demo.connect endpoint');
+assert(rates.includes('/shipment/quotations'),'rates must use OpenAPI shipment quotations');
+assert(book.includes('/shipment/submit_orders'),'booking must use OpenAPI submit_orders');
+assert(book.includes('confirm_payment'),'submit_orders must require explicit financial confirmation because submission deducts EasyParcel wallet credit');
+assert(status.includes('/shipment/tracking_status'),'status sync must use OpenAPI tracking_status');
+assert(pay.includes('410')||pay.includes('Gone'),'legacy separate pay endpoint must be retired because OpenAPI submit_orders performs the wallet deduction');
+assert(ops.includes('I Understand — Submit & Pay EasyParcel'),'Operations must show explicit confirmation before submit_orders');
+assert(!ops.includes("api('pay'"),'Operations must not call the legacy separate payment endpoint');
+console.log('PASS: EasyParcel 2026-06 OAuth/OpenAPI shipping contract');
