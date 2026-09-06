@@ -17,9 +17,11 @@
 
     <section class="vc-grid">
       <aside class="vc-panel vc-controls" aria-label="Composer controls">
-        <label>Product
-          <input id="vcProduct" value="CAGRILINTIDE" list="vcProductList" autocomplete="off">
-          <datalist id="vcProductList"></datalist>
+        <label>Product dropdown
+          <select id="vcProductSelect" aria-label="Choose product"><option value="">Loading products…</option></select>
+        </label>
+        <label>Product name / manual input
+          <input id="vcProduct" value="CAGRILINTIDE" autocomplete="off">
         </label>
         <p class="vc-hint" id="vcCatalogHint">Loading published catalog for read-only suggestions. Manual input always remains available.</p>
         <label>Strength
@@ -72,6 +74,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/visual-renderer.js?v=2026090702"></script>
-  <script src="/visual-composer.js?v=2026090703"></script>
+  <script src="/visual-composer.js?v=2026090704"></script>
 </body>
 </html>
