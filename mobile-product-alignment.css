@@ -4,6 +4,7 @@
   .product>.visual{width:100%;height:auto!important;max-height:none!important;aspect-ratio:1/1;margin:10px 0 16px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
   .product>.visual .aibt-visual-frame{width:100%;height:100%;padding:18px}
   .product>.visual .aibt-visual-frame>img{width:100%;height:100%;object-fit:contain;object-position:center center}
+  .product>.visual .aibt-visual-frame:has(.aibt-master-pen)>img{transform:translateY(24px)}
   .product h3,.product p,.product .chips,.product .price,.product .option{position:relative;z-index:1}
 
   #productOverlay{padding:0;background:rgba(8,20,38,.42);backdrop-filter:blur(7px)}
@@ -19,6 +20,7 @@
   .pd-stage .visual{width:100%;height:100%;min-height:0!important;max-height:none!important;background:#fff}
   .pd-stage .aibt-visual-frame{width:100%;height:100%;padding:22px}
   .pd-stage .aibt-visual-frame>img{width:100%;height:100%;object-fit:contain;object-position:center center}
+  .pd-stage .aibt-visual-frame:has(.aibt-master-pen)>img{transform:translateY(24px)}
   .pd-info>.tag{order:3;align-self:flex-start;margin:20px 0 14px;padding:8px 13px;border:0;border-radius:999px;background:var(--pc);color:#fff;box-shadow:none;font-size:12px}
   .pd-description{order:5;margin:0 0 12px;padding:16px;border:1px solid #dce4ec;border-radius:14px;background:#f7fafc;color:#607286;line-height:1.55}
   .plain-research-link{order:6;color:#1675d1!important;margin:0 0 16px!important}
