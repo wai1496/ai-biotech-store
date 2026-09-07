@@ -22,10 +22,10 @@ async function initPaymentReturn(){
       return;
     }
     if(data.status==='failed'){
-      show('Payment not completed','The sandbox payment was unsuccessful. Your order remains unpaid and you may try again from checkout.',`Order: ${orderId}`);
+      show('Payment not completed','The sandbox payment was unsuccessful. Your order remains unpaid. Open Member area and use PAY / RETRY PAYMENT on this order.',`Order: ${orderId}`);
       return;
     }
-    show('Payment pending','ToyyibPay has not confirmed the sandbox payment yet. Your order remains pending payment.',`Order: ${orderId}`);
+    show('Payment pending','ToyyibPay has not confirmed the sandbox payment yet. Your order remains pending payment. You can safely retry the same order from Member area.',`Order: ${orderId}`);
   }catch(e){show('Verification unavailable',e.message||'Could not verify the sandbox payment. Your order has not been marked paid.');}
 }
 
