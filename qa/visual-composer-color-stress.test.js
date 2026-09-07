@@ -1,0 +1,14 @@
+const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm');
+const root=path.join(__dirname,'..');
+const source=fs.readFileSync(path.join(root,'visual-renderer.js'),'utf8');
+const sandbox={window:{}};
+vm.runInNewContext(source,sandbox,{filename:'visual-renderer.js'});
+const R=sandbox.window.AIBTVisualRenderer;
+assert.ok(R,'renderer must expose AIBTVisualRenderer');
+const masks=R.VIAL_LABEL_MASKS||[];
+assert.ok(masks.some(r=>Number(r.y||0)+Number(r.h||0)>=1240),'Vial accent masks must include the lower wave region');
+assert.equal(typeof R.readableAccent,'function','renderer must expose readableAccent');
+assert.equal(R.readableAccent('#F4E04D'),'#8A7200','very light yellow/gold must darken for text readability');
+assert.equal(R.readableAccent('#2EAA61'),'#2EAA61','mid-tone green should remain unchanged');
+assert.match(source,/vialCapMode='white'/,'white cap must remain the Vial default');
+console.log('visual composer colour stress contract passed');

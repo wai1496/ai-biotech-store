@@ -24,6 +24,11 @@ jobs:
         run: node scripts/smoke-check.mjs
       - name: Validate unresolved storefront issue fixes
         run: node scripts/storefront-live-issues-check.mjs
+      - name: Validate preview-only visual composer
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in qa/visual-composer-*.test.js; do node "$file"; done
       - name: Validate JavaScript syntax
         shell: bash
         run: |

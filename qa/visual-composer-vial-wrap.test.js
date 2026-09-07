@@ -1,0 +1,12 @@
+const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm');
+const root=path.join(__dirname,'..');
+const source=fs.readFileSync(path.join(root,'visual-renderer.js'),'utf8');
+const sandbox={window:{}};vm.runInNewContext(source,sandbox,{filename:'visual-renderer.js'});
+const R=sandbox.window.AIBTVisualRenderer;
+assert.ok(typeof R.splitVialName==='function','renderer must expose splitVialName');
+assert.deepStrictEqual(JSON.parse(JSON.stringify(R.splitVialName('GHK-CU'))),['GHK-CU']);
+const lines=R.splitVialName('CJC-1295 WITHOUT DAC + IPAMORELIN');
+assert.equal(lines.length,2,'very long Vial names should wrap to two lines');
+assert.ok(lines.every(Boolean),'wrapped lines must be non-empty');
+assert.ok(lines.join(' ').includes('IPAMORELIN'),'wrapped name must preserve all words');
+console.log('visual composer Vial wrap contract passed');

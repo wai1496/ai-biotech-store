@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Product Visual Composer — AI BioTech</title>
+  <link rel="stylesheet" href="/visual-composer.css?v=20260907">
+</head>
+<body>
+  <main class="vc-shell">
+    <header class="vc-head">
+      <div><small>AI BioTech / Staging Tool</small><h1>Product Visual Composer</h1><p>Compose and inspect product visuals before any storefront integration.</p></div>
+      <a href="/" class="vc-back">← Store</a>
+    </header>
+
+    <div class="vc-safety">PREVIEW ONLY — NO PRODUCTION WRITES</div>
+
+    <section class="vc-grid">
+      <aside class="vc-panel vc-controls" aria-label="Composer controls">
+        <label>Product dropdown
+          <select id="vcProductSelect" aria-label="Choose product"><option value="">Loading products…</option></select>
+        </label>
+        <label>Product name / manual input
+          <input id="vcProduct" value="CAGRILINTIDE" autocomplete="off">
+        </label>
+        <p class="vc-hint" id="vcCatalogHint">Loading published catalog for read-only suggestions. Manual input always remains available.</p>
+        <label>Strength
+          <input id="vcStrength" value="5mg" autocomplete="off">
+        </label>
+        <label>Format
+          <select id="vcFormat">
+            <option>Vial</option><option selected>Pen</option><option>Cartridge</option>
+          </select>
+        </label>
+        <label>Category accent
+          <div class="vc-color-row"><input id="vcAccent" type="color" value="#f57c00"><output id="vcAccentText">#F57C00</output></div>
+        </label>
+        <div class="vc-presets" aria-label="Accent presets">
+          <button type="button" data-accent="#F57C00">Metabolic</button>
+          <button type="button" data-accent="#2EAA61">Skin / Hair</button>
+          <button type="button" data-accent="#E63C3C">Healing</button>
+          <button type="button" data-accent="#8052B5">Brain</button>
+          <button type="button" data-accent="#FF3EA5">Wellness</button>
+          <button type="button" data-accent="#38BDF8">Blend</button>
+        </div>
+        <label>Master source URL
+          <input id="vcMaster" type="url" placeholder="Master image URL">
+        </label>
+        <label>Local master image (browser only)
+          <input id="vcLocalMaster" type="file" accept="image/png,image/jpeg,image/webp">
+        </label>
+        <p class="vc-hint" id="vcLocalHint">Local files are previewed only in this browser tab and are never uploaded.</p>
+        <label>Vial cap
+          <select id="vcVialCapMode">
+            <option value="white" selected>White Cap — Approved Default</option>
+            <option value="category">Category Cap — Preview Alternative</option>
+          </select>
+        </label>
+        <p class="vc-hint" id="vcMasterHint">Choose/load a blank Vial or Pen master. Cartridge remains reference-only until a verified blank master is available.</p>
+        <div class="vc-actions"><button id="vcRender" type="button">Render Preview</button><button id="vcReset" type="button" class="secondary">Reset</button></div>
+        <label>Local QA status
+          <select id="vcStatus"><option>Draft</option><option>Looks Good</option><option>Needs Adjustment</option></select>
+        </label>
+        <div id="vcMessage" class="vc-message" role="status" aria-live="polite"></div>
+      </aside>
+
+      <section class="vc-panel vc-preview-panel">
+        <div class="vc-stage"><canvas id="vcCanvas" width="1536" height="1536" aria-label="Product visual preview"></canvas></div>
+        <div id="vcMeta" class="vc-meta">
+          <span><b>Product</b><i>—</i></span><span><b>Strength</b><i>—</i></span><span><b>Format</b><i>—</i></span><span><b>Mode</b><i>Not rendered</i></span>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/visual-renderer.js?v=2026090702"></script>
+  <script src="/visual-composer.js?v=2026090704"></script>
+</body>
+</html>

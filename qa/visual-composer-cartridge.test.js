@@ -1,0 +1,14 @@
+const assert=require('assert'),fs=require('fs'),path=require('path'),vm=require('vm');
+const root=path.join(__dirname,'..');
+const source=fs.readFileSync(path.join(root,'visual-renderer.js'),'utf8');
+const controller=fs.readFileSync(path.join(root,'visual-composer.js'),'utf8');
+const sandbox={window:{}};vm.runInNewContext(source,sandbox,{filename:'visual-renderer.js'});
+const R=sandbox.window.AIBTVisualRenderer;
+assert.ok(R.CARTRIDGE_FIELDS,'renderer must expose Cartridge fields');
+assert.ok(R.CARTRIDGE_FIELDS.name.vertical,'Cartridge product name must use vertical field geometry');
+assert.ok(R.CARTRIDGE_FIELDS.strength,'Cartridge strength field must exist');
+assert.match(source,/printCartridgeName/,'renderer must have Cartridge-specific vertical name rendering');
+assert.match(source,/recolorCartridgeAccents/,'Cartridge accents must recolor independently of hardware');
+assert.match(controller,/cartridgeBlank:localMasterUrl&&v\.format==='Cartridge'/,'local blank Cartridge master should enable dynamic preview only in-browser');
+assert.doesNotMatch(controller,/\.upload\(|\.insert\(|\.update\(|\.upsert\(|\.delete\(/,'Cartridge preview must remain mutation-free');
+console.log('visual composer Cartridge contract passed');
