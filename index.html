@@ -6,7 +6,10 @@
   <title>AI BioTech — Precision Peptide Research</title>
   <meta name="description" content="AI BioTech research catalog with Vial, Cartridge and Pen format selection.">
   <meta name="robots" content="noindex,nofollow">
-  <link rel="stylesheet" href="/clean-store.css?v=20260908">
+  <link rel="stylesheet" href="/clean-store.css?v=20260909">
+  <link rel="stylesheet" href="/storefront-control.css?v=20260909">
+  <link rel="stylesheet" href="/mobile-product-reference-fix.css?v=20260909">
+  <link rel="stylesheet" href="/category-visual-accent.css?v=20260909">
 </head>
 <body>
 <div class="stagebar">STAGING PREVIEW — ISOLATED FROM PRODUCTION WRITES</div>
@@ -22,5 +25,8 @@
 <div id="cartOverlay" class="overlay"><aside class="drawer"><div class="drawer-head"><h2>Your Cart</h2><button class="close-btn" onclick="closeCart()">×</button></div><div id="cartItems" class="drawer-body"></div><div class="drawer-footer"><div>Total <span id="cartTotal">RM0</span></div><button class="btn blue" style="width:100%;margin-top:12px" onclick="stageCheckout()">Continue to Checkout</button></div></aside></div>
 <div id="mobileMenu" class="mobile-drawer"><div class="mobile-panel"><button class="close-btn" onclick="closeMobileMenu()">×</button><a class="brand" href="#top"><div class="brand-mark">🧬</div><div><strong><span>AI</span> BioTech</strong><small>PRECISION PEPTIDE RESEARCH</small></div></a><button onclick="scrollToId('top')">Home</button><button onclick="showAllProducts();closeMobileMenu()">Shop</button><button onclick="openResearchCenter();closeMobileMenu()">Research</button><button onclick="openGuides('home');closeMobileMenu()">Guides</button><button onclick="scrollToId('faq')">FAQ</button><button onclick="openStageAccount();closeMobileMenu()">Account</button><button onclick="openCart();closeMobileMenu()">Cart (<span data-cart-count>0</span>)</button></div></div>
 <div class="mobile-sticky-cart"><div>🛒 <span data-cart-count>0</span></div><button class="btn primary" onclick="openCart()">View Cart</button></div><div id="toast" class="toast"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/staging-config.js?v=20260908"></script><script src="/clean-store.js?v=20260908"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/staging-config.js?v=20260909"></script>
+<script src="/visual-renderer.js?v=20260909"></script>
+<script src="/clean-store.js?v=20260909"></script>
 </body></html>
