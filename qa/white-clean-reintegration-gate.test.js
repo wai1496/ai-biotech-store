@@ -1,0 +1,14 @@
+const fs=require('fs');
+const assert=require('assert');
+const html=fs.readFileSync('index.html','utf8');
+const cfg=fs.readFileSync('staging-config.js','utf8');
+const safety=fs.readFileSync('white-clean-safety.js','utf8');
+for(const token of ['STAGING PREVIEW — ISOLATED FROM PRODUCTION WRITES','class="site-header"','class="hero-inner"','id="productGrid"','class="mobile-sticky-cart"']) assert(html.includes(token),`missing White Clean gate token: ${token}`);
+assert(!html.includes('SCIENCE.<br>PRECISION.'),'Dark Biotech hero must not be the Core v1 shell');
+assert(cfg.includes("environment: 'staging'"),'staging environment flag missing');
+assert(cfg.includes('checkoutEnabled: false'),'staging checkout must remain gated until isolated checkout is verified');
+assert(cfg.includes('memberEnabled: false'),'staging member routing must remain gated until isolated member flow is verified');
+assert(html.includes('/white-clean-safety.js'),'deterministic staging safety layer missing');
+assert(/no production order, payment, member, wallet or inventory write/i.test(safety),'safety layer must explicitly block production writes');
+for(const path of ['lib/toyyibpay.js','api/toyyibpay-create.js','api/toyyibpay-callback.js','api/toyyibpay-reconcile.js','api/toyyibpay-duitnow-status.js','lib/easyparcel.js','api/easyparcel-rates.js','api/easyparcel-quote.js','api/easyparcel-book.js','api/easyparcel-track.js']) assert(fs.existsSync(path),`missing preserved integration: ${path}`);
+console.log('white-clean-reintegration-gate: ok');
