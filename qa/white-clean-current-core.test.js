@@ -1,0 +1,10 @@
+const fs=require('fs');
+const assert=require('assert');
+const html=fs.readFileSync('index.html','utf8');
+const js=fs.readFileSync('clean-store.js','utf8');
+assert(html.includes('id="productGrid"'));
+assert(js.includes('variant') || js.includes('variants'),'White Clean renderer must use variant data');
+assert(!js.includes('const PRODUCTS = ['),'catalog must not be a hard-coded product table');
+assert(js.includes("localStorage.setItem('aibt_cart'"),'White Clean checkout handoff must use the shared checkout cart key');
+assert(html.includes('/visual-renderer.js'),'current visual renderer must remain loaded by White Clean');
+console.log('white-clean-current-core: ok');
