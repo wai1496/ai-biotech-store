@@ -1,0 +1,10 @@
+const fs=require('fs');
+const assert=require('assert');
+const html=fs.readFileSync('index.html','utf8');
+const js=fs.readFileSync('clean-store.js','utf8');
+assert(html.includes('openStageAccount()'),'White Clean Account action is missing');
+assert(html.includes('stageCheckout()'),'White Clean checkout action is missing');
+assert(js.includes("location.href='/member.html'"),'Account must use the shared Member Area');
+assert(js.includes("location.href='/checkout.html'"),'Checkout must use the shared checkout page');
+assert(!html.includes('checkout-white.html'),'White Clean must not fork checkout');
+console.log('white-clean-checkout-routing: ok');
