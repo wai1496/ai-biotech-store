@@ -15,10 +15,3 @@ window.toast = window.toast || function(message){
   clearTimeout(window.__aibtToastTimer);
   window.__aibtToastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 };
-
-(function loadWhiteCleanSafety(){
-  const script=document.createElement('script');
-  script.src='/white-clean-safety.js?v=20260908';
-  script.defer=true;
-  document.head.appendChild(script);
-})();
