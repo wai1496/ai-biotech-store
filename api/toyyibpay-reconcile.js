@@ -1,8 +1,10 @@
 const {requireSandboxConfig,getOwnedOrder,getBillTransactions,persistVerifiedTransaction}=require('../lib/toyyibpay');
+const {previewSafety}=require('../lib/preview-safety');
 
 module.exports=async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
   try{
+    previewSafety();
     requireSandboxConfig();
     const orderId=String(req.body?.orderId||'').trim(),billCode=String(req.body?.billCode||'').trim();
     if(!orderId||!billCode)return res.status(400).json({error:'orderId and billCode are required'});
