@@ -1,8 +1,10 @@
 const {requireSandboxConfig,serviceRest,getBillTransactions,persistVerifiedTransaction,callbackHash,safeEqualHex,parseBody}=require('../lib/toyyibpay');
+const {previewSafety}=require('../lib/preview-safety');
 
 module.exports=async function handler(req,res){
   if(req.method!=='POST')return res.status(405).send('Method not allowed');
   try{
+    previewSafety();
     const cfg=requireSandboxConfig();
     const body=parseBody(req);
     const expected=callbackHash(cfg.secret,body);
@@ -19,6 +21,6 @@ module.exports=async function handler(req,res){
     return res.status(200).send('OK');
   }catch(e){
     console.error('ToyyibPay callback failed',e?.code||e?.message||e);
-    return res.status(e?.code==='PAYMENT_NOT_CONFIGURED'||e?.code==='PAYMENT_SANDBOX_REQUIRED'?503:500).send('Callback processing failed');
+    return res.status(e?.status||((e?.code==='PAYMENT_NOT_CONFIGURED'||e?.code==='PAYMENT_SANDBOX_REQUIRED')?503:500)).send('Callback processing failed');
   }
 };
