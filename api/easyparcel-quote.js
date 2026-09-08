@@ -1,4 +1,5 @@
 const {requireUser,quoteRates}=require('../lib/easyparcel');
+const {previewSafety}=require('../lib/preview-safety');
 
 const SUPABASE_URL=process.env.SUPABASE_URL||'https://yjauxyvtrmdriwtmckkl.supabase.co';
 const SERVICE_KEY=String(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
@@ -23,6 +24,7 @@ async function insertQuote(row){
 
 module.exports=async function handler(req,res){
   try{
+    previewSafety();
     if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
     const user=await requireUser(req);
     const postcode=String(req.body?.postcode||'').trim();
