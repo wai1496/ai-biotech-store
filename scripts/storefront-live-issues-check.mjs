@@ -19,25 +19,31 @@ const insightApi=read('api/ai-product-insight.js');
 if(/catch\(e\)\{res\.status\(500\)/.test(insightApi))failures.push('AI insight quota/upstream failures must not be collapsed into a generic HTTP 500');
 
 const centerFix=read('center-fix.js');
+const visualRenderer=read('visual-renderer.js');
 if(!centerFix.includes('/assets/cartridge-master-approved.webp'))failures.push('center-fix.js must keep the bundled Cartridge fallback asset');
-if(!centerFix.includes('catalog-media/masters/cartridge-master-admin.webp'))failures.push('center-fix.js must prefer the admin-managed Cartridge master from Supabase Storage');
+if(!centerFix.includes('catalog-media/masters/cartridge-master-admin.webp'))failures.push('center-fix.js must keep the admin-managed Cartridge reference from Supabase Storage');
 if(!/form\s*===\s*['"]Cartridge['"]/.test(centerFix))failures.push('center-fix.js must have Cartridge-specific rendering logic');
-if(!centerFix.includes('isSharedMasterImage'))failures.push('center-fix.js must detect shared Vial/Pen master image URLs');
-if(!centerFix.includes('masterImageSource'))failures.push('center-fix.js must composite shared Vial/Pen master images through canvas instead of returning the blank image directly');
-if(!centerFix.includes('PEN_FIELDS'))failures.push('center-fix.js must define fixed Pen name/strength print fields');
-if(!centerFix.includes('printField'))failures.push('center-fix.js must shrink and center Pen text inside its fixed print fields');
-const cartridgePath='assets/cartridge-master-approved.webp';
-if(!fs.existsSync(cartridgePath)){
-  failures.push('approved Cartridge master asset is missing');
-}else{
-  const cartridge=fs.readFileSync(cartridgePath);
-  const riff=cartridge.subarray(0,4).toString('ascii');
-  const webp=cartridge.subarray(8,12).toString('ascii');
-  const declared=cartridge.length>=8?cartridge.readUInt32LE(4)+8:0;
-  if(riff!=='RIFF'||webp!=='WEBP')failures.push('approved Cartridge master must be a valid WebP RIFF file');
-  if(declared!==cartridge.length)failures.push(`approved Cartridge master is truncated: WebP declares ${declared} bytes but file has ${cartridge.length}`);
-  if(cartridge.length<4000)failures.push('approved Cartridge master is unexpectedly small');
+if(!centerFix.includes('isSharedMasterImage'))failures.push('center-fix.js must detect shared master image URLs');
+if(!centerFix.includes('AIBTVisualRenderer'))failures.push('center-fix.js must use the shared visual renderer');
+if(!centerFix.includes('AIBTVisualRenderer')||!centerFix.includes('renderPreview'))failures.push('center-fix.js must delegate shared-master composition to visual-renderer.js');
+if(!visualRenderer.includes('PEN_FIELDS'))failures.push('visual-renderer.js must define fixed Pen name/strength print fields');
+if(!visualRenderer.includes('printField'))failures.push('visual-renderer.js must shrink and center Pen text inside fixed print fields');
+if(!visualRenderer.includes('VIAL_FIELDS'))failures.push('visual-renderer.js must own fixed Vial field geometry');
+if(!visualRenderer.includes('cartridgeVisualMode'))failures.push('visual-renderer.js must own Cartridge dynamic/reference classification');
+if(!centerFix.includes('/assets/cartridge-master-blank-approved.webp'))failures.push('center-fix.js must use the approved bundled blank Cartridge master for dynamic short names');
+
+function validateWebp(path,label,minBytes){
+  if(!fs.existsSync(path)){failures.push(`${label} is missing`);return}
+  const file=fs.readFileSync(path);
+  const riff=file.subarray(0,4).toString('ascii');
+  const webp=file.subarray(8,12).toString('ascii');
+  const declared=file.length>=8?file.readUInt32LE(4)+8:0;
+  if(riff!=='RIFF'||webp!=='WEBP')failures.push(`${label} must be a valid WebP RIFF file`);
+  if(declared!==file.length)failures.push(`${label} is truncated: WebP declares ${declared} bytes but file has ${file.length}`);
+  if(file.length<minBytes)failures.push(`${label} is unexpectedly small`);
 }
+validateWebp('assets/cartridge-master-approved.webp','approved Cartridge reference master',4000);
+validateWebp('assets/cartridge-master-blank-approved.webp','approved blank Cartridge master',5000);
 
 const adminHtml=read('admin.html');
 if(!adminHtml.includes('/admin-cartridge-master.js'))failures.push('admin.html must load the Cartridge master management UI');

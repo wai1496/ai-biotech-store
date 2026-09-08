@@ -24,6 +24,7 @@
   </header>
   <nav class="nav" aria-label="Main navigation">
     <button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">⌂ HOME</button>
+    <button id="memberNavMenuBtn" type="button" onclick="location.href='/member.html'">👤 MEMBER</button>
     <button type="button" onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">▣ CATALOG</button>
     <button type="button" onclick="showAll=true;category='All';renderProducts();catalog.scrollIntoView({behavior:'smooth'})">⚗ PEPTIDES⌄</button>
     <button type="button" onclick="openResearch()">⌘ RESEARCH</button>
@@ -44,6 +45,7 @@
   <noscript><p style="padding:24px">JavaScript is required to load the live catalog.</p></noscript>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/app.js"></script>
+  <script src="/visual-renderer.js?v=20260907"></script>
   <script src="/center-fix.js"></script>
   <script src="/product-detail.js?v=202608291620"></script>
   <script src="/storefront-hardening.js?v=202608291620"></script>
@@ -54,6 +56,7 @@
   <script src="/site-final-hardening.js?v=202608291620"></script>
   <script src="/storefront-navigation-core.js?v=202609011640"></script>
   <script src="/storefront-navigation.js?v=202609011640"></script>
+  <script src="/cart-flow.js?v=2026090704"></script>
   <script>try{renderProducts();renderCart()}catch(error){console.error(error)}</script>
 </body>
 </html>
