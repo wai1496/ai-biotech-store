@@ -3,8 +3,8 @@ window.AIBT_CONFIG = Object.freeze({
   label: 'STAGING PREVIEW — NO PRODUCTION WRITES',
   supabaseUrl: 'https://rpnwssqvurpdennpzplx.supabase.co',
   supabaseKey: 'sb_publishable_x4udjzTcG-t9NW6qusKvZA_Efk2QoXh',
-  checkoutEnabled: true,
-  memberEnabled: true
+  checkoutEnabled: false,
+  memberEnabled: false
 });
 
 window.toast = window.toast || function(message){
@@ -15,3 +15,10 @@ window.toast = window.toast || function(message){
   clearTimeout(window.__aibtToastTimer);
   window.__aibtToastTimer = setTimeout(() => el.classList.remove('show'), 2600);
 };
+
+(function loadWhiteCleanSafety(){
+  const script=document.createElement('script');
+  script.src='/white-clean-safety.js?v=20260908';
+  script.defer=true;
+  document.head.appendChild(script);
+})();
