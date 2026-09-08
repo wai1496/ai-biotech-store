@@ -1,7 +1,9 @@
 const {requireSandboxConfig,getOwnedOrder,createSandboxBill,findPendingPayment,insertPendingPayment}=require('../lib/toyyibpay');
+const {previewSafety}=require('../lib/preview-safety');
 
 module.exports=async function handler(req,res){
   try{
+    previewSafety();
     requireSandboxConfig();
     if(req.method==='GET')return res.status(200).json({configured:true,mode:'sandbox'});
     if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
