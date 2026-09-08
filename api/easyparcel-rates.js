@@ -1,7 +1,9 @@
 const {requireUser,requireConfig,quoteRates}=require('../lib/easyparcel');
+const {previewSafety}=require('../lib/preview-safety');
 
 module.exports=async function handler(req,res){
   try{
+    previewSafety();
     if(req.method==='GET'){
       requireConfig();
       return res.status(200).json({configured:true});
