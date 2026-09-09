@@ -1,5 +1,5 @@
 const SB_URL='https://yjauxyvtrmdriwtmckkl.supabase.co',SB_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
-const psb=supabase.createClient(SB_URL,SB_KEY);
+const psb=window.AIBTRuntime.createClient();
 
 function show(title,message,meta){
   paymentTitle.textContent=title;
@@ -8,6 +8,7 @@ function show(title,message,meta){
 }
 
 async function initPaymentReturn(){
+  if(!window.AIBTRuntime.writesEnabled){show('Payment verification locked',window.AIBTRuntime.reason);return;}
   const q=new URLSearchParams(location.search),orderId=q.get('order_id')||'',billCode=q.get('billcode')||'';
   if(!orderId||!billCode){show('Payment reference missing','We could not identify this payment return. Open your Member area to review the order.');return;}
   const {data:{session}}=await psb.auth.getSession();
@@ -17,7 +18,8 @@ async function initPaymentReturn(){
     const data=await r.json();
     if(!r.ok)throw new Error(data.error||'Payment verification failed.');
     if(data.status==='successful'){
-      localStorage.removeItem('aibt_cart');
+      window.AIBTCore.cart.clear();
+      window.AIBTCore.checkoutIntent.clear();
       show('Payment successful','Your ToyyibPay sandbox payment was verified. The order is now marked as paid.',`Order: ${orderId}`);
       return;
     }

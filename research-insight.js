@@ -1,6 +1,6 @@
 const RI_SB_URL='https://yjauxyvtrmdriwtmckkl.supabase.co';
 const RI_SB_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
-const risb=supabase.createClient(RI_SB_URL,RI_SB_KEY);
+const risb=window.AIBTRuntime.createClient({access:'catalog'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const arr=v=>Array.isArray(v)?v:[];
 const hasProfile=v=>v&&typeof v==='object'&&Object.keys(v).length>0&&String(v.short_description||'').trim()&&String(v.overview||'').trim();

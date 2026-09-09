@@ -10,7 +10,7 @@ assert(cfg.includes("environment: 'staging'"));
 assert(cfg.includes('rpnwssqvurpdennpzplx.supabase.co'),'staging config must point to isolated Supabase');
 assert(cfg.includes('checkoutEnabled: false'));
 assert(cfg.includes('memberEnabled: false'));
-assert(bridge.includes('productionClientRedirect:true'));
+assert(bridge.includes('writesEnabled:false'),'configuration flags must not bypass the unverified database gate');
 for(const html of [checkout,member]){
   const configPos=html.indexOf('/staging-config.js');
   const bridgePos=html.indexOf('/client-runtime-bridge.js');

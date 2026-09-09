@@ -1,5 +1,5 @@
-const sb=supabase.createClient('https://yjauxyvtrmdriwtmckkl.supabase.co','sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF');
-const AIBT_ADMIN_URL='https://ai-biotech-store.vercel.app/admin.html';
+const sb=window.AIBTRuntime.createClient();
+const AIBT_ADMIN_URL=location.origin+'/admin.html';
 const groups={Dashboard:['dashboard'],Commerce:['orders','payments','shipments','invoices','protocol_management'],Catalog:['products','inventory','categories','research_entries','protocols','media_assets'],Customers:['customer_profiles','wallet_accounts'],Marketing:['vouchers'],Content:['pages'],Settings:['stores','admin_users','audit_logs','system_logs']};
 const label={dashboard:'Dashboard',orders:'Orders',payments:'Payments',shipments:'Tracking / Shipping',invoices:'Invoices',protocol_management:'Protocols Management',products:'Products',variants:'Variants',inventory:'Inventory',categories:'Categories',research_entries:'Research Catalog',protocols:'Protocol Templates',media_assets:'Media / Images',customer_profiles:'Customers',wallet_accounts:'Wallet',vouchers:'Vouchers / Discounts',pages:'Pages',stores:'Store Settings',admin_users:'Admin Users',audit_logs:'Activity Log',system_logs:'System Logs'};
 const orderColumn={stores:'updated_at',wallet_accounts:'updated_at',shipments:'updated_at',invoices:'generated_at',variants:'product_id'};

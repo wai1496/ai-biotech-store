@@ -4,7 +4,7 @@
   const LIVE_URL='https://yjauxyvtrmdriwtmckkl.supabase.co';
   const LIVE_KEY='sb_publishable_xib7Xo5_y1G75gSAmkW9QQ__H5-mgZF';
   const CARTRIDGE_REFERENCE_URL='https://yjauxyvtrmdriwtmckkl.supabase.co/storage/v1/object/public/catalog-media/masters/cartridge-master-admin.webp';
-  const db=window.supabase?.createClient(LIVE_URL,LIVE_KEY)||null,$=id=>document.getElementById(id);
+  const db=window.AIBTRuntime.createClient({access:'catalog'})||null,$=id=>document.getElementById(id);
   const els={product:$('vcProduct'),productSelect:$('vcProductSelect'),catalogHint:$('vcCatalogHint'),strength:$('vcStrength'),format:$('vcFormat'),accent:$('vcAccent'),accentText:$('vcAccentText'),master:$('vcMaster'),localMaster:$('vcLocalMaster'),localHint:$('vcLocalHint'),vialCapMode:$('vcVialCapMode'),canvas:$('vcCanvas'),status:$('vcStatus'),meta:$('vcMeta'),render:$('vcRender'),reset:$('vcReset'),message:$('vcMessage'),hint:$('vcMasterHint')};
   const defaults={product:'CAGRILINTIDE',strength:'5mg',format:'Pen',accent:'#f57c00',master:'',status:'Draft',vialCapMode:'white'};
   let publishedProducts=[],masterTemplates=new Map(),localMasterUrl='';

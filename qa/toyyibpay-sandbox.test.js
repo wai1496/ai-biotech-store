@@ -24,5 +24,5 @@ assert(checkout.includes('/api/toyyibpay-create'),'checkout must initiate Toyyib
 assert(checkout.includes("method:'GET'")&&checkout.includes('ensureSandboxPaymentReady'),'checkout must preflight sandbox configuration before creating an order');
 assert(!checkout.includes("localStorage.removeItem('aibt_cart');cart=[];renderCart();msg('Order created successfully."),'checkout must not clear cart before verified payment');
 assert(ret.includes('/api/toyyibpay-reconcile'),'return page must reconcile payment server-side');
-assert(ret.includes("localStorage.removeItem('aibt_cart')"),'cart may clear only after verified success on return');
+assert(ret.includes('AIBTCore.cart.clear()'),'payment success must clear the same scoped cart');
 console.log('ToyyibPay sandbox contract: ok');

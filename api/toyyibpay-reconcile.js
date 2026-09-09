@@ -1,4 +1,4 @@
-const {requireSandboxConfig,getOwnedOrder,getBillTransactions,persistVerifiedTransaction}=require('../lib/toyyibpay');
+const {getPaymentAttempt,verifyTransaction,requireSandboxConfig,getOwnedOrder,getBillTransactions,persistVerifiedTransaction}=require('../lib/toyyibpay');
 const {previewSafety}=require('../lib/preview-safety');
 
 module.exports=async function handler(req,res){
@@ -9,11 +9,12 @@ module.exports=async function handler(req,res){
     const orderId=String(req.body?.orderId||'').trim(),billCode=String(req.body?.billCode||'').trim();
     if(!orderId||!billCode)return res.status(400).json({error:'orderId and billCode are required'});
     const {order}=await getOwnedOrder(req,orderId);
+    const attempt=await getPaymentAttempt(order,billCode);
     const txs=await getBillTransactions(billCode);
-    const tx=txs.find(x=>String(x.billExternalReferenceNo||'')===orderId)||txs[0];
+    const tx=verifyTransaction(order,attempt,billCode,txs);
     if(!tx)return res.status(200).json({mode:'sandbox',status:'pending',orderStatus:order.status,message:'Payment confirmation is still pending.'});
     if(String(tx.billExternalReferenceNo||'')&&String(tx.billExternalReferenceNo)!==orderId)return res.status(409).json({error:'Payment reference does not match this order.'});
-    const mapped=await persistVerifiedTransaction(order,billCode,tx);
+    const mapped=await persistVerifiedTransaction(order,billCode,tx,attempt);
     return res.status(200).json({mode:'sandbox',status:mapped.payment,orderStatus:mapped.order,billCode,invoiceNo:tx.billpaymentInvoiceNo||null});
   }catch(e){
     console.error('ToyyibPay reconcile failed',e?.code||e?.message||e);

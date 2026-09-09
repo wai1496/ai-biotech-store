@@ -15,8 +15,10 @@ assert(cfg.includes("environment: 'staging'"),'staging environment flag missing'
 assert(cfg.includes('checkoutEnabled: false'),'staging checkout must remain gated until isolated checkout is verified');
 assert(cfg.includes('memberEnabled: false'),'staging member routing must remain gated until isolated member flow is verified');
 assert(html.includes('/white-clean-safety.js'),'deterministic staging safety layer missing');
-assert(/no production order, payment, member, wallet or inventory write/i.test(safety),'safety layer must explicitly block production writes');
-assert(store.includes("localStorage.setItem('aibt_cart'"),'cart must hand off to shared checkout key');
+assert(read('client-runtime-bridge.js').includes('writesEnabled:false'),'destination runtime must keep writes locked');
+assert(store.includes('core.cart.get()'),'cart must use the shared state API');
+for(const test of ['white-clean-behavior.test.js','checkout-intent-behavior.test.js','provider-failure-behavior.test.js','preview-route-lock-behavior.test.js']){const result=require('child_process').spawnSync(process.execPath,['qa/'+test],{encoding:'utf8'});assert.equal(result.status,0,result.stdout+result.stderr);}
+assert.equal(JSON.parse(read('docs/contracts/preview-database-evidence.json')).status,'unverified','this handoff is locked, not operationally approved');
 for(const token of ['PREVIEW_BACKEND_ISOLATION_REQUIRED','PREVIEW_LIVE_SHIPPING_BLOCKED','PREVIEW_LIVE_PAYMENT_BLOCKED']) assert(backendSafety.includes(token),`backend preview guard missing ${token}`);
 for(const path of ['lib/toyyibpay.js','api/toyyibpay-create.js','api/toyyibpay-callback.js','api/toyyibpay-reconcile.js','api/toyyibpay-duitnow-status.js','lib/easyparcel.js','lib/easyparcel-fulfillment.js','api/easyparcel-rates.js','api/easyparcel-quote.js','api/easyparcel-book.js','api/easyparcel-track.js','api/easyparcel-status.js','lib/preview-safety.js','white-clean-content.js']) assert(fs.existsSync(path),`missing current integration: ${path}`);
-console.log('white-clean-reintegration-gate: ok');
+console.log('white-clean-reintegration-gate: locked Preview offline checks PASS; operational DB/browser/provider QA BLOCKED');

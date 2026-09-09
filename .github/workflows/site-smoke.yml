@@ -24,6 +24,11 @@ jobs:
         run: node scripts/smoke-check.mjs
       - name: Validate unresolved storefront issue fixes
         run: node scripts/storefront-live-issues-check.mjs
+      - name: All maintained offline contracts and behavior fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in qa/*.test.js; do node "$file"; done
       - name: Validate preview-only visual composer
         shell: bash
         run: |

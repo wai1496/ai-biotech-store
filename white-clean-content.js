@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const cfg=window.AIBT_CONFIG||{};
-const db=window.supabase?.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+const db=window.AIBTRuntime.createClient({access:'catalog'});
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 async function loadResearch(){
@@ -21,8 +21,9 @@ async function loadResearch(){
     host.innerHTML=rows.map(row=>{
       const color=row.products?.categories?.color||'#1477ff';
       const name=row.products?.name||row.title||'Research Insight';
-      return `<article class="research-card" style="--cat:${esc(color)}"><h3>${esc(name)}</h3><p>${esc(row.short_summary||'Research information linked to this catalog compound.')}</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="category-badge" style="position:static;background:${esc(color)}">${esc(row.category||row.products?.categories?.name||'Research')}</span><button class="btn" type="button" onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">View Catalog</button></div></article>`;
+      return `<article class="research-card" style="--cat:${esc(color)}"><h3>${esc(name)}</h3><p>${esc(row.short_summary||'Research information linked to this catalog compound.')}</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="category-badge" style="position:static;background:${esc(color)}">${esc(row.category||row.products?.categories?.name||'Research')}</span><button class="btn" type="button" data-research-product="${esc(row.product_id)}">Research Insights</button></div></article>`;
     }).join('');
+    host.querySelectorAll('[data-research-product]').forEach(button=>button.addEventListener('click',()=>window.openProductResearch(button.dataset.researchProduct)));
   }catch(error){
     console.error('White Clean research content failed',error);
     host.innerHTML='<div class="empty">Research Insights could not be loaded in this preview.</div>';

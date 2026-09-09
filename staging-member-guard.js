@@ -1,7 +1,7 @@
 (()=>{
   'use strict';
   const cfg=window.AIBT_CONFIG||{};
-  if(cfg.environment!=='staging'||cfg.memberEnabled===true)return;
+  if(window.AIBTRuntime?.writesEnabled===true)return;
   const message='Member actions are temporarily locked in staging until the isolated member data path is verified.';
   const lock=()=>{
     const note=document.getElementById('memberMessage');

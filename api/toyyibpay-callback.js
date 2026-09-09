@@ -1,4 +1,4 @@
-const {requireSandboxConfig,serviceRest,getBillTransactions,persistVerifiedTransaction,callbackHash,safeEqualHex,parseBody}=require('../lib/toyyibpay');
+const {getPaymentAttempt,verifyTransaction,requireSandboxConfig,serviceRest,getBillTransactions,persistVerifiedTransaction,callbackHash,safeEqualHex,parseBody}=require('../lib/toyyibpay');
 const {previewSafety}=require('../lib/preview-safety');
 
 module.exports=async function handler(req,res){
@@ -14,10 +14,11 @@ module.exports=async function handler(req,res){
     const rows=await serviceRest(`orders?id=eq.${encodeURIComponent(orderId)}&select=id,user_id,status,grand_total,currency,order_number`);
     const order=Array.isArray(rows)?rows[0]:null;
     if(!order)return res.status(404).send('Order not found');
+    const attempt=await getPaymentAttempt(order,billCode);
     const txs=await getBillTransactions(billCode);
-    const tx=txs.find(x=>String(x.billExternalReferenceNo||'')===orderId)||txs[0];
+    const tx=verifyTransaction(order,attempt,billCode,txs);
     if(!tx)return res.status(409).send('Payment transaction not found');
-    await persistVerifiedTransaction(order,billCode,tx);
+    await persistVerifiedTransaction(order,billCode,tx,attempt);
     return res.status(200).send('OK');
   }catch(e){
     console.error('ToyyibPay callback failed',e?.code||e?.message||e);

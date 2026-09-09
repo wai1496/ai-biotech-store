@@ -1,8 +1,7 @@
+const {runtimeSupabase,requireServiceRuntime}=require('../lib/runtime-supabase');
 const {requireUser,quoteRates}=require('../lib/easyparcel');
 const {previewSafety}=require('../lib/preview-safety');
 
-const SUPABASE_URL=process.env.SUPABASE_URL||'https://yjauxyvtrmdriwtmckkl.supabase.co';
-const SERVICE_KEY=String(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
 
 async function parseResponse(r){
   const text=await r.text();
@@ -12,8 +11,9 @@ async function parseResponse(r){
 }
 
 async function insertQuote(row){
+  const SERVICE_KEY=requireServiceRuntime().serviceKey;
   if(!SERVICE_KEY){const e=new Error('Server database key is not configured.');e.status=503;throw e;}
-  const r=await fetch(`${SUPABASE_URL}/rest/v1/shipping_quotes`,{
+  const r=await fetch(`${runtimeSupabase().url}/rest/v1/shipping_quotes`,{
     method:'POST',
     headers:{apikey:SERVICE_KEY,Authorization:`Bearer ${SERVICE_KEY}`,'Content-Type':'application/json',Prefer:'return=representation'},
     body:JSON.stringify(row)
@@ -41,6 +41,7 @@ module.exports=async function handler(req,res){
 
     const quote=await insertQuote({
       user_id:user.id,
+      expires_at:new Date(Date.now()+10*60*1000).toISOString(),
       subtotal:Number(subtotal.toFixed(2)),
       shipping_amount:Number(Number(rate.price||0).toFixed(2)),
       postcode,

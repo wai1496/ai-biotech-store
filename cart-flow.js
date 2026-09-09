@@ -16,9 +16,15 @@ function showCartToast(message){
   showCartToast.timer=setTimeout(()=>{toast.style.opacity='0'},1800);
 }
 function continueShopping(){
-  document.getElementById('drawer')?.classList.remove('show');
+  (document.getElementById('cartOverlay')||document.getElementById('drawer'))?.classList.remove('show');
 }
 function installCartFlow(){
+  if(document.getElementById('cartOverlay')){
+    window.continueShopping=continueShopping;
+    const footer=document.querySelector('#cartOverlay .drawer-footer');
+    if(footer&&!document.getElementById('continueShoppingBtn')){const b=document.createElement('button');b.id='continueShoppingBtn';b.className='btn';b.textContent='Continue Shopping';b.onclick=continueShopping;footer.appendChild(b);}
+    return;
+  }
   const drawer=document.getElementById('drawer');
   const checkout=document.getElementById('checkoutCartBtn');
   if(drawer&&checkout&&!document.getElementById('continueShoppingBtn')){
@@ -36,8 +42,9 @@ function installCartFlow(){
   window.addCart=function(){
     const p=products.find(x=>x.id===current),v=vfind(p,ms.value,mf.value);
     if(!v||Number(v.stock)<=0||v.available===false)return;
-    const e=cart.find(x=>x.variantId===v.id);
-    e?e.qty++:cart.push({id:p.id,variantId:v.id,name:p.name,strength:v.strength,form:v.form,price:Number(v.price),qty:1});
+    if(!window.AIBTCore)return;
+    if(!window.AIBTCore.cart.add(p,{...v,format:v.form,strength_label:v.strength,stock_quantity:v.stock,active:v.available!==false}))return;
+    cart=window.AIBTCore.cart.get();
     save();
     closeOverlay('productOverlay');
     renderCart();
