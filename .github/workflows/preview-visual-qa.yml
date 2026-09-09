@@ -1,0 +1,55 @@
+name: AI BioTech protected Preview visual QA
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: Exact protected Vercel Preview deployment URL to test
+        required: false
+        default: https://ai-biotech-store-a4ezaq34p-rk-cd1c.vercel.app
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-visual-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright-preview-visual-qa:
+    name: Android visual QA (360 / 390 / 620 / 720)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PREVIEW_URL: ${{ inputs.preview_url || 'https://ai-biotech-store-a4ezaq34p-rk-cd1c.vercel.app' }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      VISUAL_QA_ARTIFACT_DIR: artifacts/playwright-preview-visual
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pinned Playwright and Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Run protected Preview Android visual QA
+        run: node scripts/playwright-preview-visual.mjs
+
+      - name: Upload Preview visual-QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: protected-preview-visual-qa-${{ github.run_id }}
+          path: artifacts/playwright-preview-visual
+          if-no-files-found: error
+          retention-days: 14
