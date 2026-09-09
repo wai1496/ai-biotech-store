@@ -18,6 +18,7 @@ const evidence={
   network:[]
 };
 let browser,context,page;
+let accountSubmissionAttempted=false;
 
 fs.mkdirSync(artifactRoot,{recursive:true});
 fs.writeFileSync(path.join(artifactRoot,'qa-account.json'),`${JSON.stringify({marker,email},null,2)}\n`);
@@ -30,6 +31,11 @@ async function step(name,fn){
   catch(error){record(name,'BLOCKED',error.message||error);throw error;}
 }
 function assert(condition,message){if(!condition)throw new Error(message);}
+function isIsolatedPreviewHost(hostname){
+  if(hostname===previewUrl.hostname)return true;
+  if(hostname==='ai-biotech-store.vercel.app'||hostname==='ai-biotech-store-git-main-rk-cd1c.vercel.app')return false;
+  return hostname.startsWith('ai-biotech-store-')&&hostname.endsWith('-rk-cd1c.vercel.app');
+}
 
 function markdown(){
   const lines=[
@@ -83,13 +89,14 @@ try{
   await step('Unlocked Preview readiness',async()=>{
     await page.goto(new URL('/staging-config.js?qa=1',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
     const cfgText=await page.locator('body').innerText();
-    assert(new URL(page.url()).hostname===previewUrl.hostname,'Preview configuration request left the protected branch alias.');
+    const resolvedHost=new URL(page.url()).hostname;
+    assert(isIsolatedPreviewHost(resolvedHost),'Preview configuration request left the isolated AI BioTech Preview hosts.');
     assert(cfgText.includes('checkoutEnabled: true')&&cfgText.includes('memberEnabled: true'),'Protected branch Preview did not publish both explicit temporary QA flags.');
     await page.goto(new URL('/client-runtime-bridge.js?qa=1',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
     const bridgeText=await page.locator('body').innerText();
-    assert(new URL(page.url()).hostname===previewUrl.hostname,'Preview runtime bridge request left the protected branch alias.');
+    assert(new URL(page.url()).hostname===resolvedHost,'Preview runtime bridge did not resolve to the same isolated deployment as its configuration.');
     assert(bridgeText.includes('Temporary authenticated Preview QA'),'Protected branch Preview did not publish the isolated temporary runtime bridge.');
-    return 'Protected branch alias served both explicit temporary QA flags through the authenticated browser path.';
+    return `Protected branch alias resolved to isolated deployment ${resolvedHost} and served both explicit temporary QA flags.`;
   });
 
   await step('Disposable account creation',async()=>{
@@ -99,6 +106,7 @@ try{
     await page.locator('#registerPhone').fill('0100000000');
     await page.locator('#registerEmail').fill(email);
     await page.locator('#registerPassword').fill(password);
+    accountSubmissionAttempted=true;
     await page.getByRole('button',{name:'Create account'}).click();
     await page.locator('#memberMessage').filter({hasText:/Account created|confirmation/i}).waitFor({timeout:30_000});
     await shot('01-account-created');
@@ -207,7 +215,7 @@ try{
   evidence.fatal=clean(error.message||error);
   process.exitCode=1;
 }finally{
-  if(page){
+  if(page&&accountSubmissionAttempted){
     try{
       await page.goto(new URL('/member.html',previewUrl).href,{waitUntil:'domcontentloaded',timeout:30_000});
       await page.evaluate(async()=>{await window.AIBTRuntime.createClient().auth.signOut({scope:'global'});});
@@ -215,6 +223,9 @@ try{
       record('QA session sign-out','PASS','Global sign-out completed for the disposable browser session.');
       await shot('06-signed-out');
     }catch(error){record('QA session sign-out','BLOCKED',error.message||error);process.exitCode=1;}
+  }else if(page){
+    evidence.signedOut=true;
+    record('QA session sign-out','PASS','No QA account submission occurred; no disposable session existed to revoke.');
   }
   await context?.close().catch(()=>{});
   await browser?.close().catch(()=>{});
