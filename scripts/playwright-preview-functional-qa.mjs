@@ -31,11 +31,6 @@ async function step(name,fn){
   catch(error){record(name,'BLOCKED',error.message||error);throw error;}
 }
 function assert(condition,message){if(!condition)throw new Error(message);}
-function isIsolatedPreviewHost(hostname){
-  if(hostname===previewUrl.hostname)return true;
-  if(hostname==='ai-biotech-store.vercel.app'||hostname==='ai-biotech-store-git-main-rk-cd1c.vercel.app')return false;
-  return hostname.startsWith('ai-biotech-store-')&&hostname.endsWith('-rk-cd1c.vercel.app');
-}
 
 function markdown(){
   const lines=[
@@ -87,16 +82,17 @@ try{
   page=await context.newPage();
 
   await step('Unlocked Preview readiness',async()=>{
-    await page.goto(new URL('/staging-config.js?qa=1',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
-    const cfgText=await page.locator('body').innerText();
-    const resolvedHost=new URL(page.url()).hostname;
-    assert(isIsolatedPreviewHost(resolvedHost),'Preview configuration request left the isolated AI BioTech Preview hosts.');
-    assert(cfgText.includes('checkoutEnabled: true')&&cfgText.includes('memberEnabled: true'),'Protected branch Preview did not publish both explicit temporary QA flags.');
-    await page.goto(new URL('/client-runtime-bridge.js?qa=1',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
-    const bridgeText=await page.locator('body').innerText();
-    assert(new URL(page.url()).hostname===resolvedHost,'Preview runtime bridge did not resolve to the same isolated deployment as its configuration.');
-    assert(bridgeText.includes('Temporary authenticated Preview QA'),'Protected branch Preview did not publish the isolated temporary runtime bridge.');
-    return `Protected branch alias resolved to isolated deployment ${resolvedHost} and served both explicit temporary QA flags.`;
+    await page.goto(new URL('/member.html',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
+    assert(new URL(page.url()).hostname===previewUrl.hostname,'Member readiness check left the protected branch alias.');
+    const state=await page.evaluate(()=>({
+      memberEnabled:window.AIBT_CONFIG?.memberEnabled===true,
+      checkoutEnabled:window.AIBT_CONFIG?.checkoutEnabled===true,
+      writesEnabled:window.AIBTRuntime?.writesEnabled===true,
+      runtimeReason:String(window.AIBTRuntime?.reason||'')
+    }));
+    assert(state.memberEnabled&&state.checkoutEnabled,'Protected branch Preview did not publish both explicit temporary QA flags.');
+    assert(state.writesEnabled&&state.runtimeReason.includes('Temporary authenticated Preview QA'),'Protected branch Preview did not activate the isolated temporary runtime bridge on Member.');
+    return 'Protected Member route exposed both temporary QA flags and the isolated Staging-only runtime bridge.';
   });
 
   await step('Disposable account creation',async()=>{
