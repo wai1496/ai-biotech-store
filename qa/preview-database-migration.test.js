@@ -4,12 +4,15 @@ const fs=require('fs');
 
 const base=fs.readFileSync('sql/20260909_preview_database_contract_v1.sql','utf8');
 const hardening=fs.readFileSync('sql/20260909_preview_database_contract_v1_security_hardening.sql','utf8');
+const paymentLockFix=fs.readFileSync('sql/20260909_preview_database_contract_v1_payment_lock_fix.sql','utf8');
 const evidence=require('../docs/contracts/preview-database-evidence.json');
 const productionProject='yjauxyvtrmdriwtmckkl';
 
 assert(base.includes('rpnwssqvurpdennpzplx only.'));
+assert(paymentLockFix.includes('rpnwssqvurpdennpzplx only.'));
 assert(!base.includes(productionProject));
 assert(!hardening.includes(productionProject));
+assert(!paymentLockFix.includes(productionProject));
 
 for(const table of [
   'shipping_quotes',
@@ -38,6 +41,11 @@ assert(/create or replace function public\.create_order_with_shipping_quote[\s\S
 assert(/revoke execute on function public\.commerce_create_order[\s\S]+from public, anon, authenticated/i.test(base));
 assert(/shipping_quotes_own_read_v1[\s\S]+to authenticated[\s\S]+auth\.uid\(\)/i.test(base));
 assert.equal((hardening.match(/as restrictive for all to anon, authenticated/g)||[]).length,4);
+assert(/create or replace function public\.reconcile_payment_attempt_v1[\s\S]+security definer\s+set search_path = ''/i.test(paymentLockFix));
+assert(/perform v\.id\s+from public\.variants v\s+where exists \([\s\S]+oi\.order_id = order_row\.id[\s\S]+oi\.variant_id = v\.id[\s\S]+order by v\.id\s+for update of v;/i.test(paymentLockFix));
+assert(!/\) effect on effect\.variant_id = v\.id/i.test(paymentLockFix));
+assert(/revoke execute on function public\.reconcile_payment_attempt_v1\(uuid,uuid,text,text,jsonb\)[\s\S]+from public, anon, authenticated/i.test(paymentLockFix));
+assert(/grant execute on function public\.reconcile_payment_attempt_v1\(uuid,uuid,text,text,jsonb\)[\s\S]+to service_role/i.test(paymentLockFix));
 assert.equal(evidence.status,'unverified');
 assert.equal(evidence.installedSchemaDigest,null);
 
