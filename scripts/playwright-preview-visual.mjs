@@ -68,7 +68,7 @@ function markdownReport(previewUrl, fatalReason = '') {
     `- Exact CSS widths: ${VIEWPORTS.map(viewport => viewport.width).join(', ')}`,
     `- Result: ${blockedCount === 0 ? 'PASS' : 'BLOCKED'} (${passCount} PASS / ${blockedCount} BLOCKED)`,
     '- Safety: read-only browser interception blocked every non-GET/HEAD/OPTIONS request.',
-    '- Authentication: same-origin x-vercel-protection-bypass header only; Vercel Authentication was not disabled.',
+    '- Authentication: same-origin x-vercel-trusted-oidc-idp-token header with a short-lived GitHub OIDC token; Vercel Authentication was not disabled.',
     ''
   ];
   if (fatalReason) lines.push(`> BLOCKED: ${cleanReason(fatalReason)}`, '');
@@ -222,8 +222,8 @@ async function captureProductDialog(context, previewUrl, viewport) {
 let previewUrl;
 try {
   previewUrl = parsePreviewUrl(process.env.PREVIEW_URL);
-  const bypassSecret = String(process.env.VERCEL_AUTOMATION_BYPASS_SECRET || '').trim();
-  if (!bypassSecret) throw new Error('GitHub secret VERCEL_AUTOMATION_BYPASS_SECRET is unavailable; protected Preview access remains locked.');
+  const trustedOidcToken = String(process.env.VERCEL_TRUSTED_OIDC_TOKEN || '').trim();
+  if (!trustedOidcToken) throw new Error('Short-lived GitHub OIDC token is unavailable; protected Preview access remains locked.');
   const {chromium} = await import('playwright');
   const browser = await chromium.launch({headless: true});
   try {
@@ -247,7 +247,7 @@ try {
         }
         const requestUrl = new URL(request.url());
         if (requestUrl.hostname === previewUrl.hostname) {
-          await route.continue({headers: {...request.headers(), 'x-vercel-protection-bypass': bypassSecret}});
+          await route.continue({headers: {...request.headers(), 'x-vercel-trusted-oidc-idp-token': trustedOidcToken}});
           return;
         }
         await route.continue();
