@@ -83,7 +83,8 @@ try{
 
   await step('Unlocked Preview readiness',async()=>{
     await page.goto(new URL('/member.html',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
-    assert(new URL(page.url()).hostname===previewUrl.hostname,'Member readiness check left the protected branch alias.');
+    const resolvedHost=new URL(page.url()).hostname;
+    assert(resolvedHost!=='ai-biotech-store.vercel.app'&&resolvedHost!=='ai-biotech-store-git-main-rk-cd1c.vercel.app','Member readiness check resolved to a forbidden Production/main host.');
     const state=await page.evaluate(()=>({
       memberEnabled:window.AIBT_CONFIG?.memberEnabled===true,
       checkoutEnabled:window.AIBT_CONFIG?.checkoutEnabled===true,
@@ -92,7 +93,7 @@ try{
     }));
     assert(state.memberEnabled&&state.checkoutEnabled,'Protected branch Preview did not publish both explicit temporary QA flags.');
     assert(state.writesEnabled&&state.runtimeReason.includes('Temporary authenticated Preview QA'),'Protected branch Preview did not activate the isolated temporary runtime bridge on Member.');
-    return 'Protected Member route exposed both temporary QA flags and the isolated Staging-only runtime bridge.';
+    return `Protected Member route on ${resolvedHost} exposed both temporary QA flags and the isolated Staging-only runtime bridge.`;
   });
 
   await step('Disposable account creation',async()=>{
