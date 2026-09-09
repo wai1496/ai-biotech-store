@@ -1,0 +1,93 @@
+/* Focused fixes for the confirmed protected-Preview visual QA blockers. */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.site-header,
+.header-main,
+.hero,
+.hero-inner,
+.hero-art,
+.utility,
+.shell,
+.toolbar,
+.content-grid,
+.product-grid,
+.product-card,
+.product-body {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Product media is decorative; the product-name button owns the interaction. */
+.product-media {
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: none;
+}
+
+.product-name {
+  position: relative;
+  z-index: 5;
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  scroll-margin-top: 110px;
+}
+
+@media (max-width: 900px) {
+  .toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .header-main {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .header-main .brand {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .header-main .brand-mark {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    font-size: 23px;
+  }
+
+  .header-main .brand small,
+  .account-label {
+    display: none;
+  }
+
+  .header-actions {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .header-actions .icon-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 38px;
+    padding: 0;
+  }
+
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
