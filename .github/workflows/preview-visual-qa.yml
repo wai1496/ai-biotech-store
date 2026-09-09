@@ -1,4 +1,4 @@
-name: AI BioTech protected Preview visual QA
+name: Protected Preview visual QA
 
 on:
   pull_request:
@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: preview-visual-qa-${{ github.event.pull_request.number || github.ref }}
@@ -24,7 +25,6 @@ jobs:
     timeout-minutes: 20
     env:
       PREVIEW_URL: ${{ inputs.preview_url || 'https://ai-biotech-store-a4ezaq34p-rk-cd1c.vercel.app' }}
-      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       VISUAL_QA_ARTIFACT_DIR: artifacts/playwright-preview-visual
     steps:
       - name: Check out repository
@@ -42,7 +42,18 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
 
+      - name: Request short-lived GitHub OIDC token
+        id: oidc
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken();
+            core.setSecret(token);
+            core.setOutput('token', token);
+
       - name: Run protected Preview Android visual QA
+        env:
+          VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
         run: node scripts/playwright-preview-visual.mjs
 
       - name: Upload Preview visual-QA evidence
