@@ -31,20 +31,6 @@ async function step(name,fn){
 }
 function assert(condition,message){if(!condition)throw new Error(message);}
 
-async function protectedFetch(pathname){
-  return fetch(new URL(pathname,previewUrl),{headers:{'x-vercel-trusted-oidc-idp-token':oidc},redirect:'manual'});
-}
-
-async function waitForUnlockedDeployment(){
-  for(let attempt=0;attempt<40;attempt++){
-    const [cfg,bridge]=await Promise.all([protectedFetch('/staging-config.js?qa=1'),protectedFetch('/client-runtime-bridge.js?qa=1')]);
-    const [cfgText,bridgeText]=await Promise.all([cfg.text(),bridge.text()]);
-    if(cfg.ok&&bridge.ok&&cfgText.includes('checkoutEnabled: true')&&cfgText.includes('memberEnabled: true')&&bridgeText.includes('Temporary authenticated Preview QA'))return;
-    await new Promise(resolve=>setTimeout(resolve,15_000));
-  }
-  throw new Error('Protected branch Preview did not publish the temporary QA unlock within ten minutes.');
-}
-
 function markdown(){
   const lines=[
     '# Disposable protected Preview functional QA','',
@@ -74,7 +60,6 @@ function persist(){
 try{
   assert(previewUrl.protocol==='https:'&&previewUrl.hostname==='ai-biotech-store-git-integration-white-clean-core-v1-rk-cd1c.vercel.app','Exact protected branch Preview URL is required.');
   assert(oidc,'Short-lived GitHub OIDC token is unavailable.');
-  await step('Unlocked Preview readiness',async()=>{await waitForUnlockedDeployment();return 'Protected branch alias served both explicit temporary QA flags.';});
 
   const {chromium}=await import('playwright');
   browser=await chromium.launch({headless:true});
@@ -94,6 +79,18 @@ try{
     await route.continue();
   });
   page=await context.newPage();
+
+  await step('Unlocked Preview readiness',async()=>{
+    await page.goto(new URL('/staging-config.js?qa=1',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
+    const cfgText=await page.locator('body').innerText();
+    assert(new URL(page.url()).hostname===previewUrl.hostname,'Preview configuration request left the protected branch alias.');
+    assert(cfgText.includes('checkoutEnabled: true')&&cfgText.includes('memberEnabled: true'),'Protected branch Preview did not publish both explicit temporary QA flags.');
+    await page.goto(new URL('/client-runtime-bridge.js?qa=1',previewUrl).href,{waitUntil:'domcontentloaded',timeout:45_000});
+    const bridgeText=await page.locator('body').innerText();
+    assert(new URL(page.url()).hostname===previewUrl.hostname,'Preview runtime bridge request left the protected branch alias.');
+    assert(bridgeText.includes('Temporary authenticated Preview QA'),'Protected branch Preview did not publish the isolated temporary runtime bridge.');
+    return 'Protected branch alias served both explicit temporary QA flags through the authenticated browser path.';
+  });
 
   await step('Disposable account creation',async()=>{
     await page.goto(new URL('/member.html',previewUrl).href,{waitUntil:'domcontentloaded'});
