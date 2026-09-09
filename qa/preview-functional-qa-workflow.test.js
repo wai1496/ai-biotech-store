@@ -12,6 +12,8 @@ assert(workflow.includes(`github.head_ref == '${branch}'`),'temporary workflow m
 assert(workflow.includes(`https://${previewHost}`),'workflow must target the protected branch alias only');
 assert(!/VERCEL_AUTOMATION_BYPASS_SECRET|_vercel_share/i.test(workflow+script),'temporary QA must not add a long-lived or public protection bypass');
 assert(script.includes(`previewUrl.hostname==='${previewHost}'`),'runtime must reject every other deployment host');
+assert(script.includes('request.redirectedFrom()')&&script.includes('isCommitPreviewHost(url.hostname)'),'OIDC must follow only branch-alias redirects to commit-specific AI BioTech Preview hosts');
+assert(script.includes("hostname!=='ai-biotech-store.vercel.app'")&&script.includes("hostname!=='ai-biotech-store-git-main-rk-cd1c.vercel.app'"),'derived Preview hosts must exclude Production and main aliases');
 assert(script.includes("url.hostname==='dev.toyyibpay.com'"),'payment-page evidence must remain on ToyyibPay sandbox');
 assert(script.includes("auth.signOut({scope:'global'})"),'workflow must revoke the disposable browser session in cleanup');
 assert(script.includes("@example.test"),'workflow must use a clearly reserved test-only email');

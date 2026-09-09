@@ -31,6 +31,10 @@ async function step(name,fn){
   catch(error){record(name,'BLOCKED',error.message||error);throw error;}
 }
 function assert(condition,message){if(!condition)throw new Error(message);}
+function isCommitPreviewHost(hostname){
+  return hostname.startsWith('ai-biotech-store-')&&hostname.endsWith('-rk-cd1c.vercel.app')&&
+    hostname!=='ai-biotech-store.vercel.app'&&hostname!=='ai-biotech-store-git-main-rk-cd1c.vercel.app';
+}
 
 function markdown(){
   const lines=[
@@ -69,11 +73,14 @@ try{
     deviceScaleFactor:1,isMobile:true,hasTouch:true,
     userAgent:'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36'
   });
+  const trustedPreviewHosts=new Set([previewUrl.hostname]);
   await context.route('**/*',async route=>{
     const request=route.request();
     const url=new URL(request.url());
     evidence.network.push({method:request.method(),host:url.hostname,path:url.pathname});
-    if(url.hostname===previewUrl.hostname){
+    const redirectedFrom=request.redirectedFrom();
+    if(redirectedFrom&&trustedPreviewHosts.has(new URL(redirectedFrom.url()).hostname)&&isCommitPreviewHost(url.hostname))trustedPreviewHosts.add(url.hostname);
+    if(trustedPreviewHosts.has(url.hostname)){
       await route.continue({headers:{...request.headers(),'x-vercel-trusted-oidc-idp-token':oidc}});
       return;
     }
