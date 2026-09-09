@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PREVIEW_URL: https://ai-biotech-store-git-integration-white-clean-core-v1-rk-cd1c.vercel.app
+      PREVIEW_URL: https://ai-biotech-store-bccljqgc3-rk-cd1c.vercel.app
       FUNCTIONAL_QA_ARTIFACT_DIR: artifacts/preview-functional-qa
     steps:
       - name: Check out repository

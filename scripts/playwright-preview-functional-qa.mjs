@@ -63,7 +63,7 @@ function persist(){
 }
 
 try{
-  assert(previewUrl.protocol==='https:'&&previewUrl.hostname==='ai-biotech-store-git-integration-white-clean-core-v1-rk-cd1c.vercel.app','Exact protected branch Preview URL is required.');
+  assert(previewUrl.protocol==='https:'&&previewUrl.hostname==='ai-biotech-store-bccljqgc3-rk-cd1c.vercel.app','Exact protected commit Preview URL is required.');
   assert(oidc,'Short-lived GitHub OIDC token is unavailable.');
 
   const {chromium}=await import('playwright');
