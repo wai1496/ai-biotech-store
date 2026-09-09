@@ -1,6 +1,6 @@
-# Preview database contract v1 — REQUIRED, NOT INSTALLED OR VERIFIED
+# Preview database contract v1 — INSTALLED IN STAGING, NOT RUNTIME VERIFIED OR UNLOCKED
 
-This is the versioned intended boundary for White Clean Core v1, not a migration or a claim about an existing database. No SQL has been applied. `preview-database-evidence.json` records **unverified** and all server provider calls and browser account/admin/checkout writes remain locked. Merely supplying environment variables does not unlock this release. Changing the evidence file or browser lock requires a separately reviewed implementation and approval.
+This is the versioned boundary for White Clean Core v1. The reviewed schema, RLS and function changes were installed only in the isolated `AI BioTech Staging` Supabase project (`rpnwssqvurpdennpzplx`) through `preview_database_contract_v1` and `preview_database_contract_v1_security_hardening`. No Production project was touched. `preview-database-evidence.json` remains **unverified**, no disposable transaction/concurrency fixture has been run, and all server provider calls and browser account/admin/checkout writes remain locked. Installation alone does not unlock this release. Changing the evidence file or browser lock requires separate review and explicit approval.
 
 ## Read-only evidence required before any unlock
 
