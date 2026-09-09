@@ -1,12 +1,12 @@
 const assert=require('assert');
 const fs=require('fs');
 
-const workflow=fs.readFileSync('.github/workflows/preview-functional-qa.yml','utf8');
+const workflow=fs.readFileSync('.github/workflows/preview-visual-qa.yml','utf8');
 const script=fs.readFileSync('scripts/playwright-preview-functional-qa.mjs','utf8');
 const branch='integration/white-clean-core-v1';
 const previewHost='ai-biotech-store-bccljqgc3-rk-cd1c.vercel.app';
 
-assert(workflow.includes('id-token: write'),'protected Preview QA must use short-lived GitHub OIDC');
+assert(workflow.includes('id-token: write'),'protected Preview QA must reuse the Trusted Sources workflow and short-lived GitHub OIDC');
 assert(workflow.includes("github.event.pull_request.number == 39"),'temporary workflow must be restricted to PR #39');
 assert(workflow.includes(`github.head_ref == '${branch}'`),'temporary workflow must be restricted to the integration branch');
 assert(workflow.includes(`https://${previewHost}`),'workflow must target the reviewed protected commit Preview only');

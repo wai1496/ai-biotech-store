@@ -64,3 +64,20 @@ jobs:
           path: artifacts/playwright-preview-visual
           if-no-files-found: error
           retention-days: 14
+
+      - name: Run disposable authenticated Preview QA
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 39 && github.head_ref == 'integration/white-clean-core-v1'
+        env:
+          PREVIEW_URL: https://ai-biotech-store-bccljqgc3-rk-cd1c.vercel.app
+          FUNCTIONAL_QA_ARTIFACT_DIR: artifacts/preview-functional-qa
+          VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+        run: node scripts/playwright-preview-functional-qa.mjs
+
+      - name: Upload sanitized Preview functional-QA evidence
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 39 && github.head_ref == 'integration/white-clean-core-v1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-functional-qa-${{ github.run_id }}
+          path: artifacts/preview-functional-qa
+          if-no-files-found: error
+          retention-days: 7
