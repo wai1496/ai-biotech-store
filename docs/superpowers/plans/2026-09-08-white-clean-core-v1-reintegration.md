@@ -310,4 +310,23 @@ git commit -m "fix: harden White Clean mobile storefront"
 
 **Files:**
 - Modify: `.github/workflows/site-smoke.yml` only if the White Clean route needs to be added to existing smoke coverage.
-- Create: `qa/white-clean-reintegration-gate
+- Maintain: `qa/white-clean-reintegration-gate.test.js` and all `qa/*.test.js`.
+- Maintain: `.github/workflows/site-smoke.yml`, `scripts/verify-preview-offline.mjs`.
+- Record: `docs/contracts/preview-database-v1.md` and `preview-database-evidence.json`.
+- Record: `.superpowers/sdd/2026-09-08-white-clean-core-v1-reintegration/progress.md` and `final-fix-report.md`.
+
+This checklist restores the truncated Task 8 from the complete binding spec. It does not grant deployment or database authority.
+
+- [x] Preserve White Clean shell and reference assets without deploying or touching the reference deployment.
+- [x] Connect shared cart/product validity/currency/renderer and member/checkout routes; destination write locks remain explicit.
+- [x] Fail-close every active database client and payment/shipping entrypoint; disable public provider diagnostics.
+- [x] Execute actual script-order and failure-path offline tests, all maintained QA, both smoke scripts, syntax checks and `git diff --check`.
+- [x] Run all maintained QA in PR CI, including the White Clean and isolation suites.
+- [x] Version the intended isolated database contract and clearly record missing installed evidence.
+- [ ] Establish the isolated installed schema, RLS/grants and real transactional inventory/wallet/audit behavior with separately authorized evidence.
+- [ ] Prove authenticated isolated member -> checkout -> payment return and provider sandbox/demo workflows.
+- [ ] Complete Android/reference screenshot QA at 360/390/620/720px, including detail media and Member menu.
+- [ ] Verify published policy schema/content and the exact Cartridge guide.
+- [ ] Obtain separate approval for any later Preview deployment or unlock. Production approval is a separate final gate.
+
+Current result: **locked Preview code-level checks pass; operational reintegration is not complete**. No deployment, push, environment change, database write/migration, provider call or Production action is part of this final fix wave.

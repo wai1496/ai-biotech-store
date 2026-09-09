@@ -1,7 +1,7 @@
 # AI BioTech White Clean Core v1 Reintegration Design
 
 Date: 2026-09-08
-Status: Approved design, implementation not started
+Status: Approved design; implementation revised 2026-09-09. Locked Preview only; isolated database, browser and provider QA remain blocked/unverified.
 Branch: `integration/white-clean-core-v1`
 
 ## Objective
