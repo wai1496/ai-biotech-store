@@ -12,13 +12,14 @@ assert(html.includes('/visual-renderer.js'),'current visual renderer must remain
 assert(html.includes('/white-clean-content.js'),'White Clean research/content layer must remain loaded');
 assert(!html.includes('SCIENCE.<br>PRECISION.'),'Dark Biotech hero must not replace White Clean Core v1');
 assert(cfg.includes("environment: 'staging'"),'staging environment flag missing');
-assert(cfg.includes('checkoutEnabled: false'),'staging checkout must remain gated until isolated checkout is verified');
-assert(cfg.includes('memberEnabled: false'),'staging member routing must remain gated until isolated member flow is verified');
+assert(cfg.includes('checkoutEnabled: true'),'temporary authenticated Preview QA must explicitly enable checkout');
+assert(cfg.includes('memberEnabled: true'),'temporary authenticated Preview QA must explicitly enable member routing');
 assert(html.includes('/white-clean-safety.js'),'deterministic staging safety layer missing');
-assert(read('client-runtime-bridge.js').includes('writesEnabled:false'),'destination runtime must keep writes locked');
+assert(read('client-runtime-bridge.js').includes('if(!writesEnabled)return locked'),'destination runtime must fail closed unless every temporary QA condition passes');
 assert(store.includes('core.cart.get()'),'cart must use the shared state API');
 for(const test of ['white-clean-behavior.test.js','checkout-intent-behavior.test.js','provider-failure-behavior.test.js','preview-route-lock-behavior.test.js']){const result=require('child_process').spawnSync(process.execPath,['qa/'+test],{encoding:'utf8'});assert.equal(result.status,0,result.stdout+result.stderr);}
 assert.equal(JSON.parse(read('docs/contracts/preview-database-evidence.json')).status,'unverified','this handoff is locked, not operationally approved');
 for(const token of ['PREVIEW_BACKEND_ISOLATION_REQUIRED','PREVIEW_LIVE_SHIPPING_BLOCKED','PREVIEW_LIVE_PAYMENT_BLOCKED']) assert(backendSafety.includes(token),`backend preview guard missing ${token}`);
 for(const path of ['lib/toyyibpay.js','api/toyyibpay-create.js','api/toyyibpay-callback.js','api/toyyibpay-reconcile.js','api/toyyibpay-duitnow-status.js','lib/easyparcel.js','lib/easyparcel-fulfillment.js','api/easyparcel-rates.js','api/easyparcel-quote.js','api/easyparcel-book.js','api/easyparcel-track.js','api/easyparcel-status.js','lib/preview-safety.js','white-clean-content.js']) assert(fs.existsSync(path),`missing current integration: ${path}`);
-console.log('white-clean-reintegration-gate: locked Preview offline checks PASS; operational DB/browser/provider QA BLOCKED');
+assert(backendSafety.includes('TEMPORARY_PREVIEW_QA_UNLOCK=true'),'temporary backend QA opening must be explicit and reversible');
+console.log('white-clean-reintegration-gate: temporary authenticated Preview QA opening remains isolated and reversible');

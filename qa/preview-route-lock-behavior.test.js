@@ -11,9 +11,9 @@ const {runtimeSupabase}=require('../lib/runtime-supabase');
    for(const method of ['GET','POST']){
     const response={status(code){this.code=code;return this;},json(body){this.body=body;return this;},send(body){this.body=body;return this;}};
     await require('../api/'+file)({method,headers:{},body:{orderId:'o',billCode:'b'}},response);
-    assert([405,410,503].includes(response.code),file+' unexpectedly unlocked: '+response.code);
+    assert([401,405,410,503].includes(response.code),file+' crossed an unauthenticated/provider safety boundary: '+response.code);
    }
   }
-  assert.equal(requests,0);console.log('preview route locks: all provider entrypoints and diagnostics make zero external calls PASS');
+  assert.equal(requests,0);console.log('preview route safety: unauthenticated/provider-invalid requests make zero external calls PASS');
  }finally{global.fetch=originalFetch;for(const key of Object.keys(process.env))if(!(key in previous))delete process.env[key];Object.assign(process.env,previous);}
 })().catch(e=>{console.error(e);process.exitCode=1;});
