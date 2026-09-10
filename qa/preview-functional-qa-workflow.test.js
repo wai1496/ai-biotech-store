@@ -21,6 +21,9 @@ assert(workflow.includes('QA_EMAIL_BASE: ${{ secrets.AIBT_QA_EMAIL }}'),'workflo
 assert(script.includes("process.env.QA_EMAIL_BASE"),'functional QA must read the private Staging QA mailbox from the environment');
 assert(!script.includes('@example.com')&&!script.includes('@example.test'),'functional QA must not use reserved fake email domains');
 assert(script.includes("/auth/v1/signup")&&script.includes('signupDiagnostic'),'failed Staging signup must record only sanitized HTTP status/error evidence');
+assert(script.includes('EMAIL_CONFIRMATION_WAIT_MS=300000'),'functional QA must allow up to five minutes for normal email confirmation');
+assert(script.includes('signInAfterEmailConfirmation'),'functional QA must retry sign-in while waiting for email confirmation instead of racing the user');
+assert(script.includes('email_not_confirmed'),'confirmation wait must retry only the expected unconfirmed-email condition');
 assert(!/password.*JSON\.stringify|password.*console\.|password.*process\.stdout/i.test(script),'generated QA password must not be written to evidence or logs');
 
-console.log('temporary Preview functional QA workflow: PR/branch/OIDC/private-mailbox/sandbox/session-revocation boundaries PASS');
+console.log('temporary Preview functional QA workflow: PR/branch/OIDC/private-mailbox/email-confirmation-wait/sandbox/session-revocation boundaries PASS');
