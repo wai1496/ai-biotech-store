@@ -7,7 +7,7 @@ const previewUrl=new URL(String(process.env.PREVIEW_URL||''));
 const oidc=String(process.env.VERCEL_TRUSTED_OIDC_TOKEN||'').trim();
 const runId=String(process.env.GITHUB_RUN_ID||Date.now());
 const marker=`AIBT_QA_${runId}_${crypto.randomUUID().slice(0,8)}`;
-const email=`aibt.qa.${runId}.${crypto.randomUUID().slice(0,8)}@example.test`;
+const email=`aibt.qa.${runId}.${crypto.randomUUID().slice(0,8)}@example.com`;
 const password=`${crypto.randomBytes(18).toString('base64url')}Aa1!`;
 const evidence={startedAt:new Date().toISOString(),previewHost:previewUrl.hostname,marker,email,userId:null,orderId:null,billCode:null,signedOut:false,signupDiagnostic:null,steps:{},network:[]};
 let browser,context,page;
