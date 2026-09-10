@@ -71,6 +71,7 @@ jobs:
           PREVIEW_URL: ${{ inputs.preview_url || 'https://ai-biotech-store-git-integration-white-clean-core-v1-rk-cd1c.vercel.app' }}
           FUNCTIONAL_QA_ARTIFACT_DIR: artifacts/preview-functional-qa
           VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+          QA_EMAIL_BASE: ${{ secrets.AIBT_QA_EMAIL }}
         run: node scripts/playwright-preview-functional-qa.mjs
 
       - name: Upload sanitized Preview functional-QA evidence
