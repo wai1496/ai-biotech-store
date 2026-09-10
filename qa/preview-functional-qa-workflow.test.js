@@ -18,6 +18,7 @@ assert(script.includes("hostname!=='ai-biotech-store.vercel.app'")&&script.inclu
 assert(script.includes("url.hostname==='dev.toyyibpay.com'"),'payment-page evidence must remain on ToyyibPay sandbox');
 assert(script.includes("auth.signOut({scope:'global'})"),'workflow must revoke the disposable browser session in cleanup');
 assert(script.includes("@example.test"),'workflow must use a clearly reserved test-only email');
+assert(script.includes("/auth/v1/signup")&&script.includes('signupDiagnostic'),'failed Staging signup must record only sanitized HTTP status/error evidence');
 assert(!/password.*JSON\.stringify|password.*console\.|password.*process\.stdout/i.test(script),'generated QA password must not be written to evidence or logs');
 
 console.log('temporary Preview functional QA workflow: PR/branch/OIDC/sandbox/session-revocation boundaries PASS');
