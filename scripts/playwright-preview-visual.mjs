@@ -13,10 +13,10 @@ const ROUTES = [
   {slug: 'research-insight', pathname: '/research-insight.html', text: 'Research Insight'},
   {slug: 'peptide-calculator', pathname: '/peptide-calculator.html', text: 'Research Solution Calculator'},
   {slug: 'visual-composer', pathname: '/visual-composer.html', text: 'PREVIEW ONLY — NO PRODUCTION WRITES'},
-  {slug: 'member-lock', pathname: '/member.html', text: 'Member actions are temporarily locked in staging'},
-  {slug: 'checkout-lock', pathname: '/checkout.html', text: 'STAGING CHECKOUT LOCKED'},
-  {slug: 'payment-return-lock', pathname: '/payment-return.html', text: 'Payment verification locked'},
-  {slug: 'admin-lock', pathname: '/admin.html', text: 'PREVIEW ADMIN LOCKED'}
+  {slug: 'member', pathname: '/member.html', text: 'AI BioTech Member'},
+  {slug: 'checkout', pathname: '/checkout.html', text: 'Checkout'},
+  {slug: 'payment-return', pathname: '/payment-return.html', text: 'Payment Status'},
+  {slug: 'admin', pathname: '/admin.html', text: 'Ai BioTech Admin'}
 ];
 
 const PRODUCT_DIALOG = {slug: 'product-detail-dialog', pathname: '/'};
@@ -30,6 +30,11 @@ fs.mkdirSync(artifactRoot, {recursive: true});
 
 function cleanReason(value) {
   return String(value || 'Unknown blocker').replace(/\s+/g, ' ').trim();
+}
+
+function isCommitPreviewHost(hostname) {
+  return hostname.startsWith('ai-biotech-store-') && hostname.endsWith('-rk-cd1c.vercel.app') &&
+    hostname !== 'ai-biotech-store.vercel.app' && hostname !== 'ai-biotech-store-git-main-rk-cd1c.vercel.app';
 }
 
 function parsePreviewUrl(value) {
@@ -68,7 +73,7 @@ function markdownReport(previewUrl, fatalReason = '') {
     `- Exact CSS widths: ${VIEWPORTS.map(viewport => viewport.width).join(', ')}`,
     `- Result: ${blockedCount === 0 ? 'PASS' : 'BLOCKED'} (${passCount} PASS / ${blockedCount} BLOCKED)`,
     '- Safety: read-only browser interception blocked every non-GET/HEAD/OPTIONS request.',
-    '- Authentication: same-origin x-vercel-trusted-oidc-idp-token header with a short-lived GitHub OIDC token; Vercel Authentication was not disabled.',
+    '- Authentication: x-vercel-trusted-oidc-idp-token follows only the protected integration Preview and its commit-specific redirect target; Vercel Authentication was not disabled.',
     ''
   ];
   if (fatalReason) lines.push(`> BLOCKED: ${cleanReason(fatalReason)}`, '');
@@ -142,7 +147,7 @@ async function inspectLayout(page, width) {
   }, width);
 }
 
-async function captureRoute(context, previewUrl, viewport, route) {
+async function captureRoute(context, previewUrl, trustedPreviewHosts, viewport, route) {
   const page = await context.newPage();
   const reasons = [];
   const pageErrors = [];
@@ -151,7 +156,7 @@ async function captureRoute(context, previewUrl, viewport, route) {
   page.on('pageerror', error => pageErrors.push(cleanReason(error.message)));
   page.on('response', response => {
     const url = new URL(response.url());
-    if (url.hostname === previewUrl.hostname && response.status() >= 400) {
+    if (trustedPreviewHosts.has(url.hostname) && response.status() >= 400) {
       sameOriginFailures.push(`${response.status()} ${url.pathname}`);
     }
   });
@@ -162,7 +167,8 @@ async function captureRoute(context, previewUrl, viewport, route) {
     const response = await page.goto(new URL(route.pathname, previewUrl).href, {waitUntil: 'domcontentloaded', timeout: 45_000});
     await page.waitForTimeout(1800);
     if (!response || response.status() >= 400) reasons.push(`Route returned HTTP ${response?.status() ?? 'unknown'}`);
-    if (new URL(page.url()).hostname !== previewUrl.hostname) reasons.push('Protected Preview authentication did not remain on the requested deployment.');
+    const resolvedHost = new URL(page.url()).hostname;
+    if (!trustedPreviewHosts.has(resolvedHost)) reasons.push('Protected Preview authentication resolved outside the trusted Preview deployment set.');
     const bodyText = (await page.locator('body').innerText()).replace(/\s+/g, ' ');
     if (!bodyText.includes(route.text)) reasons.push(`Expected route evidence not found: ${route.text}`);
     const layout = await inspectLayout(page, viewport.width);
@@ -186,7 +192,7 @@ async function captureRoute(context, previewUrl, viewport, route) {
   results.push({width: viewport.width, route: route.slug, status: reasons.length ? 'BLOCKED' : 'PASS', reasons, screenshot: screenshotPath});
 }
 
-async function captureProductDialog(context, previewUrl, viewport) {
+async function captureProductDialog(context, previewUrl, trustedPreviewHosts, viewport) {
   const page = await context.newPage();
   const reasons = [];
   const writeStart = blockedRequests.length;
@@ -195,6 +201,8 @@ async function captureProductDialog(context, previewUrl, viewport) {
   fs.mkdirSync(path.dirname(absoluteScreenshotPath), {recursive: true});
   try {
     await page.goto(previewUrl.href, {waitUntil: 'domcontentloaded', timeout: 45_000});
+    const resolvedHost = new URL(page.url()).hostname;
+    if (!trustedPreviewHosts.has(resolvedHost)) reasons.push('Product dialog resolved outside the trusted Preview deployment set.');
     const productButton = page.getByRole('button', {name: 'RETATRUTIDE', exact: true}).first();
     await productButton.waitFor({state: 'visible', timeout: 20_000});
     await productButton.click();
@@ -237,6 +245,7 @@ try {
         serviceWorkers: 'block',
         userAgent: 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36'
       });
+      const trustedPreviewHosts = new Set([previewUrl.hostname]);
       await context.route('**/*', async route => {
         const request = route.request();
         const method = request.method().toUpperCase();
@@ -246,14 +255,18 @@ try {
           return;
         }
         const requestUrl = new URL(request.url());
-        if (requestUrl.hostname === previewUrl.hostname) {
+        const redirectedFrom = request.redirectedFrom();
+        if (redirectedFrom && trustedPreviewHosts.has(new URL(redirectedFrom.url()).hostname) && isCommitPreviewHost(requestUrl.hostname)) {
+          trustedPreviewHosts.add(requestUrl.hostname);
+        }
+        if (trustedPreviewHosts.has(requestUrl.hostname)) {
           await route.continue({headers: {...request.headers(), 'x-vercel-trusted-oidc-idp-token': trustedOidcToken}});
           return;
         }
         await route.continue();
       });
-      for (const route of ROUTES) await captureRoute(context, previewUrl, viewport, route);
-      await captureProductDialog(context, previewUrl, viewport);
+      for (const route of ROUTES) await captureRoute(context, previewUrl, trustedPreviewHosts, viewport, route);
+      await captureProductDialog(context, previewUrl, trustedPreviewHosts, viewport);
       await context.close();
     }
   } finally {
