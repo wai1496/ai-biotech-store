@@ -29,6 +29,8 @@ assert(bootstrap.includes('/auth/v1/admin/users'),'QA bootstrap must use Supabas
 assert(bootstrap.includes('email_confirm:true')||bootstrap.includes('email_confirm: true'),'QA bootstrap must auto-confirm only the disposable QA user');
 assert(bootstrap.includes("req.method==='DELETE'")||bootstrap.includes("req.method === 'DELETE'"),'QA bootstrap must support disposable-user deletion');
 assert(script.includes("bootstrap('DELETE'")||script.includes('bootstrap("DELETE"'),'functional QA cleanup must delete its disposable Auth user');
+assert(!/page\.goto\(new URL\([^)]*\),\s*\{/g.test(script),'Playwright page.goto must receive URL strings, not URL objects');
+assert(!/page\.goto\(u,\s*\{/g.test(script),'payment-return page.goto must receive a URL string');
 assert(!/password.*JSON\.stringify|password.*console\.|password.*process\.stdout/i.test(script+bootstrap),'generated QA password must not be written to evidence or logs');
 
-console.log('temporary Preview functional QA workflow: PR/branch/OIDC/private-mailbox/server-admin-bootstrap/delete-cleanup/sandbox boundaries PASS');
+console.log('temporary Preview functional QA workflow: PR/branch/OIDC/private-mailbox/server-admin-bootstrap/delete-cleanup/navigation-strings/sandbox boundaries PASS');
