@@ -10,10 +10,10 @@ assert(cfg.includes("environment: 'staging'"));
 assert(cfg.includes('rpnwssqvurpdennpzplx.supabase.co'),'staging config must point to isolated Supabase');
 assert(cfg.includes('checkoutEnabled: true'));
 assert(cfg.includes('memberEnabled: true'));
-assert(bridge.includes("const qaRoutes=new Set(['/member.html','/checkout.html','/payment-return.html'])"),'temporary writes must be limited to the three approved QA routes');
-assert(bridge.includes("const writesEnabled=valid&&qaRoutes.has(String(window.location?.pathname||''))&&cfg.checkoutEnabled===true&&cfg.memberEnabled===true"),'temporary writes must require an approved route, both flags and the exact staging-origin validation');
-assert(bridge.includes('if(!writesEnabled)return locked'),'operational clients must remain locked unless every temporary QA condition passes');
-assert(bridge.includes("original(APPROVED,cfg.supabaseKey)"),'operational QA client must use only the approved Staging origin and publishable key');
+assert(bridge.includes("const operationalRoutes=new Set(['/member.html','/checkout.html','/payment-return.html','/admin.html'])"),'authenticated Staging access must remain limited to the four explicitly approved operational routes');
+assert(bridge.includes("const writesEnabled=valid&&operationalRoutes.has(String(window.location?.pathname||''))&&cfg.checkoutEnabled===true&&cfg.memberEnabled===true"),'authenticated Staging access must require an approved route, both flags and exact staging-origin validation');
+assert(bridge.includes('if(!writesEnabled)return locked'),'operational clients must remain locked unless every Staging condition passes');
+assert(bridge.includes("original(APPROVED,cfg.supabaseKey)"),'operational Staging client must use only the approved origin and publishable key');
 for(const html of [checkout,member]){
   const configPos=html.indexOf('/staging-config.js');
   const bridgePos=html.indexOf('/client-runtime-bridge.js');
@@ -23,4 +23,4 @@ assert(checkout.indexOf('/staging-checkout-guard.js')>checkout.indexOf('/checkou
 assert(member.indexOf('/staging-member-guard.js')>member.indexOf('/member.js'),'member guard must load after shared member functions');
 assert(checkoutGuard.includes('STAGING CHECKOUT LOCKED'));
 assert(memberGuard.includes('Staging member writes are disabled.'));
-console.log('staging-client-isolation: temporary authenticated QA is exact-origin, two-flag and publishable-key constrained');
+console.log('staging-client-isolation: authenticated Staging access is exact-origin, explicit-route, two-flag and publishable-key constrained');
