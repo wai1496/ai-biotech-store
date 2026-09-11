@@ -19,3 +19,7 @@ Production storefront, member area, checkout, admin catalog management, inventor
 Every push to `main` runs `.github/workflows/site-smoke.yml`, which validates required route files, linked local assets, duplicate script loading, legacy deployment dependencies, routing configuration and JavaScript syntax.
 
 Before significant production work, create a backup branch and avoid restoring an old Supabase snapshot over current catalog, order or protocol data.
+
+## Staging EasyParcel Preview
+
+The White Clean staging Preview keeps EasyParcel OAuth credentials server-side and requires Preview-only pickup configuration for rate testing. Pickup postcode/state are environment configuration and are intentionally not hard-coded into the storefront.
