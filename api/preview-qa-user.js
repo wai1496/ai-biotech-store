@@ -1,3 +1,4 @@
+// Staging-only QA bootstrap; Preview branch secret changes require a fresh deployment.
 const {previewSafety}=require('../lib/preview-safety');
 const {requireServiceRuntime}=require('../lib/runtime-supabase');
 
