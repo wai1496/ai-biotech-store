@@ -34,7 +34,7 @@
     let p=document.getElementById('guidesPage');
     if(!p){p=document.createElement('section');p.id='guidesPage';p.className='guidespage';document.body.appendChild(p)}
     const home=`<div class="guidehero"><span>AI BIOTECH GUIDES</span><h1>Product & Handling Guides</h1><p>Choose a guide below.</p></div><div class="guidecards"><button type="button" onclick="openGuides('pen')"><b>Prefilled Disposable Pen Set</b><span>Illustrated guide →</span></button><button type="button" onclick="openGuides('vial')"><b>Vial Set & Reconstitution</b><span>Full guide →</span></button><button type="button" onclick="openGuides('coldchain')"><b>Cold Chain & Shipping</b><span>Read shipping guide →</span></button></div>`;
-    p.innerHTML=`<div class="guidesinner"><button type="button" class="faqclose" onclick="closeGuides()">×</button>${kind!=='home'?'<button type="button" class="guideback" onclick="openGuides(\'home\')">← Back to Guides</button>':''}${kind==='pen'?pen:kind==='vial'?vial:kind==='coldchain'?coldchain:home}</div>`;
+    p.innerHTML=`<div class="guidesinner"><button type="button" class="faqclose" onclick="closeGuides()">×</button>${kind!=='home'?'<button type="button" class="guideback" onclick="openGuides(\'home\')">← Back to Guides</button>':''}${kind==='pen'?pen:kind==='vial'?vial:kind==='coldchain'?coldchain:kind==='cartridge'?'<div class="guidehero"><h1>Cartridge Guide</h1><p>Product-specific cartridge handling and compatible-device documentation have not been verified in this isolated preview. Do not substitute Pen instructions. Consult the exact supplied product documentation.</p></div>':home}</div>`;
     installGuideImageFallback(p);
     p.classList.add('show');document.body.style.overflow='hidden';p.scrollTop=0;
   };
@@ -43,6 +43,7 @@
   function ensureStyle(href,id){if(document.getElementById(id))return;const css=document.createElement('link');css.id=id;css.rel='stylesheet';css.href=href;document.head.appendChild(css)}
   function ensureScript(src,id){if(document.getElementById(id))return;const js=document.createElement('script');js.id=id;js.src=src;js.defer=true;document.body.appendChild(js)}
   function wireResearch(){
+    if(document.getElementById('productGrid'))return;
     const blend=[...document.querySelectorAll('.nav button')].find(b=>/BLENDS|RESEARCH/i.test(b.textContent||''));
     if(blend){blend.textContent='⌘ RESEARCH';blend.onclick=()=>window.openResearch&&window.openResearch()}
     const panel=[...document.querySelectorAll('.panels>div')].find(x=>/RESEARCH CATALOG/i.test(x.textContent||''));
@@ -51,6 +52,6 @@
     ensureScript('/research-detail-full.js','aibtResearchFull');
   }
 
-  ensureStyle('/research.css','aibtResearchCss');
+  if(!document.getElementById('productGrid'))ensureStyle('/research.css','aibtResearchCss');
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',wireResearch,{once:true});else wireResearch();
 })();

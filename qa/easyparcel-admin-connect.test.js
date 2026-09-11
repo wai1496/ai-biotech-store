@@ -1,0 +1,11 @@
+const fs=require('fs');
+const assert=require('assert');
+const admin=fs.readFileSync('admin-shipping.js','utf8');
+const status=fs.readFileSync('api/easyparcel-status.js','utf8');
+assert(admin.includes('/api/easyparcel/connect'),'Admin EasyParcel setup must start the restored OAuth connect route');
+assert(/Connect EasyParcel/i.test(admin),'Admin EasyParcel setup must expose a Connect EasyParcel action');
+assert(/authorization_url/.test(admin),'Admin EasyParcel connect flow must consume the server-provided authorization URL');
+assert(status.includes('EASYPARCEL_CLIENT_ID')&&status.includes('EASYPARCEL_CLIENT_SECRET'),'EasyParcel status must report OAuth config, not legacy API-key config');
+assert(status.includes('getOauthTokens'),'EasyParcel status must report whether OAuth is connected');
+assert(!status.includes('EASYPARCEL_API_KEY'),'EasyParcel status must not require the obsolete direct API key');
+console.log('easyparcel-admin-connect: ok');

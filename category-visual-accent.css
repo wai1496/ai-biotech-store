@@ -1,0 +1,8 @@
+/* Category-aware visual accents. Vial is now rendered as a true layered SVG by vial-layered-renderer.js. */
+.product-media,.info-visual{--visual-accent:var(--cat,#1477ff);position:relative}
+.product-card[data-format="Vial"] .product-media:before,.product-card[data-format="Vial"] .product-media:after,.info-visual[data-format="Vial"]:before,.info-visual[data-format="Vial"]:after{content:none!important;display:none!important}
+.product-card[data-format="Vial"] .dynamic-label,.info-visual[data-format="Vial"] .info-dynamic-label{display:none!important}
+.product-card[data-format="Pen"] .product-media:after,.info-visual[data-format="Pen"]:after{content:"";position:absolute;z-index:2;pointer-events:none;right:2.6%;top:44%;width:3.4%;height:12%;border-radius:0 10px 10px 0;background:var(--visual-accent);opacity:.9;mix-blend-mode:multiply}
+.product-card[data-format="Pen"] .dynamic-label .name,.info-visual[data-format="Pen"] .info-dynamic-label .name{color:var(--visual-accent)!important}
+.product-card[data-format="Cartridge"] .product-media:after,.info-visual[data-format="Cartridge"]:after{content:"";position:absolute;z-index:2;pointer-events:none;right:29%;top:38%;width:8%;height:27%;border-radius:8px;background:var(--visual-accent);opacity:.78;mix-blend-mode:multiply}
+.product-media img,.info-visual img{position:relative;z-index:1}.dynamic-label,.info-dynamic-label,.category-badge,.format-badge{z-index:4!important}

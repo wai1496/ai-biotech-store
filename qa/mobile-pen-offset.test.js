@@ -1,12 +1,8 @@
-const assert=require('assert'),fs=require('fs'),path=require('path');
-const root=path.join(__dirname,'..');
-const css=fs.readFileSync(path.join(root,'mobile-product-alignment.css'),'utf8');
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-
-assert.match(css,/@media\(max-width:720px\)/,'Pen offset must remain mobile-only');
-assert.match(css,/\.product>\.visual \.aibt-visual-frame:has\(\.aibt-master-pen\)>img\{[^}]*transform:translateY\(48px\)/s,'catalog Pen image should move down 48px on mobile');
-assert.match(css,/\.pd-stage \.aibt-visual-frame:has\(\.aibt-master-pen\)>img\{[^}]*transform:translateY\(48px\)/s,'product-detail Pen image should move down 48px on mobile');
-assert.doesNotMatch(css,/aibt-master-(?:vial|cartridge)[^}]*translateY\(/s,'Vial and Cartridge positions must remain unchanged');
-assert.match(css,/\.hero \.primary\{[^}]*margin-top:24px/s,'Explore Products CTA should move down 24px on mobile');
-assert.match(html,/mobile-product-alignment\.css\?v=20260907/,'mobile CSS version must be bumped so the refined mobile alignment reaches browsers');
-console.log('mobile alignment contract passed');
+const assert=require('assert'),fs=require('fs');
+const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('mobile-product-reference-fix.css','utf8'),detail=fs.readFileSync('shared-content.css','utf8');
+assert(html.includes('/mobile-product-reference-fix.css'));
+assert(/\.product-media img\{[^}]*object-fit:contain[^}]*object-position:50% 50%[^}]*transform:none/s.test(css),'active White Clean media must be contained and centered');
+for(const format of ['Pen','Vial','Cartridge'])assert(css.includes('data-format="'+format+'"'),'all formats must retain specific padding');
+assert(detail.includes('object-fit:contain')&&detail.includes('object-position:center')&&detail.includes('transform:none'));
+assert(!html.includes('/mobile-product-alignment.css'),'retired dark-shell offsets must not be imposed on White Clean');
+console.log('White Clean mobile containment source contract PASS; 360/390/620/720px screenshots remain unverified');

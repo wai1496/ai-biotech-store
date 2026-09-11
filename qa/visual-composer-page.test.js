@@ -1,0 +1,14 @@
+const assert=require('assert'),fs=require('fs'),path=require('path');
+const root=path.join(__dirname,'..');
+for(const file of ['visual-composer.html','visual-composer.css','visual-composer.js'])assert.ok(fs.existsSync(path.join(root,file)),`${file} must exist`);
+const html=fs.readFileSync(path.join(root,'visual-composer.html'),'utf8');
+const js=fs.readFileSync(path.join(root,'visual-composer.js'),'utf8');
+assert.match(html,/PREVIEW ONLY[^<]*NO PRODUCTION WRITES/i,'preview-only safety banner is required');
+for(const id of ['vcProduct','vcStrength','vcFormat','vcAccent','vcMaster','vcCanvas','vcStatus','vcMeta','vcRender','vcReset'])assert.ok(html.includes(`id="${id}"`),`missing ${id}`);
+assert.match(html,/width="1536"[^>]*height="1536"/,'preview canvas must be 1536 square');
+assert.ok(html.indexOf('/visual-renderer.js')<html.indexOf('/visual-composer.js'),'renderer must load before controller');
+for(const label of ['Draft','Looks Good','Needs Adjustment'])assert.ok(html.includes(label),`missing local QA status: ${label}`);
+assert.ok(!/action\s*=/.test(html),'composer must not submit a form');
+for(const forbidden of ['.insert(','.update(','.upsert(','.delete(','.upload(','localStorage'])assert.ok(!js.includes(forbidden),`composer must stay non-persistent: ${forbidden}`);
+assert.match(js,/AIBTVisualRenderer\.renderPreview/,'controller must call the shared preview renderer');
+console.log('visual composer page contract passed');

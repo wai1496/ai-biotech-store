@@ -24,6 +24,26 @@ jobs:
         run: node scripts/smoke-check.mjs
       - name: Validate unresolved storefront issue fixes
         run: node scripts/storefront-live-issues-check.mjs
+      - name: All maintained offline contracts and behavior fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in qa/*.test.js; do node "$file"; done
+      - name: Validate preview-only visual composer
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in qa/visual-composer-*.test.js; do node "$file"; done
+      - name: Validate storefront runtime visuals
+        run: node qa/storefront-runtime-visuals.test.js
+      - name: Validate Malaysia checkout address flow
+        run: node qa/checkout-malaysia-address.test.js
+      - name: Validate mobile member navigation
+        run: node qa/mobile-member-nav.test.js
+      - name: Validate continue-shopping cart flow
+        run: node qa/cart-continue-shopping.test.js
+      - name: Validate ToyyibPay sandbox flow
+        run: node qa/toyyibpay-sandbox.test.js
       - name: Validate JavaScript syntax
         shell: bash
         run: |
